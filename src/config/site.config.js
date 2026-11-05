@@ -1,0 +1,31 @@
+export const siteConfig = {
+  brand: {
+    name: "MEDO",
+    brandName: "MEDO",
+    handle: "Medo-king-01",
+    year: "2026",
+  },
+  seo: {
+    title: "MEDO — MIS Student | AI-Assisted Development",
+    description: "Mohamed Elsayed Abu Jumaa (Medo), MIS student at Higher Institute of Management and Computer Science, Ras El Bar. Self-directed learner building practical projects with AI-assisted development.",
+    keywords: "MIS Student, AI-Assisted Development, Self-Directed Learning, React, Python, Portfolio",
+    author: "Mohamed Elsayed Abu Jumaa",
+  },
+  sections: {
+    preloader:  { enabled: true, order: 0, isStructural: true },
+    navbar:     { enabled: true, order: 1, isStructural: true },
+    hero:       { enabled: true, order: 2 },
+    about:      { enabled: true, order: 3 },
+    story:      { enabled: true, order: 4 },
+    skills:     { enabled: true, order: 5 },
+    howIWork:   { enabled: true, order: 6 },
+    projects:   { enabled: true, order: 7 },
+    beyondTech: { enabled: true, order: 8 },
+    aiToolkit:  { enabled: true, order: 9 },
+    perspective:{ enabled: true, order: 10 },
+    leadership: { enabled: true, order: 11 },
+    softskills: { enabled: true, order: 12 },
+    contact:    { enabled: true, order: 13 },
+    footer:     { enabled: true, order: 14, isStructural: true },
+  },
+};
