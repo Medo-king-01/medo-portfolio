@@ -1,108 +1,116 @@
 import { useState, useEffect } from 'react';
 import { personalInfo } from '../data/portfolioData';
+import { siteConfig } from '../config/site.config';
 import { useLanguage } from '../context/LanguageContext.jsx';
+
+const ALL_NAV_LINKS = [
+  { key: 'home', sectionKey: 'hero', href: '#home' },
+  { key: 'about', sectionKey: 'about', href: '#about' },
+  { key: 'story', sectionKey: 'story', href: '#story' },
+  { key: 'skills', sectionKey: 'skills', href: '#skills' },
+  { key: 'process', sectionKey: 'process', href: '#process' },
+  { key: 'howIWork', sectionKey: 'howIWork', href: '#how-i-work' },
+  { key: 'projects', sectionKey: 'projects', href: '#projects' },
+  { key: 'certifications', sectionKey: 'certifications', href: '#certifications' },
+  { key: 'beyondTech', sectionKey: 'beyondTech', href: '#beyond-tech' },
+  { key: 'aiToolkit', sectionKey: 'aiToolkit', href: '#ai-toolkit' },
+  { key: 'leadership', sectionKey: 'leadership', href: '#leadership' },
+  { key: 'perspective', sectionKey: 'perspective', href: '#perspective' },
+  { key: 'softSkills', sectionKey: 'softskills', href: '#softskills' },
+  { key: 'contact', sectionKey: 'contact', href: '#contact' },
+];
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { language, toggleLanguage, t, langConfig } = useLanguage();
 
-  // Handle scroll to make navbar more solid
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 50) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
+      setIsScrolled(window.scrollY > 50);
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navLinks = [
-    { key: 'home', href: '#home' },
-    { key: 'about', href: '#about' },
-    { key: 'story', href: '#story' },
-    { key: 'skills', href: '#skills' },
-    { key: 'howIWork', href: '#how-i-work' },
-    { key: 'projects', href: '#projects' },
-    { key: 'beyondTech', href: '#beyond-tech' },
-    { key: 'aiToolkit', href: '#ai-toolkit' },
-    { key: 'perspective', href: '#perspective' },
-    { key: 'leadership', href: '#leadership' },
-    { key: 'softskills', href: '#softskills' },
-    { key: 'contact', href: '#contact' },
-  ];
+  const navLinks = ALL_NAV_LINKS.filter(
+    (link) => siteConfig.sections[link.sectionKey]?.enabled !== false
+  );
 
   const hireMeMailto = '#contact';
 
   return (
-    <nav 
-      className={`fixed left-0 top-0 z-50 w-full border-b transition-all duration-300 ${isOpen || isScrolled ? 'border-slate-200 bg-white/90 py-3 shadow-[0_8px_30px_rgba(32,38,43,0.08)] backdrop-blur-xl' : 'border-transparent bg-white/70 py-4 backdrop-blur-md'}`}
+    <nav
+      className={`fixed left-0 top-0 z-50 w-full border-b transition-all duration-300 ${
+        isOpen || isScrolled
+          ? 'border-[var(--color-3)] bg-[var(--color-5)]/92 py-3 shadow-[0_8px_30px_rgba(27,23,22,0.08)] backdrop-blur-xl'
+          : 'border-transparent bg-[var(--color-5)]/75 py-4 backdrop-blur-md'
+      }`}
       dir={langConfig.dir}
     >
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 md:px-12">
-        
-        {/* Left Side: Logo/Name */}
-        <div className="flex items-center">
-          <a href="#" className="whitespace-nowrap text-2xl font-black tracking-tight text-slate-900">
-            {personalInfo.brandName}<span className="text-amber-600">.</span>
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 sm:px-8 xl:px-10">
+        {/* Brand Logo */}
+        <div className="flex shrink-0 items-center">
+          <a href="#home" dir="ltr" className="whitespace-nowrap text-2xl font-black tracking-tight text-[var(--color-4)]">
+            {personalInfo.brandName}<span className="text-[var(--color-7)]">.</span>
           </a>
         </div>
 
         {/* Center: Desktop Menu Links */}
-        <div className="hidden items-center gap-6 md:flex">
+        <div className="hidden min-w-0 flex-1 items-center gap-3.5 overflow-x-auto py-2 xl:flex 2xl:gap-5">
           {navLinks.map((link) => (
-            <a 
-              key={link.key} 
+            <a
+              key={link.key}
               href={link.href}
-              className="group relative text-sm font-medium text-slate-600 transition-colors duration-300 hover:text-slate-900"
+              className="group relative whitespace-nowrap text-xs font-semibold text-[var(--color-4)]/72 transition-colors duration-300 hover:text-[var(--color-4)] 2xl:text-[13px]"
             >
               {t(`nav.${link.key}`)}
-              {/* Smooth hover underline */}
-              <span className="absolute -bottom-1 left-0 h-0.5 w-0 bg-amber-600 transition-all duration-300 group-hover:w-full" />
+              <span className="absolute -bottom-1 start-0 h-0.5 w-0 bg-[var(--color-7)] transition-all duration-300 group-hover:w-full" />
             </a>
           ))}
         </div>
 
-        {/* Right Side: Language Switcher + CTA Button */}
-        <div className="hidden md:flex items-center gap-4">
-          {/* Language Switcher */}
+        {/* End: Language Switcher + CTA Button */}
+        <div className="hidden shrink-0 items-center gap-3 xl:flex">
           <button
+            type="button"
             onClick={toggleLanguage}
-            className="relative rounded-full border border-slate-300 bg-white px-4 py-2 font-medium text-slate-700 transition-all duration-300 hover:border-slate-900 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-600"
+            className="relative inline-flex cursor-pointer items-center gap-2 whitespace-nowrap rounded-full border border-[var(--color-3)] bg-white/85 px-3.5 py-2 text-xs font-semibold text-[var(--color-4)] transition-all duration-300 hover:border-[var(--color-2)] hover:text-[var(--color-2)] hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-2)]"
             aria-label={t('language.switchTo').replace('{language}', language === 'en' ? 'Arabic' : 'English')}
           >
-            <span className="text-lg">{langConfig.flag}</span>
-            <span className="ml-2 hidden sm:inline">{langConfig.name}</span>
+            <span className="text-base leading-none">{langConfig.flag}</span>
+            <span>{language === 'en' ? 'العربية' : 'EN'}</span>
           </button>
 
-          {/* CTA Button */}
-          <a 
+          <a
             href={hireMeMailto}
-            className="rounded-full border border-slate-300 bg-white px-5 py-2.5 font-bold text-slate-800 transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-900 hover:shadow-md"
+            className="whitespace-nowrap rounded-full border border-[var(--color-4)] bg-[var(--color-4)] px-4 py-2 text-xs font-bold text-[var(--color-5)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--color-2)] hover:bg-[var(--color-2)] hover:shadow-md"
           >
             {t('hero.ctaSecondary.text')}
           </a>
         </div>
 
-        {/* Mobile Hamburger Menu Icon */}
-        <div className="md:hidden flex items-center gap-2">
-          {/* Mobile Language Switcher */}
+        {/* Mobile / Tablet Hamburger Controls */}
+        <div className="flex items-center gap-2 xl:hidden">
           <button
+            type="button"
             onClick={toggleLanguage}
-            className="rounded-full p-2 text-slate-700 bg-white/80 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-600"
+            className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[var(--color-3)] bg-white/85 px-3 py-1.5 text-xs font-bold text-[var(--color-4)] focus:outline-none focus:ring-2 focus:ring-[var(--color-2)]"
             aria-label={t('language.switchTo').replace('{language}', language === 'en' ? 'Arabic' : 'English')}
           >
-            <span className="text-lg">{langConfig.flag}</span>
+            <span className="text-base leading-none">{langConfig.flag}</span>
+            <span>{language === 'en' ? 'AR' : 'EN'}</span>
           </button>
-          
-          <button 
+
+          <button
+            type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className="rounded-full p-2 text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-600 md:hidden"
+            aria-expanded={isOpen}
+            aria-label={isOpen ? t('common.close') : t('common.menu')}
+            aria-controls="mobile-menu"
+            className="cursor-pointer rounded-full p-2 text-[var(--color-4)] focus:outline-none focus:ring-2 focus:ring-[var(--color-2)]"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {isOpen ? (
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
               ) : (
@@ -113,42 +121,52 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Slide-Down Menu */}
-      <div 
-        className={`md:hidden absolute top-full left-0 w-full transition-all duration-300 overflow-hidden ${
-          isOpen ? 'max-h-96 border-t border-slate-200 bg-white py-4 opacity-100 shadow-xl' : 'max-h-0 opacity-0'
+      {/* Mobile / Tablet Slide-Down Menu */}
+      <div
+        id="mobile-menu"
+        inert={!isOpen}
+        aria-hidden={!isOpen}
+        className={`absolute left-0 top-full w-full transition-all duration-300 xl:hidden ${
+          isOpen
+            ? 'max-h-[calc(100vh-4.5rem)] overflow-y-auto border-t border-[var(--color-3)] bg-[var(--color-5)] py-4 opacity-100 shadow-xl'
+            : 'max-h-0 overflow-hidden opacity-0'
         }`}
         dir={langConfig.dir}
       >
-        <div className="flex flex-col px-6 space-y-4">
+        <div className="flex flex-col space-y-3 px-6">
           {navLinks.map((link) => (
-            <a 
-              key={link.key} 
+            <a
+              key={link.key}
               href={link.href}
               onClick={() => setIsOpen(false)}
-              className="border-b border-slate-200 pb-2 text-lg font-bold text-slate-700 transition-colors hover:text-amber-700"
+              className="border-b border-[var(--color-3)] pb-2 text-base font-bold text-[var(--color-4)] transition-colors hover:text-[var(--color-2)]"
             >
               {t(`nav.${link.key}`)}
             </a>
           ))}
-          {/* Mobile Language Switcher in Menu */}
-          <div className="pt-2 border-t border-slate-200">
+
+          <div className="pt-2">
             <button
-              onClick={() => { toggleLanguage(); setIsOpen(false); }}
-              className="w-full flex items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2.5 font-bold text-slate-700 transition-all duration-300 hover:border-slate-900 hover:shadow-sm"
+              type="button"
+              onClick={() => {
+                toggleLanguage();
+                setIsOpen(false);
+              }}
+              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-[var(--color-3)] bg-white/90 px-4 py-2.5 text-sm font-bold text-[var(--color-4)] transition-all duration-300 hover:border-[var(--color-2)] hover:shadow-sm"
             >
               <span className="text-lg">{langConfig.flag}</span>
               <span>{t('language.switchTo').replace('{language}', language === 'en' ? 'العربية' : 'English')}</span>
             </button>
           </div>
-          <div className="pt-4 pb-2">
-             <a 
-               href={hireMeMailto}
-               onClick={() => setIsOpen(false)} 
-               className="inline-block w-full rounded-full bg-slate-900 px-6 py-3 text-center font-black text-white shadow-lg transition-colors hover:bg-amber-700"
-             >
-               {t('hero.ctaSecondary.text')}
-             </a>
+
+          <div className="pb-2 pt-2">
+            <a
+              href={hireMeMailto}
+              onClick={() => setIsOpen(false)}
+              className="inline-block w-full rounded-full bg-[var(--color-4)] px-6 py-3 text-center text-sm font-black text-[var(--color-5)] shadow-lg transition-colors hover:bg-[var(--color-2)]"
+            >
+              {t('hero.ctaSecondary.text')}
+            </a>
           </div>
         </div>
       </div>

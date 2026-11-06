@@ -1,16 +1,41 @@
-# React + Vite
+# MEDO Portfolio
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Personal bilingual portfolio (**English LTR / Arabic RTL**) for **Mohamed Elsayed Abu Jumaa (MEDO)** — Management Information Systems (MIS) major and AI-Assisted Digital Product Builder.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **React 19** + **Vite 8**
+- **Tailwind CSS v4** (`@tailwindcss/vite`)
+- **Framer Motion** & **AOS** for animations and interactive motion
+- **Context-based i18n** (`en` / `ar` with automatic `ltr` / `rtl` direction switching)
 
-## React Compiler
+## Project Structure
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- `src/config/site.config.js` — Brand metadata, SEO configuration, and dynamic section ordering/toggling
+- `src/context/LanguageContext.jsx` — Bilingual language context (`en` / `ar`) and `localStorage` persistence
+- `src/data/portfolioData.js` — Structured portfolio data (projects, journey items, skills, personal info)
+- `src/data/translations.js` — Complete English and Arabic UI translations
+- `src/components/` — Modular section components orchestrated by `src/App.jsx`
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+npm install
+npm run dev
+```
+
+## Build & Lint
+
+```bash
+npm run lint
+npm run build
+```
+
+## Browser tests
+
+```bash
+npx playwright install chromium  # once per machine (and install OS dependencies if prompted)
+npm run test:e2e
+```
+
+The tests build and serve the production site locally, then exercise desktop and mobile Chromium, both languages, the galleries and certificate PDFs, layout, form validation, and blocked browser storage. Google Fonts are blocked in these tests to avoid depending on an external network; the site uses fallback fonts.

@@ -1,6 +1,13 @@
 import { softSkillsList } from '../data/portfolioData';
 import { useLanguage } from '../context/LanguageContext.jsx';
 
+const resolveLocalized = (field, language) => {
+  if (field && typeof field === 'object') {
+    return field[language] || field.en || '';
+  }
+  return field || '';
+};
+
 const SkillIcon = ({ type }) => {
   const paths = {
     leadership: 'M12 3l1.9 5.3L19 10l-5.1 1.7L12 17l-1.9-5.3L5 10l5.1-1.7L12 3zm-6 12l.9 2.1L9 18l-2.1.9L6 21l-.9-2.1L3 18l2.1-.9L6 15z',
@@ -14,67 +21,73 @@ const SkillIcon = ({ type }) => {
   };
 
   return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8">
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8">
       <path d={paths[type] || paths.communication} />
     </svg>
   );
 };
 
-const SoftSkillCard = ({ skill, index }) => (
-  <div 
-    data-aos="fade-up"
-    data-aos-delay={index * 100}
-    className="bg-[#f8f8f8] border border-gray-200 rounded-3xl p-6 hover:scale-[1.03] hover:bg-white hover:border-[#ff2a2a]/30 hover:shadow-[0_20px_45px_rgba(255,42,42,0.08)] transition-all duration-500 group flex flex-col items-center text-center justify-between min-h-[220px]"
-  >
-    <div className="flex flex-col items-center">
-      <div className="text-4xl mb-4 p-3 bg-gray-100 rounded-2xl group-hover:bg-[#ff2a2a]/10 group-hover:scale-110 transition-all duration-300">
-        <SkillIcon type={skill.icon} />
-      </div>
-      <h3 className="text-gray-900 text-lg font-black tracking-tight mb-2 uppercase">
-        {skill.name}
-      </h3>
-      <p className="text-gray-500 text-sm font-medium leading-relaxed">
-        {skill.desc}
-      </p>
-    </div>
-  </div>
-);
-
-const SoftSkills = () => {
-  const { t, langConfig } = useLanguage();
+const SoftSkillCard = ({ skill, index, language }) => {
+  const name = resolveLocalized(skill.name, language);
+  const desc = resolveLocalized(skill.desc, language);
 
   return (
-    <section id="softskills" className="bg-white pt-24 pb-32 px-6 md:px-12 w-full relative overflow-hidden font-sans bg-[linear-gradient(to_right,#80808006_1px,transparent_1px),linear-gradient(to_bottom,#80808006_1px,transparent_1px)] bg-[size:60px_60px]" dir={langConfig.dir}>
-      
-      {/* Top paper divider (torn SVG transition from dark section) */}
-      <div className="absolute top-0 left-0 w-full pointer-events-none z-10 transform -translate-y-[1px] rotate-180">
-        <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-12 md:h-20 fill-[#0a0a0a]">
-          <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V95.8C59.71,118.08,130.83,119.62,189.5,99.8,242.79,81.82,282.88,63.6,321.39,56.44Z"></path>
+    <div
+      data-aos="fade-up"
+      data-aos-delay={index * 100}
+      className="group flex min-h-[220px] flex-col items-center justify-between rounded-3xl border border-[var(--color-3)] bg-white/85 p-6 text-center transition-all duration-500 hover:scale-[1.03] hover:border-[var(--color-2)]/40 hover:bg-white hover:shadow-[0_20px_45px_rgba(27,23,22,0.10)]"
+    >
+      <div className="flex flex-col items-center">
+        <div className="mb-4 rounded-2xl bg-[var(--color-8)]/20 p-3 text-4xl text-[var(--color-2)] transition-all duration-300 group-hover:scale-110 group-hover:bg-[var(--color-2)] group-hover:text-[var(--color-5)]">
+          <SkillIcon type={skill.icon} />
+        </div>
+        <h3 className="mb-2 text-lg font-black uppercase tracking-tight text-[var(--color-4)]">
+          {name}
+        </h3>
+        <p className="text-sm font-medium leading-relaxed text-[var(--color-4)]/75">
+          {desc}
+        </p>
+      </div>
+    </div>
+  );
+};
+
+const SoftSkills = () => {
+  const { t, langConfig, language } = useLanguage();
+
+  return (
+    <section
+      id="softskills"
+      className="relative w-full overflow-hidden bg-[var(--color-6)] bg-[linear-gradient(to_right,#1b171608_1px,transparent_1px),linear-gradient(to_bottom,#1b171608_1px,transparent_1px)] bg-[size:60px_60px] px-6 pb-32 pt-28 font-sans md:px-12"
+      dir={langConfig.dir}
+    >
+      {/* Top paper divider transitioning smoothly from var(--color-5) */}
+      <div className="pointer-events-none absolute left-0 top-0 z-10 w-full -translate-y-[1px] rotate-180">
+        <svg viewBox="0 0 1200 120" preserveAspectRatio="none" className="h-12 w-full fill-[var(--color-5)] md:h-20">
+          <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V95.8C59.71,118.08,130.83,119.62,189.5,99.8,242.79,81.82,282.88,63.6,321.39,56.44Z" />
         </svg>
       </div>
 
-      <div className="max-w-6xl mx-auto relative z-20">
-        
+      <div className="relative z-20 mx-auto max-w-6xl">
         {/* Header */}
-        <div data-aos="fade-up" className="mb-16 md:mb-20 text-center">
-          <div className="inline-block border border-gray-300 rounded-full px-5 py-1.5 text-sm text-gray-600 font-bold mb-6 shadow-sm bg-white">
+        <div data-aos="fade-up" className="mb-16 text-center md:mb-20">
+          <div className="mb-6 inline-block rounded-full border border-[var(--color-3)] bg-white/85 px-5 py-1.5 text-sm font-bold text-[var(--color-2)] shadow-sm">
             {t('softSkills.badge')}
           </div>
-          <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight mb-4 uppercase">
+          <h2 className="mb-4 text-4xl font-black uppercase tracking-tight text-[var(--color-4)] md:text-5xl">
             {t('softSkills.heading')}
           </h2>
-          <p className="text-gray-500 text-base md:text-lg max-w-lg mx-auto leading-relaxed">
+          <p className="mx-auto max-w-lg text-base leading-relaxed text-[var(--color-4)]/75 md:text-lg">
             {t('softSkills.subheading')}
           </p>
         </div>
 
         {/* Soft Skills Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {softSkillsList.map((skill, index) => (
-            <SoftSkillCard key={skill.name} skill={skill} index={index} />
+            <SoftSkillCard key={skill.id || index} skill={skill} index={index} language={language} />
           ))}
         </div>
-
       </div>
     </section>
   );

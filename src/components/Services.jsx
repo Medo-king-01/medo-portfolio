@@ -27,23 +27,31 @@ const ProcessStep = ({ card, index, reducedMotion, t }) => {
       initial={reducedMotion ? false : { opacity: 0, y: 30, scale: 0.96 }}
       animate={reducedMotion || active ? { opacity: 1, y: 0, scale: 1 } : undefined}
       transition={{ duration: 0.7, delay: reducedMotion ? 0 : index * 0.08, ease: [0.22, 1, 0.36, 1] }}
-      className={`group relative pl-14 md:pl-0 ${index % 2 === 1 ? 'md:pt-12' : ''}`}
+      className={`group relative ps-14 md:ps-0 ${index % 2 === 1 ? 'md:pt-12' : ''}`}
     >
-      <div className="absolute left-3 top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full border-4 border-[#f6f5f2] bg-slate-900 text-[10px] font-black text-white transition-all duration-500 group-hover:scale-110 group-hover:bg-amber-700 md:relative md:left-auto md:top-auto md:mx-auto md:mb-8">
+      <div className="absolute start-3 top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full border-4 border-[var(--color-5)] bg-[var(--color-4)] text-[10px] font-black text-[var(--color-5)] transition-all duration-500 group-hover:scale-110 group-hover:bg-[var(--color-2)] md:relative md:start-auto md:top-auto md:mx-auto md:mb-8">
         {card.number}
       </div>
 
-      <div className={`rounded-[1.5rem] border p-6 transition-all duration-500 md:min-h-[300px] md:p-7 ${active ? 'border-amber-700/30 bg-white shadow-[0_20px_45px_rgba(32,38,43,0.10)]' : 'border-slate-200 bg-white/70 shadow-[0_10px_30px_rgba(32,38,43,0.04)]'} group-hover:-translate-y-1 group-hover:border-amber-700/30`}>
+      <div className={`rounded-[1.5rem] border p-6 transition-all duration-500 md:min-h-[300px] md:p-7 ${active ? 'border-[var(--color-2)]/35 bg-white shadow-[0_20px_45px_rgba(27,23,22,0.10)]' : 'border-[var(--color-3)] bg-white/75 shadow-[0_10px_30px_rgba(27,23,22,0.04)]'} group-hover:-translate-y-1 group-hover:border-[var(--color-2)]/40`}>
         <div className="mb-5 flex items-center justify-between">
-          <span className={`flex h-12 w-12 items-center justify-center rounded-2xl transition-all duration-500 ${active ? 'bg-amber-700 text-white' : 'bg-[#ebe9e3] text-amber-700'} group-hover:rotate-6`}>
+          <span className={`flex h-12 w-12 items-center justify-center rounded-2xl transition-all duration-500 ${active ? 'bg-[var(--color-2)] text-[var(--color-5)]' : 'bg-[var(--color-6)] text-[var(--color-2)]'} group-hover:rotate-6`}>
             <ProcessIcon type={card.icon} />
           </span>
-          <span className="font-mono text-xs font-bold uppercase tracking-[0.16em] text-slate-400">{t('skillsContent.stageLabel').replace('{number}', card.number)}</span>
+          <span className="font-mono text-xs font-bold uppercase tracking-[0.14em] text-[var(--color-1)]">
+            {t('skillsContent.stageLabel').replace('{number}', card.number)}
+          </span>
         </div>
-        <h3 className="text-2xl font-black tracking-tight text-slate-900 transition-transform duration-500 group-hover:translate-x-1">{card.title}</h3>
-        <p className="mt-3 text-sm font-medium leading-relaxed text-slate-600 md:text-base">{card.text}</p>
+        <h3 className="text-2xl font-black tracking-tight text-[var(--color-4)] transition-transform duration-500 group-hover:translate-x-1 rtl:group-hover:-translate-x-1">
+          {card.title}
+        </h3>
+        <p className="mt-3 text-sm font-medium leading-relaxed text-[var(--color-4)]/75 md:text-base">{card.text}</p>
         <div className={`mt-6 flex flex-wrap gap-2 transition-all duration-500 ${active ? 'translate-y-0 opacity-100' : 'translate-y-1 opacity-80'}`}>
-          {card.keywords.map((keyword) => <span key={keyword} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-500">{keyword}</span>)}
+          {card.keywords.map((keyword) => (
+            <span key={keyword} className="rounded-full border border-[var(--color-3)] bg-[var(--color-5)] px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-[var(--color-4)]/70">
+              {keyword}
+            </span>
+          ))}
         </div>
       </div>
     </motion.article>
@@ -60,20 +68,43 @@ const Services = () => {
   const skillsContentData = t('skillsContent');
 
   return (
-    <section id="process" ref={sectionRef} className="relative overflow-hidden bg-[#f6f5f2] px-6 pb-32 pt-28 font-sans bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:80px_80px] md:px-12 md:pt-36" dir={langConfig.dir}>
-      <div className="pointer-events-none absolute left-[-10rem] top-20 h-96 w-96 rounded-full bg-amber-700/5 blur-3xl" />
+    <section
+      id="process"
+      ref={sectionRef}
+      className="relative overflow-hidden bg-[var(--color-5)] bg-[linear-gradient(to_right,#1b171608_1px,transparent_1px),linear-gradient(to_bottom,#1b171608_1px,transparent_1px)] bg-[size:80px_80px] px-6 pb-32 pt-28 font-sans md:px-12 md:pt-36"
+      dir={langConfig.dir}
+    >
+      <div className="pointer-events-none absolute left-[-10rem] top-20 h-96 w-96 rounded-full bg-[var(--color-8)]/15 blur-3xl" />
       <div className="relative z-10 mx-auto max-w-7xl">
-        <motion.div initial={reducedMotion ? false : { opacity: 0, y: 24, filter: 'blur(8px)' }} whileInView={reducedMotion ? undefined : { opacity: 1, y: 0, filter: 'blur(0px)' }} viewport={{ once: true, amount: 0.4 }} transition={{ duration: 0.8 }} className="mb-16 max-w-4xl md:mb-20">
-          <span className="inline-block rounded-full border border-slate-300 bg-white px-5 py-1.5 text-sm font-bold text-slate-600 shadow-sm">{skillsContentData.badge}</span>
-          <h2 className="mt-7 text-4xl font-black leading-[1.02] tracking-tight text-slate-900 md:text-6xl lg:text-7xl">{skillsContentData.heading}</h2>
-          <p className="mt-5 max-w-2xl text-base font-medium leading-relaxed text-slate-600 md:text-lg">{skillsContentData.description}</p>
+        <motion.div
+          initial={reducedMotion ? false : { opacity: 0, y: 24, filter: 'blur(8px)' }}
+          whileInView={reducedMotion ? undefined : { opacity: 1, y: 0, filter: 'blur(0px)' }}
+          viewport={{ once: true, amount: 0.4 }}
+          transition={{ duration: 0.8 }}
+          className="mb-16 max-w-4xl md:mb-20"
+        >
+          <span className="inline-block rounded-full border border-[var(--color-3)] bg-white/85 px-5 py-1.5 text-sm font-bold text-[var(--color-2)] shadow-sm">
+            {skillsContentData.badge}
+          </span>
+          <h2 className="mt-7 text-4xl font-black leading-[1.05] tracking-tight text-[var(--color-4)] md:text-6xl lg:text-7xl">
+            {skillsContentData.heading}
+          </h2>
+          <p
+            className="mt-5 max-w-2xl text-base font-medium leading-relaxed text-[var(--color-4)]/75 md:text-lg"
+            dangerouslySetInnerHTML={{ __html: skillsContentData.description }}
+          />
         </motion.div>
 
         <div className="relative">
-          <div className="absolute bottom-0 left-[1.15rem] top-0 w-px bg-slate-200 md:bottom-auto md:left-0 md:right-0 md:top-[1.1rem] md:h-px md:w-auto" />
-          <motion.div style={reducedMotion ? undefined : { scaleX: lineProgress, scaleY: lineProgress }} className="absolute left-[1.15rem] top-0 h-full w-1 origin-top rounded-full bg-amber-700 md:left-0 md:top-[1.1rem] md:h-1 md:w-full md:origin-left" />
+          <div className="absolute bottom-0 start-[1.15rem] top-0 w-px bg-[var(--color-3)] md:bottom-auto md:left-0 md:right-0 md:top-[1.1rem] md:h-px md:w-auto" />
+          <motion.div
+            style={reducedMotion ? undefined : { scaleX: lineProgress, scaleY: lineProgress }}
+            className="absolute start-[1.15rem] top-0 h-full w-1 origin-top rounded-full bg-[var(--color-7)] md:left-0 md:top-[1.1rem] md:h-1 md:w-full md:origin-left rtl:md:origin-right"
+          />
           <div className="grid grid-cols-1 gap-6 md:grid-cols-4 md:gap-5">
-            {skillsContentData.cards.map((card, index) => <ProcessStep key={card.number} card={card} index={index} reducedMotion={reducedMotion} t={t} />)}
+            {skillsContentData.cards.map((card, index) => (
+              <ProcessStep key={card.number} card={card} index={index} reducedMotion={reducedMotion} t={t} />
+            ))}
           </div>
         </div>
       </div>
