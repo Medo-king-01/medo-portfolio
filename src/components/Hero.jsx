@@ -26,6 +26,12 @@ const Hero = () => {
   const [typedTitle, setTypedTitle] = useState('');
   const [resumeOpen, setResumeOpen] = useState(false);
   const [resumeAvailable, setResumeAvailable] = useState(null);
+  const handleVideoEnded = () => {
+    const video = videoRef.current;
+    if (video) {
+      video.pause();
+    }
+  };
 
   const typewriterTitles = useMemo(() => {
     const raw = t('hero.rotatingTitles');
@@ -48,13 +54,12 @@ const Hero = () => {
 
   /* -------------------------------------------------------
      VIDEO AUTOPLAY
-     Tries with sound first, then falls back to muted autoplay.
+     Starts immediately when the opening curtain/preloader disappears,
+     then freezes on the last frame once completed without any replay button.
   ------------------------------------------------------- */
   useEffect(() => {
     const video = videoRef.current;
-    const intro = introEndRef.current;
-
-    if (!video || !intro) return undefined;
+    if (!video) return undefined;
 
     const restoreAudioAfterInteraction = () => {
       if (!audioRecoveryRef.current || !videoRef.current) return;
@@ -73,7 +78,10 @@ const Hero = () => {
     };
 
     const startVideo = async () => {
-      videoStartTimerRef.current = null;
+      if (videoStartTimerRef.current) {
+        window.clearTimeout(videoStartTimerRef.current);
+        videoStartTimerRef.current = null;
+      }
 
       if (videoStartedRef.current) return;
 
@@ -108,34 +116,6 @@ const Hero = () => {
       }
     };
 
-    const scheduleVideo = () => {
-      if (videoStartedRef.current || videoStartTimerRef.current) {
-        return;
-      }
-
-      videoStartTimerRef.current = window.setTimeout(startVideo, 4400);
-    };
-
-    const parseTime = (value) => {
-      const number = Number.parseFloat(value) || 0;
-      return value.trim().endsWith('ms') ? number : number * 1000;
-    };
-
-    const scheduleAfterIntro = () => {
-      const style = window.getComputedStyle(intro);
-      const delays = style.transitionDelay.split(',').map(parseTime);
-      const durations = style.transitionDuration.split(',').map(parseTime);
-
-      const transitionTime = Math.max(
-        ...durations.map((duration, index) => duration + (delays[index] || delays[0] || 0)),
-        0
-      );
-
-      introCompletionTimerRef.current = window.setTimeout(scheduleVideo, transitionTime);
-    };
-
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
     AOS.init({
       duration: 1000,
       once: true,
@@ -143,10 +123,12 @@ const Hero = () => {
       disable: false,
     });
 
-    if (reduceMotion) {
-      scheduleVideo();
+    if (window.__CURTAIN_OPENED__) {
+      startVideo();
     } else {
-      scheduleAfterIntro();
+      window.addEventListener('curtain:opened', startVideo, { once: true });
+      // Fallback timer: in case preloader is disabled or already gone, start after 3.25s
+      videoStartTimerRef.current = window.setTimeout(startVideo, 3250);
     }
 
     return () => {
@@ -156,10 +138,10 @@ const Hero = () => {
       if (videoStartTimerRef.current) {
         window.clearTimeout(videoStartTimerRef.current);
       }
-
       introCompletionTimerRef.current = null;
       videoStartTimerRef.current = null;
 
+      window.removeEventListener('curtain:opened', startVideo);
       window.removeEventListener('pointerdown', restoreAudioAfterInteraction);
       window.removeEventListener('keydown', restoreAudioAfterInteraction);
       window.removeEventListener('touchstart', restoreAudioAfterInteraction);
@@ -329,189 +311,253 @@ const Hero = () => {
       />
 
       {/* =====================================================
-          TV VIDEO
+          LAPTOP VIDEO DISPLAY
       ===================================================== */}
       <div
         dir="ltr"
         className="
-          hero-reel-frame
+          hero-laptop-frame
+          group
           relative
           z-10
           order-2
           mx-auto
           mt-8
           w-full
-          max-w-[860px]
+          max-w-[840px]
           transition-transform
           duration-700
           ease-out
-          hover:-translate-y-1
+          hover:-translate-y-1.5
           lg:col-start-2
           lg:row-start-1
           lg:mt-0
         "
       >
-        {/* TV OUTER BODY */}
+        {/* LAPTOP LID / SCREEN CHASSIS */}
         <div
           className="
             relative
             mx-auto
-            rounded-[2.2rem]
+            rounded-t-[1.3rem]
             border
-            border-[var(--color-1)]/25
-            bg-[var(--color-4)]
-            p-3
-            shadow-[0_35px_90px_rgba(27,23,22,0.30)]
-            transition-all
-            duration-700
-            hover:shadow-[0_45px_110px_rgba(27,23,22,0.38)]
-            sm:p-4
-            md:rounded-[2.6rem]
-            md:p-5
+            border-neutral-700/60
+            bg-gradient-to-b
+            from-[#252120]
+            via-[#1a1716]
+            to-[#120f0f]
+            p-2.5
+            shadow-[0_25px_60px_-15px_rgba(0,0,0,0.65)]
+            ring-1
+            ring-black/80
+            backdrop-blur-sm
+            sm:rounded-t-[1.8rem]
+            sm:p-3.5
+            sm:pb-2.5
+            dark:border-white/15
           "
         >
-          {/* TV TOP HIGHLIGHT */}
-          <div className="pointer-events-none absolute inset-x-10 top-1 h-px bg-[var(--color-5)]/20" />
-
-          {/* TV BRAND / DECORATION */}
-          <div className="pointer-events-none absolute left-7 top-5 flex items-center gap-2 md:left-9 md:top-7">
-            <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-7)] shadow-[0_0_12px_rgba(228,42,42,0.8)]" />
-            <span className="text-[7px] font-bold uppercase tracking-[0.28em] text-[var(--color-1)] sm:text-[8px]">
-              {brandName}
-            </span>
-          </div>
-
-          {/* TV POWER LED */}
-          <div className="pointer-events-none absolute right-7 top-5 flex items-center gap-1.5 md:right-9 md:top-7">
-            <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-7)] shadow-[0_0_10px_rgba(228,42,42,0.85)]" />
-            <span className="text-[6px] font-semibold uppercase tracking-[0.18em] text-[var(--color-1)]/70">
-              ON
-            </span>
-          </div>
-
-          {/* TV SCREEN BEZEL */}
+          {/* WEBCAM & SENSORS BAR */}
           <div
             className="
               relative
-              mt-5
-              overflow-hidden
-              rounded-[1.55rem]
-              border
-              border-black/60
-              bg-black
-              p-1.5
-              shadow-[inset_0_0_0_1px_rgba(255,255,255,0.06),inset_0_0_45px_rgba(0,0,0,0.9)]
-              sm:mt-6
-              sm:p-2
-              md:rounded-[1.8rem]
+              mx-auto
+              mb-2
+              flex
+              items-center
+              justify-center
+              sm:mb-2.5
             "
+            aria-hidden="true"
           >
-            {/* INNER SCREEN */}
-            <div
-              className="
-                hero-reel-screen
-                relative
-                overflow-hidden
-                rounded-[1.2rem]
-                border
-                border-white/10
-                bg-[var(--color-4)]
-                shadow-[inset_0_0_35px_rgba(0,0,0,0.8)]
-                sm:rounded-[1.4rem]
-              "
-            >
-              {/* SCREEN GLASS */}
-              <div className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-br from-white/[0.10] via-transparent to-black/20" />
-
-              {/* SUBTLE SCREEN VIGNETTE */}
-              <div className="pointer-events-none absolute inset-0 z-20 shadow-[inset_0_0_45px_rgba(0,0,0,0.55)]" />
-
-              {/* VIDEO */}
-              {heroVideo ? (
-                <video
-                  ref={videoRef}
-                  playsInline
-                  preload="metadata"
-                  aria-label={t('hero.ariaLabel')}
-                  className="
-                    relative
-                    z-0
-                    block
-                    aspect-video
-                    w-full
-                    bg-black
-                    object-contain
-                    object-center
-                    brightness-[0.92]
-                    saturate-[0.94]
-                    transition-transform
-                    duration-700
-                  "
-                >
-                  <source src={heroVideo} type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
-              ) : (
-                <div
-                  ref={videoRef}
-                  className="
-                    relative
-                    z-0
-                    flex
-                    aspect-video
-                    w-full
-                    items-center
-                    justify-center
-                    bg-gradient-to-br
-                    from-[var(--color-2)]/30
-                    to-[var(--color-4)]
-                  "
-                  aria-hidden="true"
-                >
-                  <svg
-                    className="h-24 w-24 text-[var(--color-8)]/60"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-              )}
-
-              {/* SCREEN REFLECTION */}
-              <div className="pointer-events-none absolute inset-x-0 top-0 z-30 h-1/3 bg-gradient-to-b from-white/[0.06] to-transparent" />
+            <div className="flex items-center gap-1.5 rounded-full border border-white/5 bg-black/50 px-2.5 py-0.5 shadow-inner">
+              {/* Camera Lens */}
+              <span className="relative flex h-2 w-2 items-center justify-center rounded-full bg-[#0a0a0a] ring-1 ring-white/10 shadow-inner">
+                <span className="h-1 w-1 rounded-full bg-emerald-500/80 shadow-[0_0_6px_rgba(16,185,129,0.7)]" />
+              </span>
+              {/* Mic / Sensor Pinhole */}
+              <span className="h-0.5 w-0.5 rounded-full bg-neutral-600" />
             </div>
           </div>
 
-          {/* TV SPEAKER AREA */}
+          {/* INNER SCREEN DISPLAY */}
           <div
-            className="mx-auto mt-3 flex items-center justify-center gap-1 opacity-60 sm:mt-4"
+            className="
+              relative
+              overflow-hidden
+              rounded-md
+              border
+              border-white/[0.08]
+              bg-black
+              shadow-[inset_0_0_20px_rgba(0,0,0,0.9)]
+              sm:rounded-lg
+            "
+          >
+            {/* SCREEN GLASS GLARE */}
+            <div className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-tr from-transparent via-white/[0.03] to-white/[0.08]" />
+
+            {/* SCREEN VIGNETTE */}
+            <div className="pointer-events-none absolute inset-0 z-20 shadow-[inset_0_0_35px_rgba(0,0,0,0.5)]" />
+
+            {/* VIDEO */}
+            {heroVideo ? (
+              <video
+                ref={videoRef}
+                playsInline
+                preload="metadata"
+                onEnded={handleVideoEnded}
+                aria-label={t('hero.ariaLabel')}
+                className="
+                  relative
+                  z-0
+                  block
+                  aspect-video
+                  w-full
+                  bg-black
+                  object-contain
+                  object-center
+                  brightness-[0.96]
+                  transition-transform
+                  duration-700
+                "
+              >
+                <source src={heroVideo} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            ) : (
+              <div
+                ref={videoRef}
+                className="
+                  relative
+                  z-0
+                  flex
+                  aspect-video
+                  w-full
+                  items-center
+                  justify-center
+                  bg-gradient-to-br
+                  from-[var(--color-2)]/30
+                  to-[var(--color-4)]
+                "
+                aria-hidden="true"
+              >
+                <svg
+                  className="h-24 w-24 text-[var(--color-8)]/60"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            )}
+
+            {/* TOP GLASS REFLECTION */}
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-20 h-1/3 bg-gradient-to-b from-white/[0.06] to-transparent" />
+          </div>
+
+          {/* DISPLAY CHIN BRAND */}
+          <div
+            className="
+              relative
+              mt-2
+              flex
+              items-center
+              justify-center
+              sm:mt-2.5
+            "
             aria-hidden="true"
           >
-            {Array.from({ length: 13 }).map((_, index) => (
-              <span key={index} className="h-1 w-1 rounded-full bg-[var(--color-5)]/25" />
-            ))}
-          </div>
-
-          {/* TV CONTROL LINE */}
-          <div className="mt-2 flex items-center justify-center gap-2 sm:mt-3" aria-hidden="true">
-            <span className="h-1 w-8 rounded-full bg-[var(--color-5)]/15" />
-            <span className="h-1 w-1 rounded-full bg-[var(--color-8)]" />
-            <span className="h-1 w-8 rounded-full bg-[var(--color-5)]/15" />
+            <span className="text-[8px] font-semibold uppercase tracking-[0.28em] text-neutral-400/80 transition-colors group-hover:text-neutral-300 sm:text-[9px]">
+              {brandName}
+            </span>
           </div>
         </div>
 
-        {/* TV FEET */}
+        {/* LAPTOP HINGE */}
         <div
-          className="pointer-events-none relative mx-auto flex w-[78%] items-start justify-between px-4"
+          className="
+            relative
+            mx-auto
+            h-2
+            w-[32%]
+            rounded-b-sm
+            border-t
+            border-black/90
+            bg-gradient-to-b
+            from-[#120f0f]
+            to-[#1e1b1a]
+            shadow-inner
+            sm:h-2.5
+            sm:w-[28%]
+          "
+          aria-hidden="true"
+        />
+
+        {/* LAPTOP BASE / LOWER CHASSIS DECK */}
+        <div
+          className="
+            relative
+            mx-auto
+            -mt-[1px]
+            flex
+            h-3.5
+            w-[98%]
+            items-start
+            justify-center
+            rounded-b-xl
+            border-t
+            border-white/30
+            bg-gradient-to-b
+            from-[#342e2d]
+            via-[#241f1e]
+            to-[#151211]
+            shadow-[0_12px_28px_rgba(0,0,0,0.45)]
+            sm:h-4.5
+            sm:w-[96%]
+            sm:rounded-b-2xl
+            dark:from-[#2c2625]
+            dark:via-[#1e1a19]
+            dark:to-[#0f0c0b]
+          "
           aria-hidden="true"
         >
-          <div className="h-5 w-20 -rotate-[12deg] rounded-b-xl bg-[var(--color-4)] shadow-[0_10px_18px_rgba(27,23,22,0.22)] sm:h-6 sm:w-24" />
-          <div className="h-5 w-20 rotate-[12deg] rounded-b-xl bg-[var(--color-4)] shadow-[0_10px_18px_rgba(27,23,22,0.22)] sm:h-6 sm:w-24" />
+          {/* CENTER THUMB OPENING NOTCH */}
+          <div className="h-1 w-16 rounded-b-md border-t border-white/20 bg-[#0f0d0d] shadow-inner sm:h-1.5 sm:w-24" />
+          {/* Subtle bottom edge reflection line */}
+          <div className="pointer-events-none absolute inset-x-4 bottom-0 h-px bg-white/10" />
         </div>
+
+        {/* RUBBER FEET */}
+        <div
+          className="pointer-events-none relative mx-auto -mt-0.5 flex w-[86%] items-center justify-between px-6"
+          aria-hidden="true"
+        >
+          <div className="h-1 w-10 rounded-full bg-black/60 shadow-sm sm:w-14" />
+          <div className="h-1 w-10 rounded-full bg-black/60 shadow-sm sm:w-14" />
+        </div>
+
+        {/* DESK AMBIENT DROP SHADOW */}
+        <div
+          className="
+            pointer-events-none
+            mx-auto
+            mt-2
+            h-4
+            w-[88%]
+            rounded-full
+            bg-black/40
+            blur-xl
+            transition-all
+            duration-700
+            group-hover:scale-105
+            sm:h-5
+            dark:bg-black/60
+          "
+          aria-hidden="true"
+        />
       </div>
 
       {/* =====================================================

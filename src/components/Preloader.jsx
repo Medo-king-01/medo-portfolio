@@ -20,7 +20,13 @@ const Preloader = () => {
   const brandHandle = siteConfig.brand.handle;
 
   return (
-    <AnimatePresence mode="wait">
+    <AnimatePresence
+      mode="wait"
+      onExitComplete={() => {
+        window.__CURTAIN_OPENED__ = true;
+        window.dispatchEvent(new CustomEvent('curtain:opened'));
+      }}
+    >
       {isLoading && (
         <motion.div
           key="preloader"
