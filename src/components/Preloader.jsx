@@ -9,10 +9,9 @@ const Preloader = () => {
   const { t, langConfig } = useLanguage();
 
   useEffect(() => {
-    // Premium cinematic intro duration
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 3200);
+    }, 2600);
 
     return () => clearTimeout(timer);
   }, []);
@@ -29,7 +28,7 @@ const Preloader = () => {
           exit={{
             y: '-100%',
             transition: {
-              duration: 1.15,
+              duration: 0.65,
               ease: [0.76, 0, 0.24, 1],
             },
           }}
@@ -43,42 +42,28 @@ const Preloader = () => {
             items-center
             justify-center
             overflow-hidden
-            bg-[#f4f3ef]
+            bg-[var(--color-5)]
           "
           dir={langConfig.dir}
         >
-
-          {/* =================================================
-              BACKGROUND
-          ================================================= */}
-
+          {/* BACKGROUND */}
           <div className="pointer-events-none absolute inset-0">
-
             {/* Grid */}
             <div
               className="
                 absolute
                 inset-0
-                opacity-[0.035]
-                bg-[linear-gradient(to_right,#111_1px,transparent_1px),linear-gradient(to_bottom,#111_1px,transparent_1px)]
+                bg-[linear-gradient(to_right,#1b1716_1px,transparent_1px),linear-gradient(to_bottom,#1b1716_1px,transparent_1px)]
                 bg-[size:70px_70px]
+                opacity-[0.035]
               "
             />
 
             {/* Center glow */}
             <motion.div
-              initial={{
-                opacity: 0,
-                scale: 0.5,
-              }}
-              animate={{
-                opacity: 1,
-                scale: 1,
-              }}
-              transition={{
-                duration: 1.8,
-                ease: 'easeOut',
-              }}
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1.8, ease: 'easeOut' }}
               className="
                 absolute
                 left-1/2
@@ -88,7 +73,7 @@ const Preloader = () => {
                 -translate-x-1/2
                 -translate-y-1/2
                 rounded-full
-                bg-amber-700/[0.035]
+                bg-[var(--color-8)]/15
                 blur-[100px]
               "
             />
@@ -97,10 +82,7 @@ const Preloader = () => {
             <motion.div
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
-              transition={{
-                duration: 1.2,
-                ease: [0.76, 0, 0.24, 1],
-              }}
+              transition={{ duration: 1.2, ease: [0.76, 0, 0.24, 1] }}
               className="
                 absolute
                 left-8
@@ -108,7 +90,7 @@ const Preloader = () => {
                 top-8
                 h-px
                 origin-left
-                bg-slate-900/10
+                bg-[var(--color-3)]
                 md:left-12
                 md:right-12
                 md:top-10
@@ -119,11 +101,7 @@ const Preloader = () => {
             <motion.div
               initial={{ scaleX: 0 }}
               animate={{ scaleX: 1 }}
-              transition={{
-                duration: 1.2,
-                delay: 0.15,
-                ease: [0.76, 0, 0.24, 1],
-              }}
+              transition={{ duration: 1.2, delay: 0.15, ease: [0.76, 0, 0.24, 1] }}
               className="
                 absolute
                 bottom-8
@@ -131,32 +109,19 @@ const Preloader = () => {
                 right-8
                 h-px
                 origin-right
-                bg-slate-900/10
+                bg-[var(--color-3)]
                 md:bottom-10
                 md:left-12
                 md:right-12
               "
             />
-
           </div>
 
-          {/* =================================================
-              TOP LEFT LABEL
-          ================================================= */}
-
+          {/* TOP LEFT LABEL */}
           <motion.div
-            initial={{
-              opacity: 0,
-              x: -20,
-            }}
-            animate={{
-              opacity: 1,
-              x: 0,
-            }}
-            transition={{
-              duration: 0.7,
-              delay: 0.25,
-            }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7, delay: 0.25 }}
             className="
               absolute
               left-8
@@ -166,7 +131,7 @@ const Preloader = () => {
               font-bold
               uppercase
               tracking-[0.22em]
-              text-slate-500
+              text-[var(--color-4)]/55
               md:left-12
               md:top-14
             "
@@ -174,23 +139,11 @@ const Preloader = () => {
             PORTFOLIO / 2026
           </motion.div>
 
-          {/* =================================================
-              TOP RIGHT
-          ================================================= */}
-
+          {/* TOP RIGHT */}
           <motion.div
-            initial={{
-              opacity: 0,
-              x: 20,
-            }}
-            animate={{
-              opacity: 1,
-              x: 0,
-            }}
-            transition={{
-              duration: 0.7,
-              delay: 0.4,
-            }}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.7, delay: 0.4 }}
             className="
               absolute
               right-8
@@ -200,7 +153,7 @@ const Preloader = () => {
               font-bold
               uppercase
               tracking-[0.22em]
-              text-slate-500
+              text-[var(--color-4)]/55
               md:right-12
               md:top-14
             "
@@ -208,84 +161,31 @@ const Preloader = () => {
             {brandHandle.toUpperCase()}
           </motion.div>
 
-          {/* =================================================
-              MAIN INTRO
-          ================================================= */}
-
+          {/* MAIN INTRO */}
           <div className="relative z-10 flex flex-col items-center">
-
             {/* Small eyebrow */}
-
             <motion.div
-              initial={{
-                opacity: 0,
-                y: 15,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
-              transition={{
-                duration: 0.7,
-                delay: 0.35,
-                ease: 'easeOut',
-              }}
-              className="
-                mb-7
-                flex
-                items-center
-                gap-3
-              "
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.35, ease: 'easeOut' }}
+              className="mb-7 flex items-center gap-3"
             >
-              <span
-                className="
-                  h-px
-                  w-8
-                  bg-amber-700/60
-                "
-              />
+              <span className="h-px w-8 bg-[var(--color-2)]/60" />
 
-              <span
-                className="
-                  font-mono
-                  text-[10px]
-                  font-black
-                  uppercase
-                  tracking-[0.3em]
-                  text-slate-500
-                "
-              >
+              <span className="font-mono text-[10px] font-black uppercase tracking-[0.3em] text-[var(--color-4)]/60">
                 {t('preloader.loading')}
               </span>
 
-              <span
-                className="
-                  h-px
-                  w-8
-                  bg-amber-700/60
-                "
-              />
+              <span className="h-px w-8 bg-[var(--color-2)]/60" />
             </motion.div>
 
-            {/* =================================================
-                NAME
-            ================================================= */}
-
-            <div className="relative">
-
+            {/* NAME */}
+            <div className="relative" dir="ltr">
               {/* Ghost name */}
-
               <motion.h1
-                initial={{
-                  opacity: 0,
-                }}
-                animate={{
-                  opacity: 0.07,
-                }}
-                transition={{
-                  duration: 1,
-                  delay: 0.5,
-                }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.07 }}
+                transition={{ duration: 1, delay: 0.5 }}
                 className="
                   absolute
                   inset-0
@@ -295,7 +195,7 @@ const Preloader = () => {
                   font-black
                   leading-none
                   tracking-[-0.07em]
-                  text-slate-900
+                  text-[var(--color-4)]
                   sm:text-[7rem]
                   md:text-[9rem]
                   lg:text-[11rem]
@@ -305,7 +205,6 @@ const Preloader = () => {
               </motion.h1>
 
               {/* Main name */}
-
               <motion.h1
                 initial={{
                   opacity: 0,
@@ -332,30 +231,21 @@ const Preloader = () => {
                   font-black
                   leading-none
                   tracking-[-0.07em]
-                  text-slate-900
+                  text-[var(--color-4)]
                   sm:text-[7rem]
                   md:text-[9rem]
                   lg:text-[11rem]
                 "
               >
                 {brandName}
-                <span className="text-amber-700">.</span>
+                <span className="text-[var(--color-7)]">.</span>
               </motion.h1>
 
               {/* Animated underline */}
-
               <motion.div
-                initial={{
-                  scaleX: 0,
-                }}
-                animate={{
-                  scaleX: 1,
-                }}
-                transition={{
-                  duration: 0.9,
-                  delay: 1.35,
-                  ease: [0.76, 0, 0.24, 1],
-                }}
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ duration: 0.9, delay: 1.35, ease: [0.76, 0, 0.24, 1] }}
                 className="
                   absolute
                   -bottom-4
@@ -365,87 +255,34 @@ const Preloader = () => {
                   -translate-x-1/2
                   origin-center
                   rounded-full
-                  bg-amber-700
+                  bg-[var(--color-2)]
                   md:-bottom-5
                 "
               />
-
             </div>
 
-            {/* =================================================
-                TITLE
-            ================================================= */}
-
+            {/* TITLE */}
             <motion.div
-              initial={{
-                opacity: 0,
-                y: 15,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
-              transition={{
-                duration: 0.7,
-                delay: 1.55,
-              }}
-              className="
-                mt-10
-                flex
-                items-center
-                gap-3
-              "
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 1.55 }}
+              className="mt-10 flex items-center gap-3"
             >
-              <span
-                className="
-                  h-1.5
-                  w-1.5
-                  rounded-full
-                  bg-amber-700
-                "
-              />
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-7)]" />
 
-              <span
-                className="
-                  text-xs
-                  font-bold
-                  uppercase
-                  tracking-[0.22em]
-                  text-slate-500
-                "
-              >
+              <span className="text-xs font-bold uppercase tracking-[0.22em] text-[var(--color-2)]">
                 {t('hero.titleHighlight')}
               </span>
 
-              <span
-                className="
-                  h-1.5
-                  w-1.5
-                  rounded-full
-                  bg-amber-700
-                "
-              />
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-7)]" />
             </motion.div>
-
           </div>
 
-          {/* =================================================
-              LOADING INDICATOR
-          ================================================= */}
-
+          {/* LOADING INDICATOR */}
           <motion.div
-            initial={{
-              opacity: 0,
-              y: 15,
-            }}
-            animate={{
-              opacity: 1,
-              y: 0,
-            }}
-            transition={{
-              duration: 0.6,
-              delay: 1.8,
-            }}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1.8 }}
             className="
               absolute
               bottom-14
@@ -458,132 +295,43 @@ const Preloader = () => {
               md:bottom-16
             "
           >
-
-            <div
-              className="
-                flex
-                items-center
-                gap-3
-              "
-            >
-              <span
-                className="
-                  font-mono
-                  text-[9px]
-                  font-bold
-                  uppercase
-                  tracking-[0.2em]
-                  text-slate-400
-                "
-              >
+            <div className="flex items-center gap-3">
+              <span className="font-mono text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--color-4)]/55">
                 {t('preloader.loading')}
               </span>
 
               {/* Dots */}
-
               <div className="flex gap-1">
-                <motion.span
-                  animate={{
-                    opacity: [0.25, 1, 0.25],
-                  }}
-                  transition={{
-                    duration: 1,
-                    repeat: Infinity,
-                    delay: 0,
-                  }}
-                  className="
-                    h-1
-                    w-1
-                    rounded-full
-                    bg-amber-700
-                  "
-                />
-
-                <motion.span
-                  animate={{
-                    opacity: [0.25, 1, 0.25],
-                  }}
-                  transition={{
-                    duration: 1,
-                    repeat: Infinity,
-                    delay: 0.15,
-                  }}
-                  className="
-                    h-1
-                    w-1
-                    rounded-full
-                    bg-amber-700
-                  "
-                />
-
-                <motion.span
-                  animate={{
-                    opacity: [0.25, 1, 0.25],
-                  }}
-                  transition={{
-                    duration: 1,
-                    repeat: Infinity,
-                    delay: 0.3,
-                  }}
-                  className="
-                    h-1
-                    w-1
-                    rounded-full
-                    bg-amber-700
-                  "
-                />
+                {[0, 0.15, 0.3].map((delay) => (
+                  <motion.span
+                    key={delay}
+                    animate={{ opacity: [0.25, 1, 0.25] }}
+                    transition={{ duration: 1, repeat: Infinity, delay }}
+                    className="h-1 w-1 rounded-full bg-[var(--color-7)]"
+                  />
+                ))}
               </div>
             </div>
 
             {/* Progress */}
-
             <div
-              className="
-                h-px
-                w-40
-                overflow-hidden
-                rounded-full
-                bg-slate-900/10
-              "
+              dir="ltr"
+              className="h-px w-40 overflow-hidden rounded-full bg-[var(--color-3)]"
             >
               <motion.div
-                initial={{
-                  x: '-100%',
-                }}
-                animate={{
-                  x: '0%',
-                }}
-                transition={{
-                  duration: 2.4,
-                  delay: 0.25,
-                  ease: 'easeInOut',
-                }}
-                className="
-                  h-full
-                  w-full
-                  origin-left
-                  bg-amber-700
-                "
+                initial={{ x: '-100%' }}
+                animate={{ x: '0%' }}
+                transition={{ duration: 2.4, delay: 0.25, ease: 'easeInOut' }}
+                className="h-full w-full origin-left bg-[var(--color-7)]"
               />
             </div>
-
           </motion.div>
 
-          {/* =================================================
-              SIDE DECORATIONS
-          ================================================= */}
-
+          {/* SIDE DECORATIONS */}
           <motion.div
-            initial={{
-              opacity: 0,
-            }}
-            animate={{
-              opacity: 1,
-            }}
-            transition={{
-              duration: 1,
-              delay: 1.2,
-            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 1.2 }}
             className="
               absolute
               left-8
@@ -597,36 +345,17 @@ const Preloader = () => {
               md:flex
             "
           >
-            <span className="h-12 w-px bg-slate-900/10" />
-
-            <span
-              className="
-                [writing-mode:vertical-rl]
-                font-mono
-                text-[8px]
-                font-bold
-                uppercase
-                tracking-[0.25em]
-                text-slate-400
-              "
-            >
+            <span className="h-12 w-px bg-[var(--color-3)]" />
+            <span className="[writing-mode:vertical-rl] font-mono text-[8px] font-bold uppercase tracking-[0.25em] text-[var(--color-1)]">
               Creative / Digital
             </span>
-
-            <span className="h-12 w-px bg-slate-900/10" />
+            <span className="h-12 w-px bg-[var(--color-3)]" />
           </motion.div>
 
           <motion.div
-            initial={{
-              opacity: 0,
-            }}
-            animate={{
-              opacity: 1,
-            }}
-            transition={{
-              duration: 1,
-              delay: 1.4,
-            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 1.4 }}
             className="
               absolute
               right-8
@@ -640,41 +369,18 @@ const Preloader = () => {
               md:flex
             "
           >
-            <span className="h-12 w-px bg-slate-900/10" />
-
-            <span
-              className="
-                [writing-mode:vertical-rl]
-                font-mono
-                text-[8px]
-                font-bold
-                uppercase
-                tracking-[0.25em]
-                text-slate-400
-              "
-            >
+            <span className="h-12 w-px bg-[var(--color-3)]" />
+            <span className="[writing-mode:vertical-rl] font-mono text-[8px] font-bold uppercase tracking-[0.25em] text-[var(--color-1)]">
               Code / Design
             </span>
-
-            <span className="h-12 w-px bg-slate-900/10" />
+            <span className="h-12 w-px bg-[var(--color-3)]" />
           </motion.div>
 
-          {/* =================================================
-              FINAL WHITE FLASH / SHUTTER
-          ================================================= */}
-
+          {/* FINAL SHUTTER */}
           <motion.div
-            initial={{
-              scaleY: 1,
-            }}
-            animate={{
-              scaleY: 0,
-            }}
-            transition={{
-              duration: 0.7,
-              delay: 2.55,
-              ease: [0.76, 0, 0.24, 1],
-            }}
+            initial={{ scaleY: 1 }}
+            animate={{ scaleY: 0 }}
+            transition={{ duration: 0.7, delay: 2.55, ease: [0.76, 0, 0.24, 1] }}
             className="
               pointer-events-none
               absolute
@@ -682,10 +388,9 @@ const Preloader = () => {
               bottom-0
               top-0
               origin-bottom
-              bg-[#f4f3ef]
+              bg-[var(--color-5)]
             "
           />
-
         </motion.div>
       )}
     </AnimatePresence>

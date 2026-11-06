@@ -4,6 +4,13 @@ import { useLanguage } from '../context/LanguageContext.jsx';
 
 const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
 
+const resolveLocalized = (field, language) => {
+  if (field && typeof field === 'object') {
+    return field[language] || field.en || '';
+  }
+  return field || '';
+};
+
 const JourneyCard = ({ item, index, progress, activeIndex, reducedMotion, language, t }) => {
   const offset = index - progress;
   const distance = Math.abs(offset);
@@ -16,36 +23,44 @@ const JourneyCard = ({ item, index, progress, activeIndex, reducedMotion, langua
   };
 
   const chapterLabel = t('leadership.chapterLabel');
-  const exploreLabel = t('leadership.exploreLabel');
+  const category = resolveLocalized(item.category, language);
+  const title = resolveLocalized(item.title, language);
+  const paragraphs = resolveLocalized(item.content, language);
 
-  const content = (
+  return (
     <article
       className={`beyond-card beyond-card-${item.motif} ${isActive ? 'beyond-card-active' : ''}`}
       style={style}
-      aria-hidden={!reducedMotion && distance > 1.5}
+      aria-hidden={!isActive}
     >
       <div className="beyond-card-topline">
-        <span className="beyond-card-number">{String(index + 1).padStart(2, '0')} <i>/ {String(leadershipList.length).padStart(2, '0')}</i></span>
-        <span className="beyond-card-category">{item.category}</span>
+        <span className="beyond-card-number" dir="ltr">
+          {String(index + 1).padStart(2, '0')} <i>/ {String(leadershipList.length).padStart(2, '0')}</i>
+        </span>
+        <span className="beyond-card-category">{category}</span>
       </div>
       <div className="beyond-card-body">
-        <div className="beyond-card-copy">
-          <span className="beyond-card-kicker">{chapterLabel} {String(index + 1).padStart(2, '0')}</span>
-          <h3>{item.title[language] || item.title.en}</h3>
-          <p>{item.description[language] || item.description.en}</p>
-          <div className="beyond-card-meta">
-            {(item.tools || item.areas || [item.label]).filter(Boolean).map((tag) => (
-              <span key={tag}>{tag}</span>
-            ))}
-          </div>
-          {item.link && <a href={item.link} className="beyond-card-link">{exploreLabel} <span aria-hidden="true">&#8599;</span></a>}
+        <div className="beyond-card-copy" tabIndex={isActive ? 0 : -1}>
+          <span className="beyond-card-kicker">
+            {chapterLabel} {String(index + 1).padStart(2, '0')}
+          </span>
+          <h3>{title}</h3>
+          {paragraphs.map((paragraph) => (
+            <p key={paragraph}>
+              {paragraph.split(/(\*\*.*?\*\*)/g).map((part, partIndex) =>
+                part.startsWith('**') && part.endsWith('**')
+                  ? <strong key={partIndex}>{part.slice(2, -2)}</strong>
+                  : part
+              )}
+            </p>
+          ))}
         </div>
-        <div className="beyond-card-motif" aria-hidden="true"><span /></div>
+        <div className="beyond-card-motif" aria-hidden="true">
+          <span />
+        </div>
       </div>
     </article>
   );
-
-  return content;
 };
 
 const Leadership = () => {
@@ -65,17 +80,19 @@ const Leadership = () => {
       frameId = 0;
       if (!stageRef.current) return;
       const stage = stageRef.current;
-      const scrollDistance = Math.max(stage.offsetHeight - window.innerHeight, 1);
-      const stageTop = stage.getBoundingClientRect().top + window.scrollY;
-      const nextProgress = ((window.scrollY - stageTop) / scrollDistance) * (leadershipList.length - 1);
-      setProgress(clamp(nextProgress, 0, leadershipList.length - 1));
-    };
-    const handleScroll = () => {
-      if (document.hidden) {
-        updateProgress();
+      const maxStep = Math.max(leadershipList.length - 1, 0);
+      if (maxStep === 0) {
+        setProgress(0);
         return;
       }
-      if (motionQuery.matches) {
+      const scrollDistance = Math.max(stage.offsetHeight - window.innerHeight, 1);
+      const stageTop = stage.getBoundingClientRect().top + window.scrollY;
+      const nextProgress = ((window.scrollY - stageTop) / scrollDistance) * maxStep;
+      setProgress(clamp(nextProgress, 0, maxStep));
+    };
+
+    const handleScroll = () => {
+      if (document.hidden || motionQuery.matches) {
         updateProgress();
         return;
       }
@@ -97,26 +114,47 @@ const Leadership = () => {
   const activeIndex = Math.round(progress);
 
   return (
-    <section id="leadership" className={`beyond-code-section ${reducedMotion ? 'beyond-code-reduced' : ''}`} dir={langConfig.dir}>
+    <section
+      id="leadership"
+      className={`beyond-code-section font-sans ${reducedMotion ? 'beyond-code-reduced' : ''}`}
+      dir={langConfig.dir}
+    >
       <div className="beyond-code-inner">
         <header data-aos="fade-up" className="beyond-code-header">
           <span className="beyond-code-eyebrow">{t('leadership.eyebrow')}</span>
           <h2>{t('leadership.heading')}</h2>
-          <p>{t('leadership.subheading')}</p>
+          <p className="italic">{t('leadership.subheading')}</p>
         </header>
 
-        <div ref={stageRef} className="beyond-stack-stage">
+        <div ref={stageRef} className="beyond-stack-stage" style={{ height: `${100 + (leadershipList.length - 1) * 65}vh` }}>
           <div className="beyond-stack-sticky">
-            <div className="beyond-progress" aria-label={t('leadership.progressLabel', { current: activeIndex + 1, total: leadershipList.length }) || `Journey progress ${activeIndex + 1} of ${leadershipList.length}`}>
-              <span>{String(activeIndex + 1).padStart(2, '0')}</span><i>/</i><span>{String(leadershipList.length).padStart(2, '0')}</span>
+            <div
+              className="beyond-progress"
+              dir="ltr"
+              aria-label={`${t('leadership.progressLabel')}: ${activeIndex + 1} / ${leadershipList.length}`}
+            >
+              <span>{String(activeIndex + 1).padStart(2, '0')}</span>
+              <i>/</i>
+              <span>{String(leadershipList.length).padStart(2, '0')}</span>
               <span className="beyond-progress-label">{t('leadership.progressLabel')}</span>
             </div>
             <div className="beyond-card-stack">
               {leadershipList.map((item, index) => (
-                <JourneyCard key={item.title} item={item} index={index} progress={progress} activeIndex={activeIndex} reducedMotion={reducedMotion} language={language} t={t} />
+                <JourneyCard
+                  key={item.id || index}
+                  item={item}
+                  index={index}
+                  progress={progress}
+                  activeIndex={activeIndex}
+                  reducedMotion={reducedMotion}
+                  language={language}
+                  t={t}
+                />
               ))}
             </div>
-            <div className="beyond-scroll-cue" aria-hidden="true"><span /> {t('leadership.scrollCue')}</div>
+            <div className="beyond-scroll-cue" aria-hidden="true">
+              <span /> {t('leadership.scrollCue')}
+            </div>
           </div>
         </div>
       </div>

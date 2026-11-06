@@ -6,15 +6,34 @@ export const translations = {
       home: 'Home',
       about: 'About',
       story: 'My Story',
-      skills: 'Skills',
+      skills: 'What I Do Well',
+      process: 'How I Build',
       howIWork: 'How I Work',
       projects: 'Projects',
+      certifications: 'Certifications',
       beyondTech: 'Beyond Technology',
       aiToolkit: 'My AI Toolkit',
       perspective: 'My Perspective',
-      leadership: 'Leadership',
+      leadership: 'Journey',
       softSkills: 'Soft Skills',
       contact: 'Contact',
+    },
+
+    certifications: {
+      badge: 'CONTINUOUS LEARNING',
+      heading: 'Certifications & Credentials',
+      description: 'A selection of certificates reflecting my technical and professional learning journey.',
+      totalLabel: 'Certificates earned',
+      fieldsLabel: 'Areas of learning',
+      wheelScrollHint: 'SCROLL TO ROTATE THE CERTIFICATE WHEEL',
+      wheelClickHint: 'Select a certificate to see its details',
+      openDetails: 'Open certificate details',
+      closeDetails: 'Close certificate details',
+      categoryLabel: 'LEARNING PATH',
+      certificateCount: 'certificate',
+      certificatesCount: 'certificates',
+      view: 'View certificate (PDF)',
+      verify: 'Verify online',
     },
 
     // Preloader
@@ -26,44 +45,49 @@ export const translations = {
     // Hero
     hero: {
       greeting: "Hi, I'm MEDO",
-      titleHighlight: 'MIS Student | AI-Assisted Development',
+      titleHighlight: 'MIS Major | AI-Assisted Development',
       rotatingTitles: [
-        'MIS Student',
-        'AI-Assisted Developer',
-        'Self-Directed Learner',
+        'Business Information Systems Student',
+        'Learning Through Practice and Experimentation',
+        'Building Projects with AI',
+        'Attentive to Detail',
       ],
-      subtitle: 'Self-directed MIS student building practical projects with AI-assisted development.',
+      subtitle: 'Welcome to my world, where I observe more than I speak, learn and build what’s useful, and care about the smallest details.',
       ctaPrimary: { text: 'View My Work', href: '#projects' },
       ctaSecondary: { text: 'Contact Me', href: '#contact' },
       ctaResume: { text: 'Download Resume', href: null },
       ariaLabel: 'MEDO talking video',
-      // Resume modal
       resumeModal: {
         title: '{brandName} / RESUME',
         download: 'Download',
         newTab: 'New tab',
         close: 'Close resume viewer',
         unavailable: 'Resume PDF not available yet.',
-        addFile: 'Add the existing CV file at <code>{href}</code> to enable the preview.',
+        addFile: 'Add the existing CV file at {href} to enable the preview.',
         checking: 'Checking resume file...',
       },
-      // TV brand
       tvBrand: 'TV',
     },
 
     // About
     about: {
       heading: 'About Me',
-      bio: `I'm Mohamed Elsayed Abu Jumaa, also known as <span class="text-slate-900 text-xl font-black mx-1 tracking-wide uppercase">MEDO</span>, an MIS student at the Higher Institute of Management and Computer Science in Ras El Bar, Egypt. My learning journey is self-directed and hands-on, built around experimenting, solving problems, and turning ideas into practical projects. I use an AI-assisted development approach, often called Vibe Coding. I define the idea and requirements, guide AI tools during implementation, review the generated results, identify issues, request improvements, and test the final product across different devices and screen sizes. I believe in demonstrating real capabilities through practical work. <strong class="text-amber-700">Capability > Certificate</strong>`,
+      paragraphs: [
+        "I'm Mohamed Elsayed Abu Jumaa, known as MEDO, a Business Information Systems (MIS) student at the Higher Institute of Management and Computer Science in Ras El Bar. I ranked first in my cohort for three consecutive years in computing at the Vocational Training Center in Damietta. I learn independently and through practice: I experiment, solve problems, and turn ideas into usable projects.",
+        'I work with AI-assisted development (Vibe Coding): I define the idea and requirements, guide the tools during implementation, review the results and request fixes and improvements, then test the product on different devices and screen sizes. I believe it is not enough for a project to work: it should be tested, reviewed, and improved, and I see every project as a chance to learn something new.',
+        'My work includes the English Code educational system and the SystemScope application, and I currently work in freelance services and content creation.',
+        'I believe what you can accomplish matters more than certificates.',
+      ],
+      motto: 'Capability before certificates.',
       techStack: [],
-      altText: 'MEDO — MIS Student | AI-Assisted Development',
+      altText: 'MEDO — Business Information Systems | AI-Assisted Development',
     },
 
     // Skills Content (Process / How I Build)
     skillsContent: {
       badge: 'HOW I BUILD',
       heading: 'How I Build',
-      description: 'I focus on turning ideas into practical products. I define requirements, guide AI tools during development, review the output, identify issues, and test the result before considering the work complete. I value transparency: AI assists with code generation, while I focus on direction, requirements, review, testing, and improvement. <strong class="text-amber-700">Capability > Certificate</strong>',
+      description: 'I focus on turning ideas into practical products. I define requirements, guide AI tools during development, review the output, identify issues, and test the result before considering the work complete. I value transparency: AI assists with code generation, while I focus on direction, requirements, review, testing, and improvement. <strong class="text-[var(--color-2)]">Capability &gt; Certificate</strong>',
       stageLabel: 'Stage {number}',
       cards: [
         {
@@ -99,53 +123,27 @@ export const translations = {
 
     // Technical Skills (Personal Skills)
     technicalSkills: {
-      badge: 'PERSONAL SKILLS',
-      heading: 'Personal Skills',
-      description: 'These are my personal capabilities — not technologies used in projects. Project technology stacks are shown on each project card.',
-      categories: [
+      badge: 'MY SKILLS',
+      heading: 'What I Do Well',
+      groups: [
         {
-          title: 'AI-Assisted Development / Vibe Coding',
-          skills: [
-            'Turning ideas into working digital products by guiding AI tools',
-            'Reviewing generated code and requesting corrections and improvements',
+          title: 'Practical Skills',
+          items: [
+            { title: 'AI-Assisted Development', description: 'Turning ideas into working digital products by guiding AI tools and reviewing their output.' },
+            { title: 'Requirements Definition', description: 'Defining project goals and functional requirements.' },
+            { title: 'Testing', description: 'Testing functionality and user experience, and checking responsiveness across devices and screen sizes.' },
+            { title: 'Design', description: 'AI-assisted graphic design, motion graphics, and the basics of Adobe InDesign.' },
+            { title: 'Educational Content', description: 'Writing educational scripts and planning learning series and books.' },
+            { title: 'Digital Fundamentals', description: 'ICDL, cybersecurity, digital marketing, Git and GitHub.' },
           ],
         },
         {
-          title: 'Requirements Definition & Review',
-          skills: [
-            'Defining project goals and functional requirements',
-            'Reviewing implementations and identifying problems',
-          ],
-        },
-        {
-          title: 'Product Testing',
-          skills: [
-            'Testing functionality and user experience',
-            'Checking responsiveness across different devices and screen sizes',
-          ],
-        },
-        {
-          title: 'Creative & Visual Skills',
-          skills: [
-            'Visual identity and graphic design',
-            'Motion graphics',
-            'Adobe InDesign — basic knowledge',
-          ],
-        },
-        {
-          title: 'Educational Content Creation',
-          skills: [
-            'Writing educational scripts',
-            'Planning educational series and books',
-          ],
-        },
-        {
-          title: 'Digital Fundamentals',
-          skills: [
-            'ICDL',
-            'Cybersecurity fundamentals',
-            'Digital marketing fundamentals',
-            'Git and GitHub basics',
+          title: 'My Qualities',
+          items: [
+            { title: 'Problem Solving', description: 'Breaking a problem into smaller parts to reach a practical solution.' },
+            { title: 'Continuous Learning', description: 'Learning tools and best practices through self-study and experimentation.' },
+            { title: 'Clear Communication', description: 'Writing clear project documentation and explaining technical concepts simply.' },
+            { title: 'Time Management', description: 'Balancing studies, personal projects, and skill building.' },
           ],
         },
       ],
@@ -180,22 +178,35 @@ export const translations = {
 
     // Projects
     projects: {
-      heading: 'Featured Projects',
-      subheading: 'A selection of digital products built to solve real problems.',
-      description: '',
-      viewCode: 'View Code',
+      heading: 'Welcome to my project gallery',
+      scrollGallery: 'SCROLL TO EXPLORE THE PROJECT ORBIT',
+      selectProject: 'Select a project to explore its case study',
+      openCaseStudy: 'Open case study',
+      closeCaseStudy: 'Close case study',
+      previousProject: 'Previous project',
+      nextProject: 'Next project',
+      caseStudyBadge: 'Case Study',
+      problemLabel: 'The Problem & Idea',
+      solutionLabel: 'Solution & Approach',
+      techStackLabel: 'Built with',
+      linksLabel: 'Preview Links',
+      viewCode: 'GitHub Repo',
       liveDemo: 'Live Demo',
-      privateRepo: 'Private Repository',
+      privateRepo: 'Private Repo on GitHub',
+      previewImage: 'Preview Screenshot',
+      closePreview: 'Close screenshot preview',
+      privatePreviewTitle: 'Private Repository',
+      privatePreviewSubtitle: 'Access restricted — private source & preview',
     },
 
     // Leadership / Beyond
     leadership: {
       eyebrow: 'MY JOURNEY',
-      heading: 'Learning & Growth',
-      subheading: 'Education and self-directed development that shapes how I build.',
+      heading: 'My Journey So Far',
+      subheading: 'From humble beginnings to building ideas.',
       progressLabel: 'JOURNEY',
       scrollCue: 'SCROLL TO EXPLORE',
-      chapterLabel: 'CHAPTER',
+      chapterLabel: 'MOMENT',
       exploreLabel: 'Explore projects',
     },
 
@@ -203,17 +214,17 @@ export const translations = {
     softSkills: {
       badge: 'CORE COMPETENCIES',
       heading: 'Professional Soft Skills',
-      subheading: 'Essential traits that make me an effective engineer, coordinator, and communicator.',
+      subheading: 'Essential traits that make me an effective builder, problem-solver, and communicator.',
     },
 
     // My Story
     story: {
       heading: 'My Story',
-      content: `My interest in technology started with computer games at internet cafés, where I used to spend time playing with friends. That early curiosity gradually grew into a deeper interest in computers and the digital world.
+      content: `My relationship with technology started in internet cafés, where I spent long hours playing with friends. I wasn’t looking for a field to study, but curiosity pulled me in: how do these machines work, and how is everything on the screen built?
 
-What keeps me interested in this field is its constant evolution. I enjoy building things, experimenting with new ideas, exploring possibilities, and learning continuously.
+What kept me hooked is that this field never stands still. There’s always something new to try.
 
-For me, technology is not just about writing code. It is about curiosity, discovery, and turning ideas into something real.`,
+To me, technology isn’t knowledge to memorize. It’s an idea you test until it becomes something that works in the real world.`,
     },
 
     // How I Work
@@ -229,9 +240,7 @@ I see every project as an opportunity to learn something new and improve my appr
     // Beyond Technology
     beyondTech: {
       heading: 'Beyond Technology',
-      content: `Outside technology, I enjoy drawing, swimming, and design. I also enjoy watching anime and foreign films.
-
-These interests give me different ways to explore creativity, enjoy new perspectives, and take a break from technical work.`,
+      content: `These interests give me different ways to explore creativity, enjoy new perspectives, and take a break from technical work.`,
       interests: [
         { label: 'Drawing', icon: 'drawing' },
         { label: 'Swimming', icon: 'swimming' },
@@ -250,17 +259,22 @@ These interests give me different ways to explore creativity, enjoy new perspect
         'ChatGPT',
         'Gemini',
         'DeepSeek',
-        'AI Agents',
+        'arena-agent',
+        'deepSeek Harness',
+        'freelLM',
       ],
     },
 
     // My Perspective
     perspective: {
       heading: 'My Perspective',
-      content: `I believe that certificates alone do not define a person's abilities. What matters more is practical experience, continuous learning, and the ability to turn knowledge into something useful.
+      content: `I do not want to live the way others do simply because it is the usual path. I want to understand why I live, what I do, and the true value of what I build.
 
-My long-term goal is simple: to become someone who can make a real and meaningful contribution through what I learn and build.`,
-      highlight: 'Capability > Certificate',
+I do not adopt an idea merely because it is popular, and I do not reject it merely because it is unfamiliar. I understand it first.
+
+The goal is not to escape the world; I have the freedom to choose my place in it.`,
+      highlight: '“I do not want to be better than everyone else; I only want to avoid spending my life trying to be someone else.”',
+      quoteAuthor: 'MEDO',
     },
 
     // Contact
@@ -269,24 +283,30 @@ My long-term goal is simple: to become someone who can make a real and meaningfu
       subheading: 'Have a project in mind or just want to say hello?',
       form: {
         firstName: 'First Name',
+        firstNamePlaceholder: 'Mohamed',
         lastName: 'Last Name',
+        lastNamePlaceholder: 'Your last name',
         email: 'Email',
+        emailPlaceholder: 'your@email.com',
         message: 'Message',
+        messagePlaceholder: "Tell me what you're thinking...",
         send: 'Send Message',
         sending: 'Sending...',
-        sent: 'Message sent! I\'ll get back to you soon.',
+        sent: 'Continue in your email app.',
         required: 'This field is required',
         emailInvalid: 'Please enter a valid email',
         note: 'Usually replies via email',
+        mailtoHint: 'Sending will open your email app so you can complete and send the message.',
       },
       directEmail: 'Or email directly:',
       leftLabel: "Let's connect",
       leftHeading: "Let's build something meaningful.",
-      leftDescription: 'Have an idea, a project, or just want to connect? Feel free to reach out.',
+      leftDescription: 'Have an idea or a project, or just want to connect? Get in touch.',
       available: 'AVAILABLE FOR NEW PROJECTS',
+      socialsLabel: 'Follow & Connect',
       formHeaderLabel: 'Start a conversation',
       formHeaderTitle: 'Tell me about your idea.',
-      formHeaderDescription: 'Fill in the details below and I\'ll get back to you.',
+      formHeaderDescription: "Fill in the details below and I'll get back to you.",
     },
 
     // Footer
@@ -294,7 +314,7 @@ My long-term goal is simple: to become someone who can make a real and meaningfu
       copyright: '© {year} {name}. All rights reserved.',
       builtWith: 'Built with React, Vite, and Tailwind CSS.',
       backToTop: 'Back to top',
-      profession: 'MIS Student | AI-Assisted Development',
+      profession: 'Business Information Systems | Building digital products with AI',
     },
 
     // Language switcher
@@ -309,6 +329,7 @@ My long-term goal is simple: to become someone who can make a real and meaningfu
       loading: 'Loading...',
       error: 'Error',
       close: 'Close',
+      menu: 'Menu',
     },
   },
 
@@ -318,15 +339,34 @@ My long-term goal is simple: to become someone who can make a real and meaningfu
       home: 'الرئيسية',
       about: 'من أنا',
       story: 'قصتي',
-      skills: 'المهارات',
+      skills: 'ما أجيده',
+      process: 'كيف أبني',
       howIWork: 'أسلوبي في العمل',
       projects: 'المشاريع',
+      certifications: 'الشهادات',
       beyondTech: 'اهتماماتي',
       aiToolkit: 'أدواتي في العمل',
       perspective: 'فلسفتي',
-      leadership: 'القيادة',
+      leadership: 'مسيرتي',
       softSkills: 'مهارات شخصية',
       contact: 'تواصل',
+    },
+
+    certifications: {
+      badge: 'التعلم المستمر',
+      heading: 'الشهادات والاعتمادات المهنية',
+      description: 'نظرة على أبرز الشهادات التي حصلت عليها خلال رحلتي في التعلم والتطور التقني والمهني.',
+      totalLabel: 'شهادة مكتسبة',
+      fieldsLabel: 'مجالات للتعلّم',
+      wheelScrollHint: 'مرّر لأعلى أو لأسفل لتدوير عجلة الشهادات',
+      wheelClickHint: 'اضغط على أي شهادة لعرض تفاصيلها',
+      openDetails: 'فتح تفاصيل الشهادة',
+      closeDetails: 'إغلاق تفاصيل الشهادة',
+      categoryLabel: 'مسار التعلّم',
+      certificateCount: 'شهادة',
+      certificatesCount: 'شهادات',
+      view: 'عرض الشهادة (PDF)',
+      verify: 'التحقق من الشهادة',
     },
 
     // Preloader
@@ -337,45 +377,50 @@ My long-term goal is simple: to become someone who can make a real and meaningfu
 
     // Hero
     hero: {
-      greeting: 'مرحباً، أنا MEDO',
-      titleHighlight: 'طالب نظم معلومات | تطوير بمساعدة الذكاء الاصطناعي',
+      greeting: 'مرحبًا، أنا MEDO',
+      titleHighlight: 'تخصص نظم معلومات إدارية | تطوير بمساعدة الذكاء الاصطناعي',
       rotatingTitles: [
-        'طالب نظم معلومات',
-        'مطور بمساعدة الذكاء الاصطناعي',
-        'متعلم ذاتي',
+        'طالب نظم معلومات الأعمال',
+        'متعلّم بالممارسة والتجربة',
+        'أبني مشاريع بالذكاء الاصطناعي',
+        'مهتم بالتفاصيل',
       ],
-      subtitle: 'طالب نظم معلومات ذاتي التعلم يبني مشاريع عملية بتطوير بمساعدة الذكاء الاصطناعي.',
-      ctaPrimary: { text: 'أعمالي', href: '#projects' },
+      subtitle: 'أهلًا بك في عالمي، حيث أراقب أكثر مما أتكلم، وأتعلم وأنفذ ما يفيد، وأعتني بأدق التفاصيل.',
+      ctaPrimary: { text: 'استعرض أعمالي', href: '#projects' },
       ctaSecondary: { text: 'تواصل معي', href: '#contact' },
       ctaResume: { text: 'تحميل السيرة الذاتية', href: null },
       ariaLabel: 'فيديو تعريفي لـ MEDO',
-      // Resume modal
       resumeModal: {
         title: '{brandName} / السيرة الذاتية',
         download: 'تحميل',
         newTab: 'تبويب جديد',
         close: 'إغلاق عارض السيرة الذاتية',
         unavailable: 'ملف السيرة الذاتية غير متاح حالياً.',
-        addFile: 'أضف ملف السيرة الذاتية في <code>{href}</code> لتفعيل المعاينة.',
+        addFile: 'أضف ملف السيرة الذاتية في {href} لتفعيل المعاينة.',
         checking: 'جاري التحقق من ملف السيرة الذاتية...',
       },
-      // TV brand
       tvBrand: 'TV',
     },
 
     // About
     about: {
       heading: 'من أنا',
-      bio: `أنا محمد السيد أبو جمعة، المعروف باسم <span class="text-slate-900 text-xl font-black mx-1 tracking-wide uppercase">MEDO</span>، طالب نظم ومعلومات إدارية (MIS) في المعهد العالي للإدارة والحاسب الآلي برأس البر، مصر. رحلتي في التعلم ذاتية وعملية، وتعتمد على التجربة وحل المشكلات وتحويل الأفكار إلى مشاريع وتطبيقات قابلة للاستخدام. أعتمد على أسلوب التطوير بمساعدة الذكاء الاصطناعي (AI-Assisted Development)، أو ما يُعرف باسم Vibe Coding. أبدأ بتحديد الفكرة والمتطلبات، ثم أوجّه أدوات الذكاء الاصطناعي أثناء التنفيذ، وأراجع النتائج، وأحدد الأخطاء، وأطلب تحسينها، ثم أختبر المنتج على الأجهزة ومقاسات الشاشات المختلفة. أؤمن بأن القدرة العملية وما يستطيع الشخص إنجازه أهم من مجرد الشهادات. <strong class="text-amber-700">القدرة > الشهادة</strong>`,
+      paragraphs: [
+        'أنا محمد السيد أبو جمعة، المعروف باسم MEDO، طالب في تخصص نظم معلومات الأعمال (MIS) بالمعهد العالي للإدارة والحاسب الآلي برأس البر. حصلت على المركز الأول على دفعتي ثلاث سنوات متتالية في تخصص الحاسب الآلي بمركز التدريب المهني بدمياط. أتعلّم ذاتيًا وبالممارسة: أجرّب، وأحل المشكلات، وأحوّل الأفكار إلى مشاريع قابلة للاستخدام.',
+        'أعمل بأسلوب التطوير بمساعدة الذكاء الاصطناعي (Vibe Coding): أحدد الفكرة والمتطلبات، وأوجّه الأدوات أثناء التنفيذ، وأراجع النتائج وأطلب إصلاح الأخطاء والتحسينات، ثم أختبر المنتج على أجهزة ومقاسات شاشات مختلفة. أؤمن أن المشروع لا يكفي أن يعمل، بل يجب أن يُختبر ويُراجع ويتحسن، وأعتبر كل مشروع فرصة لتعلم شيء جديد.',
+        'من أعمالي نظام English Code التعليمي وتطبيق SystemScope، وأعمل حاليًا في الخدمات الحرة وصناعة المحتوى.',
+        'أؤمن أن ما تستطيع إنجازه أهم من الشهادات.',
+      ],
+      motto: 'القدرة قبل الشهادة.',
       techStack: [],
-      altText: 'MEDO — طالب نظم معلومات | تطوير بمساعدة الذكاء الاصطناعي',
+      altText: 'MEDO — نظم معلومات الأعمال | التطوير بمساعدة الذكاء الاصطناعي',
     },
 
     // Skills Content (Process / How I Build)
     skillsContent: {
-      badge: 'كيف أعمل',
-      heading: 'كيف أعمل',
-      description: 'أركز على تحويل الأفكار إلى منتجات عملية. أحدد المتطلبات، وأوجّه أدوات الذكاء الاصطناعي أثناء التطوير، وأراجع النتائج، وأكتشف المشكلات، وأختبر المنتج قبل اعتباره مكتملًا. أحرص على الشفافية: يساعدني الذكاء الاصطناعي في كتابة الكود، بينما أركز على تحديد الاتجاه والمتطلبات والمراجعة والاختبار والتحسين. <strong class="text-amber-700">القدرة > الشهادة</strong>',
+      badge: 'كيف أبني',
+      heading: 'كيف أبني',
+      description: 'أركز على تحويل الأفكار إلى منتجات عملية. أحدد المتطلبات، وأوجّه أدوات الذكاء الاصطناعي أثناء التطوير، وأراجع النتائج، وأكتشف المشكلات، وأختبر المنتج قبل اعتباره مكتملًا. أحرص على الشفافية: يساعدني الذكاء الاصطناعي في كتابة الكود، بينما أركز على تحديد الاتجاه والمتطلبات والمراجعة والاختبار والتحسين. <strong class="text-[var(--color-2)]">القدرة &gt; الشهادة</strong>',
       stageLabel: 'مرحلة {number}',
       cards: [
         {
@@ -411,53 +456,27 @@ My long-term goal is simple: to become someone who can make a real and meaningfu
 
     // Technical Skills (Personal Skills)
     technicalSkills: {
-      badge: 'المهارات الشخصية',
-      heading: 'المهارات الشخصية',
-      description: 'هذه هي قدراتي الشخصية — وليست التقنيات المستخدمة في المشاريع. مكدس تقنيات كل مشروع يظهر في بطاقة المشروع.',
-      categories: [
+      badge: 'مهاراتي وصفاتي',
+      heading: 'ما أجيده',
+      groups: [
         {
-          title: 'التطوير بمساعدة الذكاء الاصطناعي / Vibe Coding',
-          skills: [
-            'تحويل الأفكار إلى منتجات رقمية قابلة للعمل من خلال توجيه أدوات الذكاء الاصطناعي',
-            'مراجعة الكود الناتج وطلب إصلاح الأخطاء والتحسينات',
+          title: 'مهارات عملية',
+          items: [
+            { title: 'التطوير بمساعدة الذكاء الاصطناعي', description: 'تحويل الأفكار إلى منتجات رقمية تعمل، بتوجيه أدوات الذكاء الاصطناعي ومراجعة نتائجها.' },
+            { title: 'تحديد المتطلبات', description: 'تحديد أهداف المشروع ومتطلباته الوظيفية.' },
+            { title: 'الاختبار', description: 'اختبار الوظائف وتجربة المستخدم، والتحقق من الاستجابة على الأجهزة ومقاسات الشاشات المختلفة.' },
+            { title: 'التصميم', description: 'التصميم الجرافيكي بالذكاء الاصطناعي، الموشن جرافيك، وأساسيات Adobe InDesign.' },
+            { title: 'المحتوى التعليمي', description: 'كتابة السكربتات التعليمية والتخطيط للسلاسل والكتب.' },
+            { title: 'أساسيات رقمية', description: 'ICDL، الأمن السيبراني، التسويق الرقمي، Git وGitHub.' },
           ],
         },
         {
-          title: 'تحديد المتطلبات والمراجعة',
-          skills: [
-            'تحديد أهداف المشروع ومتطلباته الوظيفية',
-            'مراجعة التنفيذ واكتشاف المشكلات',
-          ],
-        },
-        {
-          title: 'اختبار المنتجات',
-          skills: [
-            'اختبار الوظائف وتجربة المستخدم',
-            'التحقق من الاستجابة على الأجهزة ومقاسات الشاشات المختلفة',
-          ],
-        },
-        {
-          title: 'المهارات الإبداعية والبصرية',
-          skills: [
-            'تصميم الهوية البصرية والتصميم الجرافيكي',
-            'الموشن جرافيك',
-            'Adobe InDesign — أساسيات',
-          ],
-        },
-        {
-          title: 'صناعة المحتوى التعليمي',
-          skills: [
-            'كتابة السكربتات التعليمية',
-            'التخطيط للسلاسل والكتب التعليمية',
-          ],
-        },
-        {
-          title: 'أساسيات رقمية',
-          skills: [
-            'ICDL',
-            'أساسيات الأمن السيبراني',
-            'أساسيات التسويق الرقمي',
-            'أساسيات Git وGitHub',
+          title: 'صفاتي',
+          items: [
+            { title: 'حل المشكلات', description: 'تفكيك المشكلة إلى أجزاء صغيرة للوصول إلى حل عملي.' },
+            { title: 'التعلّم المستمر', description: 'تعلّم الأدوات وأفضل الممارسات بالدراسة الذاتية والتجربة.' },
+            { title: 'التواصل الواضح', description: 'كتابة توثيق واضح للمشاريع، وشرح المفاهيم التقنية بأسلوب مبسّط.' },
+            { title: 'إدارة الوقت', description: 'الموازنة بين الدراسة والمشاريع الشخصية وبناء المهارات.' },
           ],
         },
       ],
@@ -492,22 +511,35 @@ My long-term goal is simple: to become someone who can make a real and meaningfu
 
     // Projects
     projects: {
-      heading: 'مشاريع مميزة',
-      subheading: 'مجموعة من المنتجات الرقمية المبنية لحل مشاكل حقيقية.',
-      description: '',
-      viewCode: 'عرض الكود',
-      liveDemo: 'معاينة مباشرة',
-      privateRepo: 'مستودع خاص',
+      heading: 'أهلًا بك في معرض مشاريعي',
+      scrollGallery: 'مرّر لاستكشاف المشاريع في المدار',
+      selectProject: 'اختر مشروعاً لاستعراض دراسة الحالة',
+      openCaseStudy: 'فتح دراسة الحالة',
+      closeCaseStudy: 'إغلاق دراسة الحالة',
+      previousProject: 'المشروع السابق',
+      nextProject: 'المشروع التالي',
+      caseStudyBadge: 'دراسة حالة (Case Study)',
+      problemLabel: 'المشكلة أو الفكرة',
+      solutionLabel: 'طريقة الحل وتجاوز العقبات',
+      techStackLabel: 'بُني باستخدام',
+      linksLabel: 'روابط المعاينة',
+      viewCode: 'مستودع GitHub',
+      liveDemo: 'معاينة مباشرة (Live Demo)',
+      privateRepo: 'مستودع خاص على GitHub',
+      previewImage: 'تكبير اللقطة',
+      closePreview: 'إغلاق معاينة الصورة',
+      privatePreviewTitle: 'مستودع خاص',
+      privatePreviewSubtitle: 'الكود المصدري والمعاينة ضمن مستودع خاص',
     },
 
     // Leadership / Beyond
     leadership: {
       eyebrow: 'رحلة التطور',
-      heading: 'التعلم والنمو',
-      subheading: 'التعليم والتطوير الذاتي الذي يشكل طريقة بنائي للمنتجات.',
+      heading: 'رحلتي حتى الآن',
+      subheading: 'من بدايات متواضعة إلى بناء الأفكار.',
       progressLabel: 'المسار',
-      scrollCue: 'اسحب للاستكشاف',
-      chapterLabel: 'فصل',
+      scrollCue: 'مرّر للاستكشاف',
+      chapterLabel: 'محطة',
       exploreLabel: 'استكشاف المشاريع',
     },
 
@@ -515,17 +547,17 @@ My long-term goal is simple: to become someone who can make a real and meaningfu
     softSkills: {
       badge: 'الكفاءات الأساسية',
       heading: 'المهارات الشخصية الاحترافية',
-      subheading: 'صفات أساسية تجعلني مهندساً ومنسقاً ومتواصلاً فعالاً.',
+      subheading: 'صفات أساسية تعزّز قدرتي على البناء وحل المشكلات والتواصل الفعّال.',
     },
 
     // My Story
     story: {
       heading: 'قصتي',
-      content: `بدأت اهتمامي بالتكنولوجيا من ألعاب الكمبيوتر في مقاهي الإنترنت، حيث كنت أقضي وقتي في اللعب مع أصدقائي. ومع الوقت، تحول هذا الفضول البسيط إلى اهتمام أكبر بعالم الحاسوب والتكنولوجيا.
+      content: `بدأت علاقتي بالتكنولوجيا في مقاهي الإنترنت، حيث كنت ألعب مع أصدقائي ساعات طويلة. لم أكن أبحث عن مجال أدرسه، لكن الفضول جرّني: كيف تعمل هذه الأجهزة؟ وكيف يُبنى ما أراه على الشاشة؟
 
-ما يجعلني مهتمًا بهذا المجال هو تطوره المستمر. أحب البناء والتجربة واستكشاف الأفكار الجديدة والتعلم بشكل دائم.
+ما شدّني بعد ذلك هو أن هذا المجال لا يتوقف عن التغيّر، فهناك دائمًا شيء جديد أجرّبه.
 
-بالنسبة لي، التكنولوجيا ليست مجرد كتابة أكواد، بل هي فضول واكتشاف وتحويل الأفكار إلى شيء واقعي.`,
+بالنسبة لي، التكنولوجيا ليست معرفة تُحفظ، بل فكرة تُجرَّب حتى تصبح شيئًا يعمل في الواقع.`,
     },
 
     // How I Work
@@ -541,9 +573,7 @@ My long-term goal is simple: to become someone who can make a real and meaningfu
     // Beyond Technology
     beyondTech: {
       heading: 'اهتماماتي',
-      content: `بعيدًا عن التكنولوجيا، أهتم بالرسم والسباحة والتصميم، وأستمتع أيضًا بمشاهدة الأنمي والأفلام الأجنبية.
-
-تمنحني هذه الاهتمامات مساحات مختلفة للاستمتاع بالإبداع واكتشاف وجهات نظر جديدة والابتعاد قليلًا عن العمل التقني.`,
+      content: `تمنحني هذه الاهتمامات مساحات مختلفة للاستمتاع بالإبداع واكتشاف وجهات نظر جديدة والابتعاد قليلًا عن العمل التقني.`,
       interests: [
         { label: 'الرسم', icon: 'drawing' },
         { label: 'السباحة', icon: 'swimming' },
@@ -562,17 +592,22 @@ My long-term goal is simple: to become someone who can make a real and meaningfu
         'ChatGPT',
         'Gemini',
         'DeepSeek',
-        'AI Agents',
+        'arena-agent',
+        'deepSeek Harness',
+        'freelLM',
       ],
     },
 
     // My Perspective
     perspective: {
       heading: 'فلسفتي',
-      content: `أؤمن بأن الشهادات وحدها لا تحدد قدرات الإنسان. الأهم هو الخبرة العملية والتعلم المستمر والقدرة على تحويل المعرفة إلى شيء مفيد.
+      content: `لا أريد أن أعيش بالطريقة التي يعيش بها الآخرون لمجرد أنها الطريقة المعتادة. أريد أن أفهم لماذا أعيش، وماذا أفعل، وما القيمة الحقيقية لما أبنيه.
 
-هدفي على المدى البعيد بسيط: أن أصبح شخصًا يستطيع تقديم فائدة حقيقية وقيمة ملموسة من خلال ما يتعلمه وما يبنيه.`,
-      highlight: 'القدرة > الشهادة',
+لا أتبنّى فكرة لمجرد أنها شائعة، ولا أرفضها لمجرد أنها غريبة. أفهمها أولًا.
+
+ليس المطلوب أن أهرب من العالم، فأنا أملك حرية اختيار موقعي فيه.`,
+      highlight: '«لا أريد أن أكون أفضل من الجميع، أريد فقط ألا أقضي حياتي في محاولة أن أكون شخصًا آخر.»',
+      quoteAuthor: 'MEDO',
     },
 
     // Contact
@@ -581,24 +616,30 @@ My long-term goal is simple: to become someone who can make a real and meaningfu
       subheading: 'لديك مشروع في ذهنك أو تريد فقط التحية؟',
       form: {
         firstName: 'الاسم الأول',
+        firstNamePlaceholder: 'محمد',
         lastName: 'الاسم الأخير',
+        lastNamePlaceholder: 'اسم العائلة',
         email: 'البريد الإلكتروني',
+        emailPlaceholder: 'your@email.com',
         message: 'الرسالة',
+        messagePlaceholder: 'أخبرني بتفاصيل فكرتك أو رسالتك...',
         send: 'إرسال الرسالة',
         sending: 'جاري الإرسال...',
-        sent: 'تم الإرسال! سأرد عليك قريباً.',
+        sent: 'أكمل الرسالة في تطبيق البريد.',
         required: 'هذا الحقل مطلوب',
         emailInvalid: 'يرجى إدخال بريد إلكتروني صحيح',
         note: 'عادةً أرد عبر البريد الإلكتروني',
+        mailtoHint: 'سيفتح الإرسال تطبيق البريد لديك لإكمال إرسال الرسالة.',
       },
       directEmail: 'أو راسلني مباشرة:',
-      leftLabel: 'لنتصل',
-      leftHeading: 'لنبني شيئاً\nذو معنى.',
-      leftDescription: 'هل لديك فكرة، مشروع، أو تريد فقط التواصل؟\nلا تتردد في التواصل.',
+      leftLabel: 'لنتواصل',
+      leftHeading: 'لنبني شيئًا ذا معنى.',
+      leftDescription: 'هل لديك فكرة أو مشروع، أو تريد فقط التواصل؟ راسلني.',
       available: 'متاح للمشاريع الجديدة',
+      socialsLabel: 'حساباتي ومنصات التواصل',
       formHeaderLabel: 'ابدأ محادثة',
       formHeaderTitle: 'أخبرني عن فكرتك.',
-      formHeaderDescription: 'املأ التفاصيل أدناه وسأعود إليك.',
+      formHeaderDescription: 'املأ التفاصيل أدناه وسأتواصل معك قريباً.',
     },
 
     // Footer
@@ -606,7 +647,7 @@ My long-term goal is simple: to become someone who can make a real and meaningfu
       copyright: '© {year} {name}. جميع الحقوق محفوظة.',
       builtWith: 'مبني بـ React، Vite، و Tailwind CSS.',
       backToTop: 'العودة للأعلى',
-      profession: 'طالب نظم معلومات | تطوير بمساعدة الذكاء الاصطناعي',
+      profession: 'تخصص نظم معلومات الاعمال | أبني منتجات رقمية بالذكاء الاصطناعي',
     },
 
     // Language switcher
@@ -621,6 +662,7 @@ My long-term goal is simple: to become someone who can make a real and meaningfu
       loading: 'جاري التحميل...',
       error: 'خطأ',
       close: 'إغلاق',
+      menu: 'القائمة',
     },
   },
 };
@@ -643,13 +685,12 @@ export function t(language, path) {
     if (result && typeof result === 'object' && key in result) {
       result = result[key];
     } else {
-      // Fallback to English
       result = translations.en;
       for (const k of keys) {
         if (result && typeof result === 'object' && k in result) {
           result = result[k];
         } else {
-          return path; // Return path as fallback
+          return path;
         }
       }
       break;

@@ -11,56 +11,32 @@ const Perspective = () => {
         relative
         w-full
         overflow-hidden
-        bg-[#f6f5f2]
+        bg-[var(--color-5)]
         px-6
         py-24
+        font-sans
         md:px-12
         md:py-32
         lg:py-36
-        font-sans
       "
       dir={langConfig.dir}
     >
       {/* Background glow */}
-      <div
-        className="
-          pointer-events-none
-          absolute
-          right-[-10rem]
-          top-20
-          h-96
-          w-96
-          rounded-full
-          bg-amber-700/5
-          blur-3xl
-        "
-      />
-      <div
-        className="
-          pointer-events-none
-          absolute
-          -bottom-24
-          -left-20
-          h-48
-          w-48
-          rounded-full
-          bg-white/[0.025]
-          blur-[80px]
-        "
-      />
+      <div className="pointer-events-none absolute right-[-10rem] top-20 h-96 w-96 rounded-full bg-[var(--color-8)]/15 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-24 -left-20 h-48 w-48 rounded-full bg-[var(--color-1)]/20 blur-[80px]" />
 
       <div className="relative z-10 mx-auto max-w-7xl">
         {/* Header */}
         <div data-aos="fade-up" className="mb-16 max-w-4xl">
-          <h2 className="text-4xl font-black leading-[1.05] tracking-tight text-slate-900 md:text-6xl lg:text-7xl">
+          <h2 className="text-4xl font-black leading-[1.08] tracking-tight text-[var(--color-4)] md:text-6xl lg:text-7xl">
             {perspectiveData.heading}
           </h2>
         </div>
 
         {/* Content */}
-        <div data-aos="fade-up" data-aos-delay="100" className="max-w-3xl mb-12">
-          <div className="prose prose-slate max-w-none">
-            <p className="text-base md:text-lg font-medium leading-relaxed text-slate-600 whitespace-pre-line">
+        <div data-aos="fade-up" data-aos-delay="100" className="mb-12 max-w-3xl">
+          <div className="max-w-none">
+            <p className="whitespace-pre-line text-base font-medium leading-relaxed text-[var(--color-4)]/78 md:text-lg">
               {perspectiveData.content}
             </p>
           </div>
@@ -68,14 +44,14 @@ const Perspective = () => {
 
         {/* Highlighted Statement */}
         <div data-aos="fade-up" data-aos-delay="200" className="max-w-3xl">
-          <div className="relative p-6 md:p-8 rounded-2xl border border-amber-700/30 bg-amber-500/5 backdrop-blur-sm">
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-700/10 to-transparent rounded-2xl" />
-            <div className="relative z-10 text-center">
-              <p className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight text-amber-800">
-                {perspectiveData.highlight}
-              </p>
-            </div>
-          </div>
+          <blockquote className="relative overflow-hidden rounded-[1.75rem] border border-[var(--color-2)]/25 bg-[var(--color-6)]/70 px-7 py-9 shadow-[0_14px_36px_rgba(123,42,39,0.08)] md:px-12 md:py-12">
+            <div aria-hidden="true" className="pointer-events-none absolute -end-8 -top-16 text-[12rem] font-black leading-none text-[var(--color-8)]/20">“</div>
+            <div aria-hidden="true" className="mb-6 h-1 w-12 rounded-full bg-[var(--color-2)]" />
+            <p className="relative max-w-2xl text-xl font-black leading-relaxed text-[var(--color-2)] md:text-3xl md:leading-relaxed">
+              {perspectiveData.highlight}
+            </p>
+            <footer className="relative mt-5 text-sm font-black tracking-wide text-[var(--color-2)]/80">— {perspectiveData.quoteAuthor}</footer>
+          </blockquote>
         </div>
       </div>
     </section>
