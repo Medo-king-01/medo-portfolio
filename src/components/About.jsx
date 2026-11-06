@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { getMotionProfile, motionConfig } from '../motion/motionConfig.js';
 import { getRevealVariants, getStaggerVariants } from '../motion/motionVariants.js';
-import { useMotionEnvironment } from '../motion/useReducedMotionPreference.js';
+import { useMotionEnvironment } from '../motion/useMotionEnvironment.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import stackImageAsset from '../assets/about/medo.jpg';
 
@@ -17,8 +17,8 @@ const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 const About = () => {
   const { t, langConfig } = useLanguage();
-  const { reducedMotion, isMobile, isTablet, isShortViewport, hasFinePointer } = useMotionEnvironment();
-  const profile = getMotionProfile({ isMobile, isTablet, isShortViewport, hasFinePointer, reducedMotion });
+  const { isMobile, isTablet, isShortViewport, hasFinePointer } = useMotionEnvironment();
+  const profile = getMotionProfile({ isMobile, isTablet, isShortViewport, hasFinePointer });
   const frameRef = useRef(null);
   const ropePathRef = useRef(null);
   const ropeHighlightRef = useRef(null);
@@ -46,7 +46,6 @@ const About = () => {
   });
 
   const canDragRef = useRef(false);
-  const motionEnabledRef = useRef(true);
   const returningRef = useRef(false);
 
   const updateRope = useCallback(() => {
@@ -91,8 +90,7 @@ const About = () => {
   useEffect(() => {
     const frameElement = frameRef.current;
     const pointerQuery = window.matchMedia('(pointer: fine)');
-    motionEnabledRef.current = !reducedMotion;
-    canDragRef.current = !reducedMotion && pointerQuery.matches;
+    canDragRef.current = pointerQuery.matches;
     let previousTime = performance.now();
     let observer;
 
@@ -104,28 +102,9 @@ const About = () => {
         Math.abs(physics.rotation) > 0.08;
     };
 
-    const resetMotion = () => {
-      const physics = physicsRef.current;
-      physics.x = 0;
-      physics.y = 0;
-      physics.targetX = 0;
-      physics.targetY = 0;
-      physics.velocityX = 0;
-      physics.velocityY = 0;
-      physics.rotation = 0;
-      physics.dragging = false;
-      physics.pointerId = null;
-      returningRef.current = false;
-      if (frameRef.current) frameRef.current.style.willChange = 'auto';
-      updateVisual();
-    };
-
     const tick = (time) => {
       physicsFrameRef.current = null;
-      if (!inViewRef.current || !motionEnabledRef.current) {
-        if (!motionEnabledRef.current) resetMotion();
-        return;
-      }
+      if (!inViewRef.current) return;
 
       const physics = physicsRef.current;
       const deltaTime = Math.min((time - previousTime) / 1000, 0.04);
@@ -188,7 +167,7 @@ const About = () => {
     };
 
     const schedule = () => {
-      if (!frameRef.current || physicsFrameRef.current || !inViewRef.current || !motionEnabledRef.current || !isMoving()) return;
+      if (!frameRef.current || physicsFrameRef.current || !inViewRef.current || !isMoving()) return;
       frameRef.current.style.willChange = 'transform';
       previousTime = performance.now();
       physicsFrameRef.current = window.requestAnimationFrame(tick);
@@ -196,7 +175,7 @@ const About = () => {
     schedulePhysicsRef.current = schedule;
 
     const handlePointerChange = () => {
-      canDragRef.current = !reducedMotion && pointerQuery.matches;
+      canDragRef.current = pointerQuery.matches;
     };
     if (typeof pointerQuery.addEventListener === 'function') pointerQuery.addEventListener('change', handlePointerChange);
     else pointerQuery.addListener?.(handlePointerChange);
@@ -217,8 +196,6 @@ const About = () => {
       inViewRef.current = true;
     }
 
-    if (reducedMotion) resetMotion();
-
     return () => {
       observer?.disconnect();
       if (typeof pointerQuery.removeEventListener === 'function') pointerQuery.removeEventListener('change', handlePointerChange);
@@ -230,7 +207,7 @@ const About = () => {
       if (frameElement) frameElement.style.willChange = 'auto';
       schedulePhysicsRef.current = () => {};
     };
-  }, [updateVisual, reducedMotion]);
+  }, [updateVisual]);
 
   const handlePointerDown = (event) => {
     if (event.pointerType === 'touch') return;
@@ -362,10 +339,10 @@ const About = () => {
           className="mt-12 flex w-full shrink-0 flex-col items-center md:mt-0 md:w-[350px]"
         >
           <motion.div
-            initial={reducedMotion ? false : 'hidden'}
+            initial="hidden"
             whileInView="visible"
             viewport={motionConfig.viewport}
-            variants={getRevealVariants({ reducedMotion, distance: profile.revealDistance })}
+            variants={getRevealVariants({ distance: profile.revealDistance })}
             className="relative flex w-full justify-center"
           >
             {/* ANCHORED FLEXIBLE ROPE */}
@@ -518,10 +495,10 @@ const About = () => {
 
         {/* TEXT */}
         <motion.div
-          initial={reducedMotion ? false : 'hidden'}
+          initial="hidden"
           whileInView="visible"
           viewport={motionConfig.viewport}
-          variants={getRevealVariants({ reducedMotion, distance: profile.revealDistance, delay: 0.08 })}
+          variants={getRevealVariants({ distance: profile.revealDistance, delay: 0.08 })}
           className="relative z-20 mt-8 flex-1 text-start text-[var(--color-4)] md:mt-0"
         >
           <h2 className="mb-4 text-4xl font-black text-[var(--color-4)] md:text-5xl">
@@ -529,16 +506,16 @@ const About = () => {
           </h2>
 
           <motion.div
-            initial={reducedMotion ? false : 'hidden'}
+            initial="hidden"
             whileInView="visible"
             viewport={motionConfig.viewport}
-            variants={getStaggerVariants({ reducedMotion, stagger: profile.stagger })}
+            variants={getStaggerVariants({ stagger: profile.stagger })}
             className="max-w-3xl space-y-5 text-base font-medium leading-relaxed text-[var(--color-4)]/80 md:text-lg"
           >
             {t('about.paragraphs').map((paragraph, index, paragraphs) => (
               <motion.p
                 key={paragraph}
-                variants={getRevealVariants({ reducedMotion, distance: profile.revealDistance })}
+                variants={getRevealVariants({ distance: profile.revealDistance })}
                 className="font-semibold text-[var(--color-4)]/85"
               >
                 {paragraph}

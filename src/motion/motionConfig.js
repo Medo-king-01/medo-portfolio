@@ -40,24 +40,9 @@ export function getMotionProfile({
   isTablet = false,
   isShortViewport = false,
   hasFinePointer = true,
-  reducedMotion = false,
 } = {}) {
   const deviceClass = isMobile ? 'mobile' : isTablet ? 'tablet' : 'desktop';
-  const pinnedScenes = !reducedMotion && hasFinePointer && !isMobile && !isTablet && !isShortViewport;
-
-  if (reducedMotion) {
-    return {
-      deviceClass,
-      revealDistance: 0,
-      stagger: 0,
-      parallaxDistance: 0,
-      perspective: 0,
-      journeyStep: 24,
-      certificateStep: 0,
-      pinnedScenes: false,
-    };
-  }
-
+  const pinnedScenes = hasFinePointer && !isMobile && !isTablet && !isShortViewport;
   const revealDistance = isMobile
     ? motionConfig.distance.mobile
     : isTablet

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { motionConfig } from '../motion/motionConfig.js';
-import { useReducedMotionPreference } from '../motion/useReducedMotionPreference.js';
 import { personalInfo } from '../data/portfolioData';
 import { siteConfig } from '../config/site.config';
 import { useLanguage } from '../context/LanguageContext.jsx';
@@ -14,11 +13,7 @@ const announceCurtainOpened = () => {
 };
 
 const Preloader = () => {
-  const prefersReducedMotion = useReducedMotionPreference();
-  const [isLoading, setIsLoading] = useState(() => {
-    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return true;
-    return !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  });
+  const [isLoading, setIsLoading] = useState(true);
   const { t, langConfig } = useLanguage();
 
   useEffect(() => {
@@ -32,12 +27,6 @@ const Preloader = () => {
       setIsLoading(false);
     };
 
-    if (prefersReducedMotion) {
-      finishLoading();
-      announceCurtainOpened();
-      return undefined;
-    }
-
     if (window.__APP_READY__) finishLoading();
     else window.addEventListener('app:ready', finishLoading, { once: true });
 
@@ -48,7 +37,7 @@ const Preloader = () => {
       window.removeEventListener('app:ready', finishLoading);
       if (fallbackTimer) window.clearTimeout(fallbackTimer);
     };
-  }, [prefersReducedMotion]);
+  }, []);
 
   const brandName = personalInfo?.brandName || siteConfig.brand.brandName;
   const brandHandle = siteConfig.brand.handle;
@@ -340,8 +329,8 @@ const Preloader = () => {
                 {[0, 0.15, 0.3].map((delay) => (
                   <motion.span
                     key={delay}
-                    animate={prefersReducedMotion ? { opacity: 0.7 } : { opacity: [0.25, 1, 0.25] }}
-                    transition={prefersReducedMotion ? undefined : { duration: 1, repeat: Infinity, delay }}
+                    animate={{ opacity: [0.25, 1, 0.25] }}
+                    transition={{ duration: 1, repeat: Infinity, delay }}
                     className="h-1 w-1 rounded-full bg-[var(--color-7)]"
                   />
                 ))}

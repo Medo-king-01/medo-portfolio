@@ -2,7 +2,7 @@ import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { getMotionProfile, motionConfig } from '../motion/motionConfig.js';
 import { getRevealVariants, modalBackdropVariants, modalPanelVariants } from '../motion/motionVariants.js';
-import { useMotionEnvironment } from '../motion/useReducedMotionPreference.js';
+import { useMotionEnvironment } from '../motion/useMotionEnvironment.js';
 import { createGsapContext, gsap, scheduleScrollTriggerRefresh } from '../motion/gsap.js';
 import { projects } from '../data/portfolioData';
 import { useLanguage } from '../context/LanguageContext.jsx';
@@ -349,7 +349,7 @@ const ProjectGalleryCard = ({ project, language, t, onSelect, hasFinePointer, in
               alt={`${title} project preview`}
               loading="lazy"
               decoding="async"
-              className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+              className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.04]"
             />
           ) : (
             <div className="flex h-full items-center justify-center text-[var(--color-2)]" aria-hidden="true"><StackIcon /></div>
@@ -427,8 +427,8 @@ const ProjectGallery = ({ trackRef, language, t, onSelect, hasFinePointer, onFoc
 
 const Projects = () => {
   const { t, language, langConfig } = useLanguage();
-  const { reducedMotion, isMobile, isTablet, isShortViewport, hasFinePointer } = useMotionEnvironment();
-  const profile = getMotionProfile({ isMobile, isTablet, isShortViewport, hasFinePointer, reducedMotion });
+  const { isMobile, isTablet, isShortViewport, hasFinePointer } = useMotionEnvironment();
+  const profile = getMotionProfile({ isMobile, isTablet, isShortViewport, hasFinePointer });
   const [selectedProject, setSelectedProject] = useState(null);
   const [previewItem, setPreviewItem] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -438,14 +438,14 @@ const Projects = () => {
   const triggerRef = useRef(null);
   const modalRef = useRef(null);
   const returnFocusRef = useRef(null);
-  const headingVariants = getRevealVariants({ reducedMotion, distance: profile.revealDistance });
+  const headingVariants = getRevealVariants({ distance: profile.revealDistance });
 
   const jumpToProject = (index, behaviorOverride) => {
     const track = trackRef.current;
     const target = track?.children[index];
     if (!track || !target) return;
 
-    const behavior = behaviorOverride || (reducedMotion ? 'auto' : 'instant');
+    const behavior = behaviorOverride || 'instant';
     setActiveIndex(index);
 
     if (track.scrollWidth > track.clientWidth + 4) {
@@ -465,7 +465,7 @@ const Projects = () => {
     const section = sectionRef.current;
     const stage = stageRef.current;
     const track = trackRef.current;
-    if (!section || !stage || !track || !profile.pinnedScenes || reducedMotion) {
+    if (!section || !stage || !track || !profile.pinnedScenes) {
       section?.classList.remove('is-horizontal');
       triggerRef.current = null;
       return undefined;
@@ -516,7 +516,7 @@ const Projects = () => {
     });
 
     return () => media.revert();
-  }, [langConfig.dir, profile.pinnedScenes, reducedMotion]);
+  }, [langConfig.dir, profile.pinnedScenes]);
 
   useEffect(() => {
     const track = trackRef.current;
@@ -550,7 +550,7 @@ const Projects = () => {
       track.removeEventListener('scroll', updateActiveIndex);
       window.cancelAnimationFrame(frame);
     };
-  }, [reducedMotion]);
+  }, []);
 
   const openProject = (project) => {
     returnFocusRef.current = document.activeElement;
@@ -603,7 +603,7 @@ const Projects = () => {
       <div aria-hidden="true" className="pointer-events-none absolute right-0 top-20 h-80 w-80 rounded-full bg-[var(--color-8)]/15 blur-3xl" />
       <header className="projects-header relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-7 px-6 pb-8 pt-28 md:flex-row md:items-end md:justify-between md:gap-10 md:px-10 md:pb-10 md:pt-36">
         <motion.div
-          initial={reducedMotion ? false : 'hidden'}
+          initial="hidden"
           whileInView="visible"
           viewport={motionConfig.viewport}
           variants={headingVariants}
@@ -658,7 +658,7 @@ const Projects = () => {
             role="dialog"
             aria-modal="true"
             aria-label={previewItem ? previewItem.title : resolveLocalized(selectedProject.title, language)}
-            initial={reducedMotion ? false : 'hidden'}
+            initial="hidden"
             animate="visible"
             exit="exit"
             variants={modalBackdropVariants}
@@ -671,7 +671,7 @@ const Projects = () => {
             className="fixed inset-0 z-[10000] flex items-center justify-center bg-[var(--color-4)]/85 p-3 backdrop-blur-md sm:p-8"
           >
             <motion.div
-              initial={reducedMotion ? false : 'hidden'}
+              initial="hidden"
               animate="visible"
               exit="exit"
               variants={modalPanelVariants}

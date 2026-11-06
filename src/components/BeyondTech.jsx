@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { getMotionProfile, motionConfig } from '../motion/motionConfig.js';
 import { getRevealVariants, getStaggerVariants } from '../motion/motionVariants.js';
-import { useMotionEnvironment } from '../motion/useReducedMotionPreference.js';
+import { useMotionEnvironment } from '../motion/useMotionEnvironment.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
 
 const InterestIcon = ({ name }) => {
@@ -49,10 +49,10 @@ const InterestIcon = ({ name }) => {
 
 const BeyondTech = () => {
   const { t, langConfig } = useLanguage();
-  const { reducedMotion, isMobile, isTablet, isShortViewport, hasFinePointer } = useMotionEnvironment();
-  const profile = getMotionProfile({ isMobile, isTablet, isShortViewport, hasFinePointer, reducedMotion });
-  const revealVariants = getRevealVariants({ reducedMotion, distance: profile.revealDistance });
-  const staggerVariants = getStaggerVariants({ reducedMotion, stagger: profile.stagger });
+  const { isMobile, isTablet, isShortViewport, hasFinePointer } = useMotionEnvironment();
+  const profile = getMotionProfile({ isMobile, isTablet, isShortViewport, hasFinePointer });
+  const revealVariants = getRevealVariants({ distance: profile.revealDistance });
+  const staggerVariants = getStaggerVariants({ stagger: profile.stagger });
   const beyondTechData = t('beyondTech');
 
   return (
@@ -68,7 +68,7 @@ const BeyondTech = () => {
 
       <div className="relative z-10 mx-auto max-w-7xl">
         <motion.div
-          initial={reducedMotion ? false : 'hidden'}
+          initial="hidden"
           whileInView="visible"
           viewport={motionConfig.viewport}
           variants={revealVariants}
@@ -80,10 +80,10 @@ const BeyondTech = () => {
         </motion.div>
 
         <motion.div
-          initial={reducedMotion ? false : 'hidden'}
+          initial="hidden"
           whileInView="visible"
           viewport={motionConfig.viewport}
-          variants={getRevealVariants({ reducedMotion, distance: profile.revealDistance, delay: 0.06 })}
+          variants={getRevealVariants({ distance: profile.revealDistance, delay: 0.06 })}
           className="mb-12 max-w-3xl"
         >
           <p className="whitespace-pre-line text-base font-medium leading-relaxed text-[var(--color-4)]/78 md:text-lg">
@@ -92,7 +92,7 @@ const BeyondTech = () => {
         </motion.div>
 
         <motion.div
-          initial={reducedMotion ? false : 'hidden'}
+          initial="hidden"
           whileInView="visible"
           viewport={motionConfig.viewport}
           variants={staggerVariants}
@@ -102,7 +102,7 @@ const BeyondTech = () => {
             <motion.article
               key={interest.label}
               variants={revealVariants}
-              whileHover={hasFinePointer && !reducedMotion ? { y: -4 } : undefined}
+              whileHover={hasFinePointer ? { y: -4 } : undefined}
               className="group relative rounded-2xl border border-[var(--color-3)] bg-white/80 p-5 shadow-[0_8px_24px_rgba(27,23,22,0.05)] backdrop-blur-sm transition-[border-color,box-shadow,background-color] duration-300 hover:border-[var(--color-2)]/40 hover:bg-white hover:shadow-[0_16px_36px_rgba(27,23,22,0.10)] md:p-6"
             >
               <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--color-8)]/20 text-[var(--color-2)] transition-[background-color,color,transform] duration-300 group-hover:scale-110 group-hover:bg-[var(--color-2)] group-hover:text-[var(--color-5)]">

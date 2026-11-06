@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { getMotionProfile, motionConfig } from '../motion/motionConfig.js';
 import { getRevealVariants, getStaggerVariants } from '../motion/motionVariants.js';
-import { useMotionEnvironment } from '../motion/useReducedMotionPreference.js';
+import { useMotionEnvironment } from '../motion/useMotionEnvironment.js';
 import { siGithub, siInstagram, siFacebook, siTiktok } from 'simple-icons';
 import { GithubIcon } from './icons/github-icon';
 import { InstagramIcon } from './icons/instagram-icon';
@@ -14,12 +14,12 @@ import { useLanguage } from '../context/LanguageContext.jsx';
 
 const Contact = () => {
   const { t, langConfig } = useLanguage();
-  const { reducedMotion, isMobile, isTablet, isShortViewport, hasFinePointer } = useMotionEnvironment();
-  const profile = getMotionProfile({ isMobile, isTablet, isShortViewport, hasFinePointer, reducedMotion });
-  const leftRevealVariants = getRevealVariants({ reducedMotion, distance: profile.revealDistance });
-  const rightRevealVariants = getRevealVariants({ reducedMotion, distance: profile.revealDistance, delay: 0.08 });
-  const socialsStaggerVariants = getStaggerVariants({ reducedMotion, stagger: profile.stagger });
-  const socialItemVariants = getRevealVariants({ reducedMotion, distance: profile.revealDistance });
+  const { isMobile, isTablet, isShortViewport, hasFinePointer } = useMotionEnvironment();
+  const profile = getMotionProfile({ isMobile, isTablet, isShortViewport, hasFinePointer });
+  const leftRevealVariants = getRevealVariants({ distance: profile.revealDistance });
+  const rightRevealVariants = getRevealVariants({ distance: profile.revealDistance, delay: 0.08 });
+  const socialsStaggerVariants = getStaggerVariants({ stagger: profile.stagger });
+  const socialItemVariants = getRevealVariants({ distance: profile.revealDistance });
   const sendTimerRef = useRef(null);
   const [formData, setFormData] = useState({
     firstName: '',
@@ -146,7 +146,7 @@ const Contact = () => {
         <div className="grid grid-cols-1 gap-16 lg:grid-cols-12 lg:items-start lg:gap-20">
           {/* START COLUMN */}
           <motion.div
-            initial={reducedMotion ? false : 'hidden'}
+            initial="hidden"
             whileInView="visible"
             viewport={motionConfig.viewport}
             variants={leftRevealVariants}
@@ -197,7 +197,7 @@ const Contact = () => {
               </p>
 
               <motion.div
-                initial={reducedMotion ? false : 'hidden'}
+                initial="hidden"
                 whileInView="visible"
                 viewport={motionConfig.viewport}
                 variants={socialsStaggerVariants}
@@ -206,7 +206,7 @@ const Contact = () => {
                 {socialPlatforms.map((platform) => (
                   <motion.a
                     variants={socialItemVariants}
-                    whileHover={hasFinePointer && !reducedMotion ? { y: -4 } : undefined}
+                    whileHover={hasFinePointer ? { y: -4 } : undefined}
                     key={platform.key}
                     href={platform.href}
                     target="_blank"
@@ -260,7 +260,7 @@ const Contact = () => {
 
           {/* END COLUMN — FORM */}
           <motion.div
-            initial={reducedMotion ? false : 'hidden'}
+            initial="hidden"
             whileInView="visible"
             viewport={motionConfig.viewport}
             variants={rightRevealVariants}
@@ -487,10 +487,10 @@ const Contact = () => {
 
         {/* BOTTOM LINE */}
         <motion.div
-          initial={reducedMotion ? false : 'hidden'}
+          initial="hidden"
           whileInView="visible"
           viewport={motionConfig.viewport}
-          variants={getRevealVariants({ reducedMotion, distance: profile.revealDistance, delay: 0.08 })}
+          variants={getRevealVariants({ distance: profile.revealDistance, delay: 0.08 })}
           className="mt-20 flex flex-col gap-3 border-t border-[var(--color-3)] pt-5 text-[10px] font-black uppercase tracking-[0.18em] text-[var(--color-4)]/50 sm:flex-row sm:items-center sm:justify-between"
         >
           <span>{brandName} / PORTFOLIO</span>

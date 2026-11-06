@@ -116,24 +116,6 @@ button:hover > svg {
   transform: scale(1.2) rotate(8deg);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto !important;
-  }
-
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    animation-delay: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-    transition-delay: 0.01ms !important;
-  }
-
-}
-
 /* Dark mode surface & card adjustments */
 html.dark body {
   background-color: var(--color-5);
@@ -265,13 +247,6 @@ a, button {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .project-gallery-card {
-    transform: none !important;
-    transition: none !important;
-  }
-}
-
 #projects.projects-section {
   --nav-h: 5rem;
   overflow: visible;
@@ -399,36 +374,6 @@ a, button {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  #projects.is-horizontal .projects-stage {
-    display: block;
-    height: auto;
-    overflow: visible;
-    padding-top: 0;
-  }
-
-  #projects.is-horizontal .projects-shell {
-    width: min(100%, 80rem);
-    overflow: visible;
-  }
-
-  #projects.is-horizontal .projects-track {
-    width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x mandatory;
-    will-change: auto;
-    transform: none !important;
-  }
-
-  #projects.is-horizontal .project-track-card {
-    flex: 0 0 min(84vw, 30rem);
-    width: min(84vw, 30rem);
-    scroll-snap-align: center;
-    scroll-snap-stop: always;
-  }
-}
-
 .about-card-physics {
   transform-origin: 50% 0%;
   transform-style: preserve-3d;
@@ -470,29 +415,6 @@ a, button {
 @keyframes heroCaretBlink {
   0%, 45% { opacity: 1; }
   55%, 100% { opacity: 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-typewriter-caret {
-    animation: none;
-  }
-
-  .about-card-physics {
-    cursor: default;
-    transition: none;
-  }
-
-  .about-card-string {
-    transition: none;
-  }
-
-  a:hover,
-  button:hover,
-  a:hover > svg,
-  button:hover > svg,
-  .group:hover [class*="group-hover:"] {
-    transform: none !important;
-  }
 }
 
 .beyond-code-section {
@@ -734,9 +656,6 @@ html[dir="rtl"] .beyond-progress-label {
   letter-spacing: 0.03em;
 }
 
-.beyond-code-reduced { padding-bottom: 0; }
-.beyond-code-reduced .beyond-card { transition: none; }
-
 @media (max-width: 900px) {
   .beyond-code-section { padding-inline: 1.25rem; }
   .beyond-stack-stage { height: 260vh; }
@@ -787,11 +706,6 @@ html[dir="rtl"] .beyond-progress-label {
   .beyond-card-stack { height: min(66svh, 18rem); }
   .beyond-card-body { padding-top: 2rem; }
   .beyond-card-copy p { font-size: 0.72rem; line-height: 1.4; }
-  .beyond-scroll-cue { display: none; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .beyond-card { transition: none; }
   .beyond-scroll-cue { display: none; }
 }
 
@@ -1283,14 +1197,95 @@ html[dir="rtl"] .certificate-native-hint p:first-child {
   background: var(--color-7);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .certificate-native-track {
-    scroll-behavior: auto;
-  }
+/* A quiet blueprint texture links the major sections; the Hero carries the motion. */
+.section-flow:not(.hero-surface) {
+  --section-grid-ink: color-mix(in srgb, var(--color-2) 3%, transparent);
+  background-image:
+    linear-gradient(90deg, var(--section-grid-ink) 1px, transparent 1px),
+    linear-gradient(0deg, var(--section-grid-ink) 1px, transparent 1px);
+  background-size: 84px 84px;
+}
 
-  .certificate-native-arrow,
-  .certificate-wheel-card.certificate-native-card,
-  .certificate-native-dot::after {
-    transition: none;
-  }
+.hero-grid-backdrop {
+  --hero-grid-size: 72px;
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hero-grid-plane {
+  position: absolute;
+  inset: -72px;
+  background-image:
+    radial-gradient(circle, color-mix(in srgb, var(--color-7) 32%, transparent) 0 1.15px, transparent 1.7px),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-2) 12%, transparent) 1px, transparent 1px),
+    linear-gradient(0deg, color-mix(in srgb, var(--color-2) 12%, transparent) 1px, transparent 1px);
+  background-size: var(--hero-grid-size) var(--hero-grid-size);
+  opacity: 0.48;
+  transform: translate3d(0, 0, 0);
+  animation: hero-grid-drift 52s linear infinite;
+  -webkit-mask-image: radial-gradient(ellipse 88% 82% at 52% 46%, #000 12%, rgb(0 0 0 / 0.72) 62%, transparent 100%);
+  mask-image: radial-gradient(ellipse 88% 82% at 52% 46%, #000 12%, rgb(0 0 0 / 0.72) 62%, transparent 100%);
+  will-change: transform;
+}
+
+.hero-grid-sweep {
+  position: absolute;
+  top: -18%;
+  bottom: -18%;
+  left: -42%;
+  width: 40%;
+  background: linear-gradient(
+    110deg,
+    transparent 5%,
+    color-mix(in srgb, var(--color-7) 4%, transparent) 38%,
+    color-mix(in srgb, var(--color-7) 11%, transparent) 51%,
+    transparent 82%
+  );
+  opacity: 0;
+  transform: translate3d(-120%, 0, 0) skewX(-14deg);
+  animation: hero-grid-sweep 24s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.hero-grid-node {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border: 1px solid color-mix(in srgb, var(--color-7) 76%, white);
+  border-radius: 50%;
+  background: var(--color-7);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-7) 9%, transparent), 0 0 14px color-mix(in srgb, var(--color-7) 36%, transparent);
+  opacity: 0.5;
+  will-change: transform, opacity;
+}
+
+.hero-grid-node-one {
+  top: 33%;
+  inset-inline-start: 26%;
+}
+
+.hero-grid-node-two {
+  right: 23%;
+  bottom: 27%;
+}
+
+@keyframes hero-grid-drift {
+  to { transform: translate3d(var(--hero-grid-size), var(--hero-grid-size), 0); }
+}
+
+@keyframes hero-grid-sweep {
+  0%, 22% { opacity: 0; transform: translate3d(-120%, 0, 0) skewX(-14deg); }
+  34% { opacity: 0.28; }
+  67% { opacity: 0.18; transform: translate3d(340%, 0, 0) skewX(-14deg); }
+  78%, 100% { opacity: 0; transform: translate3d(340%, 0, 0) skewX(-14deg); }
+}
+
+@media (max-width: 640px) {
+  .hero-grid-backdrop { --hero-grid-size: 56px; }
+  .hero-grid-plane { inset: -56px; opacity: 0.34; }
+  .hero-grid-sweep { width: 48%; }
+  .hero-grid-node { width: 4px; height: 4px; }
 }

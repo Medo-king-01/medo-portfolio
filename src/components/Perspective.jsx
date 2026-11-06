@@ -1,13 +1,13 @@
 import { motion } from 'framer-motion';
 import { getMotionProfile, motionConfig } from '../motion/motionConfig.js';
 import { getRevealVariants } from '../motion/motionVariants.js';
-import { useMotionEnvironment } from '../motion/useReducedMotionPreference.js';
+import { useMotionEnvironment } from '../motion/useMotionEnvironment.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
 
 const Perspective = () => {
   const { t, langConfig } = useLanguage();
-  const { reducedMotion, isMobile, isTablet, isShortViewport, hasFinePointer } = useMotionEnvironment();
-  const profile = getMotionProfile({ isMobile, isTablet, isShortViewport, hasFinePointer, reducedMotion });
+  const { isMobile, isTablet, isShortViewport, hasFinePointer } = useMotionEnvironment();
+  const profile = getMotionProfile({ isMobile, isTablet, isShortViewport, hasFinePointer });
   const perspectiveData = t('perspective');
 
   return (
@@ -23,10 +23,10 @@ const Perspective = () => {
 
       <div className="relative z-10 mx-auto max-w-7xl">
         <motion.div
-          initial={reducedMotion ? false : 'hidden'}
+          initial="hidden"
           whileInView="visible"
           viewport={motionConfig.viewport}
-          variants={getRevealVariants({ reducedMotion, distance: profile.revealDistance })}
+          variants={getRevealVariants({ distance: profile.revealDistance })}
           className="mb-16 max-w-4xl"
         >
           <h2 id="perspective-heading" className="text-4xl font-black leading-[1.08] tracking-tight text-[var(--color-4)] md:text-6xl lg:text-7xl">
@@ -35,10 +35,10 @@ const Perspective = () => {
         </motion.div>
 
         <motion.div
-          initial={reducedMotion ? false : 'hidden'}
+          initial="hidden"
           whileInView="visible"
           viewport={motionConfig.viewport}
-          variants={getRevealVariants({ reducedMotion, distance: profile.revealDistance, delay: 0.05 })}
+          variants={getRevealVariants({ distance: profile.revealDistance, delay: 0.05 })}
           className="mb-12 max-w-3xl"
         >
           <p className="whitespace-pre-line text-base font-medium leading-relaxed text-[var(--color-4)]/78 md:text-lg">
@@ -47,10 +47,10 @@ const Perspective = () => {
         </motion.div>
 
         <motion.div
-          initial={reducedMotion ? false : 'hidden'}
+          initial="hidden"
           whileInView="visible"
           viewport={motionConfig.viewport}
-          variants={getRevealVariants({ reducedMotion, distance: profile.revealDistance, delay: 0.1 })}
+          variants={getRevealVariants({ distance: profile.revealDistance, delay: 0.1 })}
           className="max-w-3xl"
         >
           <blockquote className="relative overflow-hidden rounded-[1.75rem] border border-[var(--color-2)]/25 bg-[var(--color-6)]/70 px-7 py-9 shadow-[0_14px_36px_rgba(123,42,39,0.08)] md:px-12 md:py-12">

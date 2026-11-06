@@ -8,8 +8,6 @@ async function visit(page, language = 'en') {
   }, language);
   await page.goto('/');
   const preloader = page.locator('div[class*="z-[100000]"]');
-  const prefersReducedMotion = await page.evaluate(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-  if (!prefersReducedMotion) await expect(preloader).toBeVisible();
   await preloader.waitFor({ state: 'detached' });
 }
 
@@ -107,7 +105,6 @@ test('section order, active navigation, themes, scroll progress and back-to-top'
   const backToTop = page.locator('#footer button');
   await backToTop.scrollIntoViewIfNeeded();
   await expect.poll(() => progress.evaluate((element) => new DOMMatrixReadOnly(getComputedStyle(element).transform).a)).toBeGreaterThan(0.1);
-  await page.emulateMedia({ reducedMotion: 'reduce' });
   await backToTop.click();
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(2);
 });
@@ -195,27 +192,12 @@ test('tablet and mobile projects use native horizontal snap while vertical scrol
     document.documentElement.scrollWidth,
   ) <= window.innerWidth + 1)).toBe(true);
 });
-test('reduced motion uses the native horizontal snap track', async ({ page }) => {
+test('OS reduced-motion preference does not disable the animated desktop gallery', async ({ page }, testInfo) => {
+  if (testInfo.project.name !== 'desktop') test.skip();
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await visit(page);
-
-  const section = page.locator('#projects');
-  const track = section.locator('.projects-track');
-  await expect(section).not.toHaveClass(/is-horizontal/);
-  await expect(track).toHaveAttribute('role', 'group');
-  await expect(track).toHaveAttribute('tabindex', '0');
-  await expect(track).toHaveCSS('overflow-x', 'auto');
-  await expect(track).toHaveCSS('scroll-snap-type', 'x mandatory');
-  await expect(track.locator('.project-gallery-card')).toHaveCount(6);
-
-  const finalJump = section.locator('.project-index-button').nth(5);
-  await finalJump.click();
-  await expect(finalJump).toHaveAttribute('aria-current', 'step');
-  await expect.poll(() => track.evaluate((element) => Math.abs(element.scrollLeft))).toBeGreaterThan(0);
-  expect(await page.evaluate(() => Math.max(
-    document.body.scrollWidth,
-    document.documentElement.scrollWidth,
-  ) <= window.innerWidth + 1)).toBe(true);
+  await expect(page.locator('#projects')).toHaveClass(/is-horizontal/);
+  await expect(page.locator('.hero-grid-plane')).toHaveCSS('animation-name', 'hero-grid-drift');
 });
 
 test('all projects and certificates open, close, and load their previews', async ({ page, request }, testInfo) => {
@@ -358,7 +340,7 @@ test('contact creates a correctly encoded mailto without claiming delivery', asy
   await expect(page.locator('#contact button[type="submit"]')).toContainText('Continue in your email app.');
 });
 
-test('journey follows scrolling forward and backward with reduced motion', async ({ page }) => {
+test('journey remains scroll-driven when the OS requests reduced motion', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await visit(page);
   const cards = page.locator('.beyond-card');
@@ -371,17 +353,12 @@ test('journey follows scrolling forward and backward with reduced motion', async
   }
 });
 
-test('reduced-motion certificates use an accessible native carousel', async ({ page }) => {
+test('OS reduced-motion preference does not disable desktop certificate motion', async ({ page }, testInfo) => {
+  if (testInfo.project.name !== 'desktop') test.skip();
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await visit(page);
-  await expect(page.locator('.certificate-wheel-scene')).toHaveCount(0);
-  const cards = page.locator('.certificate-native-card');
-  await expect(cards).toHaveCount(11);
-  await expect(page.locator('.certificate-native-track')).toHaveCSS('overflow-x', 'auto');
-  const finalDot = page.locator('.certificate-native-dot').nth(10);
-  await finalDot.click();
-  await expect(cards.nth(10)).toHaveAttribute('aria-pressed', 'true');
-  await expect.poll(() => page.evaluate(() => Math.max(document.body.scrollWidth, document.documentElement.scrollWidth) - innerWidth)).toBeLessThanOrEqual(1);
+  await expect(page.locator('.certificate-wheel-scene')).toHaveCount(1);
+  await expect(page.locator('.certificate-native-track')).toHaveCount(0);
 });
 
 test('resizing and orientation changes switch between pinned and native scenes safely', async ({ page }, testInfo) => {
