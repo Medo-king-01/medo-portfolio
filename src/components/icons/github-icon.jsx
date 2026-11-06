@@ -1,5 +1,5 @@
 import { forwardRef, useImperativeHandle } from 'react';
-import { motion, useAnimate } from 'motion/react';
+import { motion, useAnimate } from 'framer-motion';
 
 const GithubIcon = forwardRef(
   (

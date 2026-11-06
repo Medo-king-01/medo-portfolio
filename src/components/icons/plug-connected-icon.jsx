@@ -1,5 +1,5 @@
 import { forwardRef, useImperativeHandle, useCallback } from 'react';
-import { motion, useAnimate } from 'motion/react';
+import { motion, useAnimate } from 'framer-motion';
 
 const PlugConnectedIcon = forwardRef(
   (

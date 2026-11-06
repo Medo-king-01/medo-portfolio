@@ -1,6 +1,8 @@
 import { useRef, useEffect, useState, useMemo } from 'react';
-import AOS from 'aos';
-import 'aos/dist/aos.css';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { motionConfig, getMotionProfile } from '../motion/motionConfig.js';
+import { getRevealVariants } from '../motion/motionVariants.js';
+import { useMotionEnvironment } from '../motion/useReducedMotionPreference.js';
 import { siGithub, siInstagram, siFacebook, siTiktok } from 'simple-icons';
 import { GithubIcon } from './icons/github-icon';
 import { InstagramIcon } from './icons/instagram-icon';
@@ -15,17 +17,27 @@ const heroVideo = heroVideoAsset;
 
 const Hero = () => {
   const { t, langConfig, language } = useLanguage();
+  const { reducedMotion, isMobile, isShortViewport, hasFinePointer } = useMotionEnvironment();
+  const motionProfile = getMotionProfile({ isMobile, isShortViewport, reducedMotion });
 
+  const sectionRef = useRef(null);
   const videoRef = useRef(null);
-  const audioRecoveryRef = useRef(false);
-  const introEndRef = useRef(null);
-  const introCompletionTimerRef = useRef(null);
-  const videoStartTimerRef = useRef(null);
   const videoStartedRef = useRef(false);
-
   const [typedTitle, setTypedTitle] = useState('');
+  const [videoMuted, setVideoMuted] = useState(true);
   const [resumeOpen, setResumeOpen] = useState(false);
   const [resumeAvailable, setResumeAvailable] = useState(null);
+  const { scrollYProgress: heroScrollProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start start', 'end start'],
+  });
+  const heroGlowY = useTransform(heroScrollProgress, [0, 1], [0, motionProfile.parallaxDistance]);
+  const heroShadeY = useTransform(heroScrollProgress, [0, 1], [0, -motionProfile.parallaxDistance * 0.55]);
+  const heroRevealVariants = getRevealVariants({
+    reducedMotion,
+    distance: motionProfile.revealDistance,
+  });
+  const heroFadeVariants = getRevealVariants({ reducedMotion, axis: null });
   const handleVideoEnded = () => {
     const video = videoRef.current;
     if (video) {
@@ -41,6 +53,8 @@ const Hero = () => {
     return heroContent.rotatingTitles;
   }, [t]);
 
+  const displayTitle = reducedMotion ? (typewriterTitles[0] || '') : typedTitle;
+
   const heroSocials = [
     socialLinks.github && { label: 'GitHub', href: socialLinks.github, icon: siGithub, Component: GithubIcon },
     socialLinks.instagram && { label: 'Instagram (@kodomedo)', href: socialLinks.instagram, icon: siInstagram, Component: InstagramIcon },
@@ -53,100 +67,63 @@ const Hero = () => {
     : heroContent.ctaResume.href;
 
   /* -------------------------------------------------------
-     VIDEO AUTOPLAY
-     Starts immediately when the opening curtain/preloader disappears,
-     then freezes on the last frame once completed without any replay button.
+     VIDEO LIFECYCLE
+     Start after the opening curtain, muted to respect autoplay rules;
+     the visitor can opt in to audio with the on-screen control.
   ------------------------------------------------------- */
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return undefined;
 
-    const restoreAudioAfterInteraction = () => {
-      if (!audioRecoveryRef.current || !videoRef.current) return;
-
-      const currentVideo = videoRef.current;
-      currentVideo.muted = false;
-
-      currentVideo
-        .play()
-        .then(() => {
-          audioRecoveryRef.current = false;
-        })
-        .catch(() => {
-          // Browser still blocks audio.
-        });
-    };
+    if (reducedMotion) {
+      video.pause();
+      videoStartedRef.current = false;
+      return undefined;
+    }
 
     const startVideo = async () => {
-      if (videoStartTimerRef.current) {
-        window.clearTimeout(videoStartTimerRef.current);
-        videoStartTimerRef.current = null;
-      }
-
       if (videoStartedRef.current) return;
-
-      try {
-        video.currentTime = 0;
-      } catch {
-        // Ignore currentTime errors.
-      }
-
-      video.muted = false;
+      videoStartedRef.current = true;
+      video.muted = true;
+      setVideoMuted(true);
 
       try {
         await video.play();
-        videoStartedRef.current = true;
-        audioRecoveryRef.current = false;
-        return;
       } catch {
-        video.muted = true;
-        audioRecoveryRef.current = true;
-
-        try {
-          await video.play();
-          videoStartedRef.current = true;
-
-          window.addEventListener('pointerdown', restoreAudioAfterInteraction, { once: true });
-          window.addEventListener('keydown', restoreAudioAfterInteraction, { once: true });
-          window.addEventListener('touchstart', restoreAudioAfterInteraction, { once: true });
-        } catch {
-          videoStartedRef.current = false;
-          audioRecoveryRef.current = false;
-        }
+        // If autoplay is blocked, the visible audio control remains a manual play affordance.
+        videoStartedRef.current = false;
       }
     };
 
-    AOS.init({
-      duration: 1000,
-      once: true,
-      easing: 'ease-out',
-      disable: false,
-    });
-
-    if (window.__CURTAIN_OPENED__) {
+    if (window.__CURTAIN_OPENED__ || siteConfig.sections.preloader?.enabled === false) {
       startVideo();
     } else {
       window.addEventListener('curtain:opened', startVideo, { once: true });
-      // Fallback timer: in case preloader is disabled or already gone, start after 3.25s
-      videoStartTimerRef.current = window.setTimeout(startVideo, 3250);
     }
 
-    return () => {
-      if (introCompletionTimerRef.current) {
-        window.clearTimeout(introCompletionTimerRef.current);
-      }
-      if (videoStartTimerRef.current) {
-        window.clearTimeout(videoStartTimerRef.current);
-      }
-      introCompletionTimerRef.current = null;
-      videoStartTimerRef.current = null;
+    return () => window.removeEventListener('curtain:opened', startVideo);
+  }, [reducedMotion]);
 
-      window.removeEventListener('curtain:opened', startVideo);
-      window.removeEventListener('pointerdown', restoreAudioAfterInteraction);
-      window.removeEventListener('keydown', restoreAudioAfterInteraction);
-      window.removeEventListener('touchstart', restoreAudioAfterInteraction);
-    };
-  }, []);
+  const toggleVideoAudio = async () => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const nextMuted = !videoMuted;
+    video.muted = nextMuted;
+
+    if (video.paused) {
+      try {
+        await video.play();
+        videoStartedRef.current = true;
+      } catch {
+        video.muted = true;
+        setVideoMuted(true);
+        return;
+      }
+    }
+
+    setVideoMuted(video.muted);
+  };
 
   /* -------------------------------------------------------
      RESUME MODAL
@@ -201,6 +178,7 @@ const Hero = () => {
   ------------------------------------------------------- */
   useEffect(() => {
     if (!typewriterTitles.length) return undefined;
+    if (reducedMotion) return undefined;
 
     let titleIndex = 0;
     let characterIndex = 0;
@@ -251,14 +229,17 @@ const Hero = () => {
     return () => {
       window.clearTimeout(timerId);
     };
-  }, [typewriterTitles, language]);
+  }, [typewriterTitles, language, reducedMotion]);
 
   return (
     <section
+      ref={sectionRef}
       id="home"
       dir={langConfig.dir}
+      data-experience-section
       className="
         hero-surface
+        section-flow
         relative
         grid
         min-h-[720px]
@@ -282,39 +263,28 @@ const Hero = () => {
       {/* =====================================================
           BACKGROUND DECORATION
       ===================================================== */}
-      <div
-        className="
-          pointer-events-none
-          absolute
-          right-[-12rem]
-          top-16
-          h-[32rem]
-          w-[32rem]
-          rounded-full
-          bg-[var(--color-8)]/15
-          blur-3xl
-        "
+      <motion.div
+        aria-hidden="true"
+        style={{ y: heroGlowY }}
+        className="pointer-events-none absolute right-[-12rem] top-16 h-[32rem] w-[32rem] rounded-full bg-[var(--color-8)]/15 blur-3xl"
       />
 
-      <div
-        className="
-          pointer-events-none
-          absolute
-          bottom-0
-          left-[-10rem]
-          h-[28rem]
-          w-[28rem]
-          rounded-full
-          bg-[var(--color-1)]/20
-          blur-3xl
-        "
+      <motion.div
+        aria-hidden="true"
+        style={{ y: heroShadeY }}
+        className="pointer-events-none absolute bottom-0 left-[-10rem] h-[28rem] w-[28rem] rounded-full bg-[var(--color-1)]/20 blur-3xl"
       />
 
       {/* =====================================================
           LAPTOP VIDEO DISPLAY
       ===================================================== */}
-      <div
+      <motion.div
         dir="ltr"
+        initial={reducedMotion ? false : 'hidden'}
+        whileInView="visible"
+        viewport={motionConfig.viewport}
+        variants={heroRevealVariants}
+        whileHover={hasFinePointer && !reducedMotion ? { y: -6 } : undefined}
         className="
           hero-laptop-frame
           group
@@ -328,7 +298,6 @@ const Hero = () => {
           transition-transform
           duration-700
           ease-out
-          hover:-translate-y-1.5
           lg:col-start-2
           lg:row-start-1
           lg:mt-0
@@ -404,6 +373,7 @@ const Hero = () => {
               <video
                 ref={videoRef}
                 playsInline
+                muted={videoMuted}
                 preload="metadata"
                 onEnded={handleVideoEnded}
                 aria-label={t('hero.ariaLabel')}
@@ -452,6 +422,26 @@ const Hero = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
+            )}
+
+            {heroVideo && (
+              <button
+                type="button"
+                onClick={toggleVideoAudio}
+                aria-pressed={!videoMuted}
+                aria-label={videoMuted
+                  ? (language === 'ar' ? 'تشغيل صوت الفيديو' : 'Enable video audio')
+                  : (language === 'ar' ? 'كتم صوت الفيديو' : 'Mute video audio')}
+                title={videoMuted
+                  ? (language === 'ar' ? 'تشغيل الصوت' : 'Enable audio')
+                  : (language === 'ar' ? 'كتم الصوت' : 'Mute audio')}
+                className="absolute bottom-3 end-3 z-30 flex h-9 w-9 items-center justify-center rounded-full border border-white/20 bg-black/70 text-white shadow-lg backdrop-blur transition hover:scale-105 hover:bg-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              >
+                <svg aria-hidden="true" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 5 6 9H3v6h3l5 4V5Z" />
+                  {videoMuted ? <path d="m16 9 5 6m0-6-5 6" /> : <path d="M15.5 8.5a5 5 0 0 1 0 7m2.5-9a9 9 0 0 1 0 11" />}
+                </svg>
+              </button>
             )}
 
             {/* TOP GLASS REFLECTION */}
@@ -558,7 +548,7 @@ const Hero = () => {
           "
           aria-hidden="true"
         />
-      </div>
+      </motion.div>
 
       {/* =====================================================
           CONTENT
@@ -582,23 +572,27 @@ const Hero = () => {
       >
         <div className="flex w-full max-w-2xl flex-col items-start text-start">
           {/* LIVE AVAILABILITY BADGE */}
-          <div
-            data-aos="fade-down"
-            data-aos-delay="100"
+          <motion.div
+            initial={reducedMotion ? false : 'hidden'}
+            whileInView="visible"
+            viewport={motionConfig.viewport}
+            variants={getRevealVariants({ reducedMotion, distance: motionProfile.revealDistance, delay: 0.04 })}
             className="mb-5 inline-flex items-center gap-2.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 shadow-[0_2px_12px_rgba(16,185,129,0.12)] backdrop-blur-md transition-all duration-300 hover:scale-[1.02] hover:bg-emerald-500/15"
           >
             <span className="relative flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
             </span>
             <span className="text-xs font-bold tracking-wide text-emerald-800 dark:text-emerald-300">
               {language === 'ar' ? 'متاح للتدريب / العمل الحر' : 'Open for Projects & Internships'}
             </span>
-          </div>
+          </motion.div>
 
           {/* MAIN HEADING */}
-          <h1
-            data-aos="fade-up"
+          <motion.h1
+            initial={reducedMotion ? false : 'hidden'}
+            whileInView="visible"
+            viewport={motionConfig.viewport}
+            variants={getRevealVariants({ reducedMotion, distance: motionProfile.revealDistance, delay: 0.1 })}
             className="
               max-w-3xl
               text-4xl
@@ -616,26 +610,29 @@ const Hero = () => {
             <br />
             <span className="relative mt-2 block min-h-[2.4em] w-full max-w-[24ch] text-[var(--color-2)] sm:min-h-[1.3em]">
               <span className="hero-title-cycle block">
-                {typedTitle}
+                {displayTitle}
                 <span className="hero-typewriter-caret" aria-hidden="true" />
               </span>
             </span>
-          </h1>
+          </motion.h1>
 
           {/* SUBHEADING */}
-          <p
-            data-aos="fade-up"
-            data-aos-delay="200"
+          <motion.p
+            initial={reducedMotion ? false : 'hidden'}
+            whileInView="visible"
+            viewport={motionConfig.viewport}
+            variants={getRevealVariants({ reducedMotion, distance: motionProfile.revealDistance, delay: 0.18 })}
             className="mb-8 mt-5 max-w-xl text-base font-medium leading-[1.8] text-[var(--color-4)]/75 md:text-lg"
           >
             {t('hero.subtitle')}
-          </p>
+          </motion.p>
 
           {/* CTA BUTTONS */}
-          <div
-            ref={introEndRef}
-            data-aos="fade-up"
-            data-aos-delay="400"
+          <motion.div
+            initial={reducedMotion ? false : 'hidden'}
+            whileInView="visible"
+            viewport={motionConfig.viewport}
+            variants={getRevealVariants({ reducedMotion, distance: motionProfile.revealDistance, delay: 0.26 })}
             className="flex w-full flex-row flex-wrap items-center gap-3"
           >
             {/* PRIMARY */}
@@ -760,10 +757,14 @@ const Hero = () => {
                 {t('hero.ctaResume.text')}
               </a>
             )}
-          </div>
+          </motion.div>
 
           {/* SOCIAL LINKS */}
-          <div
+          <motion.div
+            initial={reducedMotion ? false : 'hidden'}
+            whileInView="visible"
+            viewport={motionConfig.viewport}
+            variants={getRevealVariants({ reducedMotion, distance: motionProfile.revealDistance, delay: 0.34 })}
             className="mt-6 flex w-full items-center justify-center gap-3 sm:justify-start"
             aria-label="Social links"
           >
@@ -811,19 +812,22 @@ const Hero = () => {
                 )}
               </a>
             ))}
-          </div>
+          </motion.div>
         </div>
       </div>
 
       {/* =====================================================
           SCROLL INDICATOR
       ===================================================== */}
-      <div
-        data-aos="fade-up"
-        data-aos-delay="800"
+      <motion.div
+        aria-hidden="true"
+        initial={reducedMotion ? false : 'hidden'}
+        whileInView="visible"
+        viewport={motionConfig.viewport}
+        variants={heroFadeVariants}
         className="pointer-events-none absolute bottom-8 left-1/2 z-20 hidden -translate-x-1/2 md:block"
       >
-        <div className="animate-bounce">
+        <div>
           <svg
             className="h-6 w-6 text-[var(--color-4)]/65"
             fill="none"
@@ -836,7 +840,7 @@ const Hero = () => {
             <path d="M19 14l-7 7m0 0l-7-7m7 7V3" />
           </svg>
         </div>
-      </div>
+      </motion.div>
 
       {/* =====================================================
           RESUME MODAL

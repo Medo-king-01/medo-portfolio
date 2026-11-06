@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from 'framer-motion';
+import { AnimatePresence, motion, useMotionValueEvent, useScroll, useTransform } from 'framer-motion';
+import { getMotionProfile, motionConfig } from '../motion/motionConfig.js';
+import { getRevealVariants, modalBackdropVariants, modalPanelVariants } from '../motion/motionVariants.js';
+import { useMotionEnvironment } from '../motion/useReducedMotionPreference.js';
 import { certifications } from '../data/certifications';
 import { useLanguage } from '../context/LanguageContext.jsx';
 
@@ -14,13 +17,17 @@ const allCertificates = certifications.flatMap((category) =>
 
 const formatNumber = (number) => String(number).padStart(2, '0');
 
-function CertificateWheel({ certificates, language, t, onSelect }) {
+function CertificateWheel({ certificates, language, t, onSelect, reduceMotion, profile }) {
   const stageRef = useRef(null);
   const [active, setActive] = useState(0);
-  const reduceMotion = useReducedMotion();
   const count = certificates.length || 1;
+  const stageLength = 100 + (count - 1) * profile.certificateStep;
   const { scrollYProgress } = useScroll({ target: stageRef, offset: ['start start', 'end end'] });
-  const rotation = useTransform(scrollYProgress, [0, 1], [0, -(360 - 360 / count)]);
+  const rotation = useTransform(scrollYProgress, (value) => {
+    const certificateIndex = value * (count - 1);
+    const angle = reduceMotion ? Math.round(certificateIndex) : certificateIndex;
+    return -(angle * 360) / count;
+  });
 
   useMotionValueEvent(scrollYProgress, 'change', (value) => {
     const next = Math.max(0, Math.min(count - 1, Math.round(value * (count - 1))));
@@ -33,7 +40,7 @@ function CertificateWheel({ certificates, language, t, onSelect }) {
     const scrollable = Math.max(0, stage.offsetHeight - window.innerHeight);
     const targetIndex = Math.max(0, Math.min(count - 1, index));
     const top = window.scrollY + stage.getBoundingClientRect().top + (scrollable * targetIndex) / (count - 1 || 1);
-    window.scrollTo({ top, behavior: reduceMotion ? 'instant' : 'smooth' });
+    window.scrollTo({ top, behavior: reduceMotion ? 'auto' : 'smooth' });
   }, [count, reduceMotion]);
 
   const handleCardClick = (certificate, index) => {
@@ -57,10 +64,10 @@ function CertificateWheel({ certificates, language, t, onSelect }) {
   const activeCert = certificates[active] || certificates[0];
 
   return (
-    <div ref={stageRef} style={{ height: `${100 + (count - 1) * 55}svh` }} className="relative">
-      <div className="sticky top-0 flex h-[100svh] flex-col items-center justify-center overflow-hidden">
+    <div ref={stageRef} style={{ height: `${stageLength}svh` }} className="certificate-scroll-stage relative">
+      <div className="certificate-scroll-sticky sticky top-0 flex h-[100svh] flex-col items-center justify-center overflow-hidden">
         {/* Top Hint */}
-        <div className="absolute top-20 z-10 px-4 text-center sm:top-24">
+        <div className="certificate-wheel-hint absolute top-20 z-10 px-4 text-center sm:top-24">
           <p className="text-xs font-black tracking-widest text-[var(--color-2)] uppercase">
             {t('certifications.wheelScrollHint')}
           </p>
@@ -106,7 +113,17 @@ function CertificateWheel({ certificates, language, t, onSelect }) {
           <div className="certificate-wheel-scene w-full" dir={language === 'ar' ? 'rtl' : 'ltr'}>
             <div aria-hidden="true" className="certificate-wheel-orbit" />
             
-            <motion.div className="certificate-wheel" style={{ rotateY: rotation }}>
+            <motion.div
+              className="certificate-wheel"
+              style={{ rotateY: rotation }}
+              onClick={(event) => {
+                // Some 3D angles hit the wheel surface instead of its front-facing card.
+                if (event.target === event.currentTarget && activeCert) {
+                  event.currentTarget.querySelector('.certificate-wheel-card[aria-pressed="true"]')?.focus({ preventScroll: true });
+                  onSelect(activeCert);
+                }
+              }}
+            >
               {certificates.map((certificate, index) => {
                 const isActive = index === active;
                 return (
@@ -114,6 +131,7 @@ function CertificateWheel({ certificates, language, t, onSelect }) {
                     key={certificate.file}
                     type="button"
                     onClick={() => handleCardClick(certificate, index)}
+                    aria-pressed={isActive}
                     aria-label={`${t('certifications.openDetails')}: ${certificate.title}`}
                     className={`certificate-wheel-card ${isActive ? 'is-active' : 'opacity-85 hover:opacity-100'}`}
                     style={{
@@ -146,7 +164,7 @@ function CertificateWheel({ certificates, language, t, onSelect }) {
         </div>
 
         {/* Bottom Active Information & Navigation Dots */}
-        <div className="absolute bottom-6 z-10 flex flex-col items-center gap-3 px-4 text-center sm:bottom-8">
+        <div className="certificate-wheel-footer absolute bottom-6 z-10 flex flex-col items-center gap-3 px-4 text-center sm:bottom-8">
           <div className="max-w-md">
             <p className="text-sm font-extrabold text-[var(--color-4)]">
               {activeCert?.title}
@@ -163,6 +181,7 @@ function CertificateWheel({ certificates, language, t, onSelect }) {
                 key={certificate.file}
                 type="button"
                 onClick={() => scrollToCertificate(index)}
+                aria-pressed={index === active}
                 aria-label={`Go to certificate ${index + 1}: ${certificate.title}`}
                 className={`h-1.5 cursor-pointer rounded-full transition-all duration-300 ${
                   index === active
@@ -191,8 +210,14 @@ function CertificateDetails({
   language,
   t,
   onClose,
+  reducedMotion,
 }) {
   const dialogRef = useRef(null);
+  const latestPropsRef = useRef({ onClose, onNext, onPrev, language });
+
+  useEffect(() => {
+    latestPropsRef.current = { onClose, onNext, onPrev, language };
+  }, [onClose, onNext, onPrev, language]);
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -202,15 +227,16 @@ function CertificateDetails({
     dialog?.querySelector('button')?.focus();
 
     const handleKeyDown = (event) => {
+      const { onClose: close, onNext: next, onPrev: previous, language: currentLanguage } = latestPropsRef.current;
       if (event.key === 'Escape') {
         event.preventDefault();
-        onClose();
+        close();
       } else if (event.key === 'ArrowLeft') {
         event.preventDefault();
-        language === 'ar' ? onNext() : onPrev();
+        currentLanguage === 'ar' ? next() : previous();
       } else if (event.key === 'ArrowRight') {
         event.preventDefault();
-        language === 'ar' ? onPrev() : onNext();
+        currentLanguage === 'ar' ? previous() : next();
       } else if (event.key === 'Tab' && dialog) {
         const controls = [...dialog.querySelectorAll('a[href], button:not([disabled])')];
         if (!controls.length) return;
@@ -231,20 +257,30 @@ function CertificateDetails({
       document.removeEventListener('keydown', handleKeyDown);
       previousFocus?.focus({ preventScroll: true });
     };
-  }, [onClose, onNext, onPrev, language]);
+  }, []);
 
   return (
-    <div
+    <motion.div
       ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="certificate-detail-title"
+      initial={reducedMotion ? false : 'hidden'}
+      animate="visible"
+      exit="exit"
+      variants={modalBackdropVariants}
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
       className="fixed inset-0 z-[10000] flex items-center justify-center bg-[var(--color-4)]/80 p-4 backdrop-blur-md sm:p-8"
     >
-      <div className="relative flex max-h-[92dvh] w-full max-w-2xl flex-col overflow-hidden rounded-[1.75rem] border border-[var(--color-3)] bg-[var(--color-5)] shadow-2xl dark:border-white/10 dark:bg-[var(--color-6)]">
+      <motion.div
+        initial={reducedMotion ? false : 'hidden'}
+        animate="visible"
+        exit="exit"
+        variants={modalPanelVariants}
+        className="relative flex max-h-[92dvh] w-full max-w-2xl flex-col overflow-hidden rounded-[1.75rem] border border-[var(--color-3)] bg-[var(--color-5)] shadow-2xl dark:border-white/10 dark:bg-[var(--color-6)]"
+      >
         {/* Modal Top Bar */}
         <div className="flex items-center justify-between gap-4 border-b border-[var(--color-3)] px-5 py-3.5 sm:px-7 dark:border-white/10">
           <div className="flex items-center gap-2">
@@ -328,36 +364,45 @@ function CertificateDetails({
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
 export default function CertificationsSection() {
   const { language, langConfig, t } = useLanguage();
+  const { reducedMotion, isMobile, isShortViewport } = useMotionEnvironment();
+  const profile = getMotionProfile({ isMobile, isShortViewport, reducedMotion });
   const [selectedCertificate, setSelectedCertificate] = useState(null);
 
   const sectionRef = useRef(null);
-  const reduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start end', 'end start'] });
-  const sealRotate = useTransform(scrollYProgress, [0, 1], [reduceMotion ? -3 : -18, reduceMotion ? 3 : 18]);
-  const sealY = useTransform(scrollYProgress, [0, 1], [reduceMotion ? 4 : 30, reduceMotion ? -4 : -30]);
+  const sealRotate = useTransform(scrollYProgress, [0, 1], [reducedMotion ? 0 : isMobile ? -6 : -18, reducedMotion ? 0 : isMobile ? 6 : 18]);
+  const sealY = useTransform(scrollYProgress, [0, 1], [reducedMotion ? 0 : isMobile ? 10 : 30, reducedMotion ? 0 : isMobile ? -10 : -30]);
+  const headingVariants = getRevealVariants({ reducedMotion, distance: profile.revealDistance });
 
   const selectedIndex = selectedCertificate
     ? allCertificates.findIndex((c) => c.file === selectedCertificate.file)
     : -1;
 
   const handleNextCertificate = useCallback(() => {
-    if (allCertificates.length === 0) return;
-    const nextIndex = (selectedIndex + 1) % allCertificates.length;
-    setSelectedCertificate(allCertificates[nextIndex]);
-  }, [selectedIndex]);
+    setSelectedCertificate((current) => {
+      if (!allCertificates.length) return current;
+      const currentIndex = allCertificates.findIndex((certificate) => certificate.file === current?.file);
+      return allCertificates[(currentIndex + 1 + allCertificates.length) % allCertificates.length];
+    });
+  }, [setSelectedCertificate]);
 
   const handlePrevCertificate = useCallback(() => {
-    if (allCertificates.length === 0) return;
-    const prevIndex = (selectedIndex - 1 + allCertificates.length) % allCertificates.length;
-    setSelectedCertificate(allCertificates[prevIndex]);
-  }, [selectedIndex]);
+    setSelectedCertificate((current) => {
+      if (!allCertificates.length) return current;
+      const currentIndex = allCertificates.findIndex((certificate) => certificate.file === current?.file);
+      const previousIndex = currentIndex < 0 ? allCertificates.length - 1 : (currentIndex - 1 + allCertificates.length) % allCertificates.length;
+      return allCertificates[previousIndex];
+    });
+  }, [setSelectedCertificate]);
+
+  const closeCertificateDetails = useCallback(() => setSelectedCertificate(null), [setSelectedCertificate]);
 
   return (
     <section
@@ -365,11 +410,18 @@ export default function CertificationsSection() {
       id="certifications"
       dir={langConfig.dir}
       aria-labelledby="certifications-heading"
-      className="relative scroll-mt-24 bg-[var(--color-5)] px-6 py-24 font-sans md:px-12 md:py-32"
+      data-experience-section
+      className="section-flow relative scroll-mt-24 bg-[var(--color-5)] px-6 py-24 font-sans md:px-12 md:py-32"
     >
       <div aria-hidden="true" className="pointer-events-none absolute end-0 top-16 h-72 w-72 rounded-full bg-[var(--color-8)]/10 blur-3xl" />
       <div className="relative mx-auto max-w-7xl">
-        <header className="relative grid items-center gap-8 md:grid-cols-[minmax(0,1fr)_auto]">
+        <motion.header
+          initial={reducedMotion ? false : 'hidden'}
+          whileInView="visible"
+          viewport={motionConfig.viewport}
+          variants={headingVariants}
+          className="relative grid items-center gap-8 md:grid-cols-[minmax(0,1fr)_auto]"
+        >
           <div className="max-w-3xl">
             <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-[var(--color-3)] bg-[var(--color-6)]/75 px-5 py-1.5 text-sm font-bold text-[var(--color-2)] dark:border-white/10 dark:bg-[var(--color-6)]">
               <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-7)]" />
@@ -409,7 +461,7 @@ export default function CertificationsSection() {
               <path d="M36 60 32 84l18-10 18 10-4-24M40 42l7 7 14-16" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </motion.div>
-        </header>
+        </motion.header>
 
         {/* 3D Wheel Showcase */}
         <div className="mt-10">
@@ -418,23 +470,29 @@ export default function CertificationsSection() {
             language={language}
             t={t}
             onSelect={setSelectedCertificate}
+            reduceMotion={reducedMotion}
+            profile={profile}
           />
         </div>
       </div>
 
       {/* Lightbox Modal */}
-      {selectedCertificate && (
-        <CertificateDetails
-          certificate={selectedCertificate}
-          currentIndex={selectedIndex}
-          totalCount={allCertificates.length}
-          onPrev={handlePrevCertificate}
-          onNext={handleNextCertificate}
-          language={language}
-          t={t}
-          onClose={() => setSelectedCertificate(null)}
-        />
-      )}
+      <AnimatePresence>
+        {selectedCertificate && (
+          <CertificateDetails
+            key="certificate-details"
+            certificate={selectedCertificate}
+            currentIndex={selectedIndex}
+            totalCount={allCertificates.length}
+            onPrev={handlePrevCertificate}
+            onNext={handleNextCertificate}
+            language={language}
+            t={t}
+            reducedMotion={reducedMotion}
+            onClose={closeCertificateDetails}
+          />
+        )}
+      </AnimatePresence>
     </section>
   );
 }

@@ -1,3 +1,7 @@
+import { motion } from 'framer-motion';
+import { getMotionProfile, motionConfig } from '../motion/motionConfig.js';
+import { getRevealVariants } from '../motion/motionVariants.js';
+import { useMotionEnvironment } from '../motion/useReducedMotionPreference.js';
 import { siGithub, siInstagram, siFacebook, siTiktok } from 'simple-icons';
 import { GithubIcon } from './icons/github-icon';
 import { InstagramIcon } from './icons/instagram-icon';
@@ -9,6 +13,8 @@ import { useLanguage } from '../context/LanguageContext.jsx';
 
 const Footer = () => {
   const { t, langConfig } = useLanguage();
+  const { reducedMotion, isMobile, isShortViewport } = useMotionEnvironment();
+  const profile = getMotionProfile({ isMobile, isShortViewport, reducedMotion });
   const brandName = siteConfig.brand.name;
   const contactEmail = personalInfo?.emails?.primary;
 
@@ -23,14 +29,19 @@ const Footer = () => {
   const handleBackToTop = () => {
     window.scrollTo({
       top: 0,
-      behavior: 'smooth',
+      behavior: reducedMotion ? 'auto' : 'smooth',
     });
   };
 
   return (
-    <footer
+    <motion.footer
       id="footer"
-      className="relative w-full overflow-hidden border-t border-[var(--color-3)] bg-[var(--color-6)] px-5 py-8 font-sans text-[var(--color-4)] sm:px-8 lg:px-12"
+      data-experience-section
+      initial={reducedMotion ? false : 'hidden'}
+      whileInView="visible"
+      viewport={motionConfig.viewport}
+      variants={getRevealVariants({ reducedMotion, distance: profile.revealDistance })}
+      className="section-flow relative w-full overflow-hidden border-t border-[var(--color-3)] bg-[var(--color-6)] px-5 py-8 font-sans text-[var(--color-4)] sm:px-8 lg:px-12"
       dir={langConfig.dir}
     >
       {/* Subtle background glow */}
@@ -132,19 +143,7 @@ const Footer = () => {
         </div>
       </div>
 
-      <style>{`
-        @media (prefers-reduced-motion: reduce) {
-          footer *,
-          footer *::before,
-          footer *::after {
-            animation-duration: 0.01ms !important;
-            animation-iteration-count: 1 !important;
-            transition-duration: 0.01ms !important;
-            scroll-behavior: auto !important;
-          }
-        }
-      `}</style>
-    </footer>
+    </motion.footer>
   );
 };
 

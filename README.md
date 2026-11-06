@@ -6,7 +6,7 @@ Personal bilingual portfolio (**English LTR / Arabic RTL**) for **Mohamed Elsaye
 
 - **React 19** + **Vite 8**
 - **Tailwind CSS v4** (`@tailwindcss/vite`)
-- **Framer Motion** & **AOS** for animations and interactive motion
+- **Framer Motion** with shared motion tokens, viewport-aware profiles, and reduced-motion support
 - **Context-based i18n** (`en` / `ar` with automatic `ltr` / `rtl` direction switching)
 
 ## Project Structure

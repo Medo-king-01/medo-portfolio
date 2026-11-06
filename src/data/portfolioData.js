@@ -56,43 +56,6 @@ export const aboutContent = {
   techStack: [],
 };
 
-export const skillsContent = {
-  badge: 'HOW I BUILD',
-  heading: 'How I Build',
-  description:
-    'I focus on turning ideas into practical products. I define requirements, guide AI tools during development, review the output, identify issues, and test the result before considering the work complete.',
-  cards: [
-    {
-      number: '01',
-      title: 'AI-Assisted Development / Vibe Coding',
-      text: 'Turning ideas into working digital products by guiding AI tools. Reviewing generated code and requesting corrections and improvements.',
-      keywords: ['AI Guidance', 'Code Review', 'Iterative Improvement'],
-      icon: 'understand',
-    },
-    {
-      number: '02',
-      title: 'Requirements Definition & Review',
-      text: 'Defining project goals and functional requirements. Reviewing implementations and identifying problems.',
-      keywords: ['Requirements', 'Review', 'Problem Identification'],
-      icon: 'design',
-    },
-    {
-      number: '03',
-      title: 'Product Testing',
-      text: 'Testing functionality and user experience. Checking responsiveness across different devices and screen sizes.',
-      keywords: ['Functionality Testing', 'UX Testing', 'Responsive Testing'],
-      icon: 'build',
-    },
-    {
-      number: '04',
-      title: 'Creative & Visual Skills',
-      text: 'Visual identity and graphic design. Motion graphics. Adobe InDesign — basic knowledge.',
-      keywords: ['Graphic Design', 'Motion Graphics', 'InDesign'],
-      icon: 'refine',
-    },
-  ],
-};
-
 export const technicalSkills = {
   categories: [
     {
@@ -184,57 +147,6 @@ export const leadershipList = [
     content: {
       ar: ['مررت بأيام لم أحبها وأخرى أتمنى لو عادت، واكتشفت في نفسي قدرات لم أكن أعرف بوجودها. **ولا أعتقد أنني وصلت بعد إلى النسخة التي أطمح أن أكون عليها. هذه الرحلة حتى الآن، وما زالت هناك فصول لم تُكتب بعد.**'],
       en: ['I have lived through days I did not enjoy and others I wish would return, and discovered abilities I did not know I had. **I do not believe I have yet become the person I aspire to be. This is the journey so far, and there are still chapters left to write.**'],
-    },
-  },
-];
-
-export const softSkillsList = [
-  {
-    id: 'problem-solving',
-    name: {
-      en: 'Problem Solving',
-      ar: 'حل المشكلات',
-    },
-    icon: 'problem-solving',
-    desc: {
-      en: 'Breaking down complex problems into manageable parts to find practical solutions.',
-      ar: 'تفكيك المشكلات المعقدة إلى أجزاء قابلة للإدارة للوصول إلى حلول عملية فعّالة.',
-    },
-  },
-  {
-    id: 'continuous-learning',
-    name: {
-      en: 'Continuous Learning',
-      ar: 'التعلّم المستمر',
-    },
-    icon: 'adaptability',
-    desc: {
-      en: 'Actively learning new frameworks, tools, and best practices through self-study and AI assistance.',
-      ar: 'تعلّم الأطر والأدوات وأفضل الممارسات الحديثة باستمرار من خلال الدراسة الذاتية ومساعدة الذكاء الاصطناعي.',
-    },
-  },
-  {
-    id: 'communication',
-    name: {
-      en: 'Communication',
-      ar: 'التواصل الفعّال',
-    },
-    icon: 'communication',
-    desc: {
-      en: 'Writing clear code comments, documentation, and explaining technical concepts to peers.',
-      ar: 'كتابة تعليقات برمجية وتوثيقات واضحة، وشرح المفاهيم التقنية للزملاء بأسلوب مبسّط.',
-    },
-  },
-  {
-    id: 'time-management',
-    name: {
-      en: 'Time Management',
-      ar: 'إدارة الوقت',
-    },
-    icon: 'time',
-    desc: {
-      en: 'Balancing academic requirements with personal project development and skill building.',
-      ar: 'الموازنة الفعّالة بين المتطلبات الأكاديمية وتطوير المشاريع الشخصية وبناء المهارات.',
     },
   },
 ];
