@@ -17,8 +17,8 @@ const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 const About = () => {
   const { t, langConfig } = useLanguage();
-  const { reducedMotion, isMobile, isShortViewport } = useMotionEnvironment();
-  const profile = getMotionProfile({ isMobile, isShortViewport, reducedMotion });
+  const { reducedMotion, isMobile, isTablet, isShortViewport, hasFinePointer } = useMotionEnvironment();
+  const profile = getMotionProfile({ isMobile, isTablet, isShortViewport, hasFinePointer, reducedMotion });
   const frameRef = useRef(null);
   const ropePathRef = useRef(null);
   const ropeHighlightRef = useRef(null);

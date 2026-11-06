@@ -1,10 +1,11 @@
 export const motionConfig = Object.freeze({
   duration: {
-    micro: 0.18,
-    quick: 0.26,
-    reveal: 0.52,
-    modal: 0.24,
-    curtain: 0.62,
+    micro: 0.16,
+    quick: 0.24,
+    reveal: 0.48,
+    scene: 0.72,
+    modal: 0.22,
+    curtain: 0.58,
   },
   ease: {
     enter: [0.22, 1, 0.36, 1],
@@ -12,13 +13,20 @@ export const motionConfig = Object.freeze({
     exit: [0.76, 0, 0.24, 1],
   },
   distance: {
-    desktop: 24,
-    mobile: 12,
-    parallax: 28,
+    desktop: 28,
+    tablet: 18,
+    mobile: 10,
+    parallax: 34,
+  },
+  perspective: {
+    desktop: 1400,
+    tablet: 1050,
+    mobile: 760,
   },
   stagger: {
-    compact: 0.055,
-    standard: 0.085,
+    compact: 0.045,
+    tablet: 0.065,
+    standard: 0.08,
   },
   viewport: {
     once: true,
@@ -27,22 +35,55 @@ export const motionConfig = Object.freeze({
   },
 });
 
-export function getMotionProfile({ isMobile = false, isShortViewport = false, reducedMotion = false } = {}) {
+export function getMotionProfile({
+  isMobile = false,
+  isTablet = false,
+  isShortViewport = false,
+  hasFinePointer = true,
+  reducedMotion = false,
+} = {}) {
+  const deviceClass = isMobile ? 'mobile' : isTablet ? 'tablet' : 'desktop';
+  const pinnedScenes = !reducedMotion && hasFinePointer && !isMobile && !isTablet && !isShortViewport;
+
   if (reducedMotion) {
     return {
+      deviceClass,
       revealDistance: 0,
       stagger: 0,
       parallaxDistance: 0,
+      perspective: 0,
       journeyStep: 24,
-      certificateStep: 22,
+      certificateStep: 0,
+      pinnedScenes: false,
     };
   }
 
+  const revealDistance = isMobile
+    ? motionConfig.distance.mobile
+    : isTablet
+      ? motionConfig.distance.tablet
+      : motionConfig.distance.desktop;
+
   return {
-    revealDistance: isMobile ? 12 : motionConfig.distance.desktop,
-    stagger: isMobile ? motionConfig.stagger.compact : motionConfig.stagger.standard,
-    parallaxDistance: isMobile || isShortViewport ? 0 : motionConfig.distance.parallax,
+    deviceClass,
+    revealDistance,
+    stagger: isMobile
+      ? motionConfig.stagger.compact
+      : isTablet
+        ? motionConfig.stagger.tablet
+        : motionConfig.stagger.standard,
+    parallaxDistance: isMobile || isShortViewport
+      ? 0
+      : isTablet
+        ? motionConfig.distance.parallax * 0.45
+        : motionConfig.distance.parallax,
+    perspective: isMobile
+      ? motionConfig.perspective.mobile
+      : isTablet
+        ? motionConfig.perspective.tablet
+        : motionConfig.perspective.desktop,
     journeyStep: isShortViewport ? 28 : isMobile ? 36 : 50,
-    certificateStep: isShortViewport ? 30 : isMobile ? 38 : 50,
+    certificateStep: pinnedScenes ? 28 : 0,
+    pinnedScenes,
   };
 }

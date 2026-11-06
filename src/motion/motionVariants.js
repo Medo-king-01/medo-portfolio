@@ -1,16 +1,25 @@
-import { motionConfig } from './motionConfig';
+import { motionConfig } from './motionConfig.js';
 
-export function getRevealVariants({ reducedMotion = false, distance = motionConfig.distance.desktop, axis = 'y', delay = 0 } = {}) {
+export function getRevealVariants({
+  reducedMotion = false,
+  distance = motionConfig.distance.desktop,
+  axis = 'y',
+  delay = 0,
+  depth = true,
+} = {}) {
   const offset = reducedMotion ? 0 : distance;
 
   return {
+    // Keep content perceivable and keyboard-accessible before its in-view transition.
     hidden: {
-      opacity: 0,
+      opacity: 1,
       ...(axis ? { [axis]: offset } : {}),
+      ...(depth && !reducedMotion ? { scale: 0.985 } : {}),
     },
     visible: {
       opacity: 1,
       ...(axis ? { [axis]: 0 } : {}),
+      ...(depth && !reducedMotion ? { scale: 1 } : {}),
       transition: {
         duration: reducedMotion ? motionConfig.duration.micro : motionConfig.duration.reveal,
         delay: reducedMotion ? 0 : delay,

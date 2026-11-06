@@ -1,5 +1,6 @@
-import { useRef, useEffect, useState, useMemo } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { useRef, useEffect, useLayoutEffect, useState, useMemo } from 'react';
+import { motion } from 'framer-motion';
+import { createGsapContext, scheduleScrollTriggerRefresh, gsap } from '../motion/gsap.js';
 import { motionConfig, getMotionProfile } from '../motion/motionConfig.js';
 import { getRevealVariants } from '../motion/motionVariants.js';
 import { useMotionEnvironment } from '../motion/useReducedMotionPreference.js';
@@ -17,27 +18,62 @@ const heroVideo = heroVideoAsset;
 
 const Hero = () => {
   const { t, langConfig, language } = useLanguage();
-  const { reducedMotion, isMobile, isShortViewport, hasFinePointer } = useMotionEnvironment();
-  const motionProfile = getMotionProfile({ isMobile, isShortViewport, reducedMotion });
+  const { reducedMotion, isMobile, isTablet, isShortViewport, hasFinePointer } = useMotionEnvironment();
+  const motionProfile = getMotionProfile({ isMobile, isTablet, isShortViewport, hasFinePointer, reducedMotion });
 
   const sectionRef = useRef(null);
+  const heroGlowRef = useRef(null);
+  const heroShadeRef = useRef(null);
   const videoRef = useRef(null);
   const videoStartedRef = useRef(false);
   const [typedTitle, setTypedTitle] = useState('');
   const [videoMuted, setVideoMuted] = useState(true);
   const [resumeOpen, setResumeOpen] = useState(false);
   const [resumeAvailable, setResumeAvailable] = useState(null);
-  const { scrollYProgress: heroScrollProgress } = useScroll({
-    target: sectionRef,
-    offset: ['start start', 'end start'],
-  });
-  const heroGlowY = useTransform(heroScrollProgress, [0, 1], [0, motionProfile.parallaxDistance]);
-  const heroShadeY = useTransform(heroScrollProgress, [0, 1], [0, -motionProfile.parallaxDistance * 0.55]);
   const heroRevealVariants = getRevealVariants({
     reducedMotion,
     distance: motionProfile.revealDistance,
   });
   const heroFadeVariants = getRevealVariants({ reducedMotion, axis: null });
+
+  useLayoutEffect(() => {
+    const section = sectionRef.current;
+    const glow = heroGlowRef.current;
+    const shade = heroShadeRef.current;
+    const distance = motionProfile.parallaxDistance;
+    if (reducedMotion || !distance || !section || !glow || !shade) return undefined;
+
+    const context = createGsapContext(section, () => {
+      gsap.to(glow, {
+        y: distance,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: section,
+          start: 'top top',
+          end: 'bottom top',
+          scrub: 0.45,
+          invalidateOnRefresh: true,
+        },
+      });
+      gsap.to(shade, {
+        y: -distance * 0.55,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: section,
+          start: 'top top',
+          end: 'bottom top',
+          scrub: 0.45,
+          invalidateOnRefresh: true,
+        },
+      });
+    });
+    const stopRefresh = scheduleScrollTriggerRefresh();
+    return () => {
+      stopRefresh();
+      context.revert();
+    };
+  }, [language, motionProfile.parallaxDistance, reducedMotion]);
+
   const handleVideoEnded = () => {
     const video = videoRef.current;
     if (video) {
@@ -263,15 +299,15 @@ const Hero = () => {
       {/* =====================================================
           BACKGROUND DECORATION
       ===================================================== */}
-      <motion.div
+      <div
+        ref={heroGlowRef}
         aria-hidden="true"
-        style={{ y: heroGlowY }}
         className="pointer-events-none absolute right-[-12rem] top-16 h-[32rem] w-[32rem] rounded-full bg-[var(--color-8)]/15 blur-3xl"
       />
 
-      <motion.div
+      <div
+        ref={heroShadeRef}
         aria-hidden="true"
-        style={{ y: heroShadeY }}
         className="pointer-events-none absolute bottom-0 left-[-10rem] h-[28rem] w-[28rem] rounded-full bg-[var(--color-1)]/20 blur-3xl"
       />
 
@@ -374,7 +410,7 @@ const Hero = () => {
                 ref={videoRef}
                 playsInline
                 muted={videoMuted}
-                preload="metadata"
+                preload={reducedMotion || isMobile || isTablet ? 'none' : 'metadata'}
                 onEnded={handleVideoEnded}
                 aria-label={t('hero.ariaLabel')}
                 className="

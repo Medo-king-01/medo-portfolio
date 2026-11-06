@@ -29,6 +29,7 @@ html.dark {
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 5.5rem;
   scrollbar-color: var(--color-2) var(--color-5);
   scrollbar-width: thin;
 }
@@ -179,17 +180,49 @@ a, button {
 
 .section-flow {
   position: relative;
+  scroll-margin-top: 5rem;
 }
 
+/* A recurring signal seam links the chapters without placing an overlay over content. */
 .section-flow::before {
   position: absolute;
-  top: 0;
+  top: 1.1rem;
   inset-inline: clamp(1.5rem, 8vw, 8rem);
   height: 1px;
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-2) 40%, var(--color-3)), transparent);
-  opacity: 0.55;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--color-2) 22%, var(--color-3)) 18%,
+    color-mix(in srgb, var(--color-7) 52%, var(--color-3)) 50%,
+    color-mix(in srgb, var(--color-2) 22%, var(--color-3)) 82%,
+    transparent
+  );
+  opacity: 0.62;
   content: '';
   pointer-events: none;
+}
+
+.section-flow::after {
+  position: absolute;
+  z-index: 1;
+  top: calc(1.1rem - 2px);
+  inset-inline-start: clamp(1.5rem, 8vw, 8rem);
+  width: 5px;
+  height: 5px;
+  border: 1px solid color-mix(in srgb, var(--color-7) 72%, white);
+  border-radius: 50%;
+  background: var(--color-2);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color-7) 36%, transparent);
+  content: '';
+  pointer-events: none;
+}
+
+.journey-progress-fill {
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color-7) 48%, transparent);
+}
+
+.journey-progress-head {
+  box-shadow: 0 0 10px 2px color-mix(in srgb, var(--color-7) 54%, transparent);
 }
 
 .project-gallery-card {
@@ -451,6 +484,14 @@ a, button {
 
   .about-card-string {
     transition: none;
+  }
+
+  a:hover,
+  button:hover,
+  a:hover > svg,
+  button:hover > svg,
+  .group:hover [class*="group-hover:"] {
+    transform: none !important;
   }
 }
 
@@ -1072,19 +1113,184 @@ html.dark .certificate-wheel-card {
   .certificate-wheel-footer { bottom: 0.15rem; }
 }
 
-/* Longer journey chapters keep the original stacked-card style while remaining readable. */
-.beyond-card-copy {
-  max-height: 100%;
-  overflow-y: auto;
-  scrollbar-color: var(--color-1) transparent;
-  scrollbar-width: thin;
+/* Native-snap certificate browsing for touch, tablet, short, and reduced-motion modes. */
+.certificate-native-view {
+  width: min(100%, 72rem);
+  margin: 2rem auto 0;
 }
-.beyond-card-copy:focus-visible { outline: 2px solid var(--color-2); outline-offset: 4px; }
-.beyond-card-copy p + p { margin-top: 0.8rem; }
-.beyond-card-copy strong { color: var(--color-2); font-weight: 900; }
-.beyond-card-copy h3 { font-size: clamp(1.65rem, 3.2vw, 2.8rem); line-height: 1.2; }
-@media (max-width: 640px) {
-  .beyond-card-body { padding-top: 1.25rem; }
-  .beyond-card-copy h3 { font-size: 1.55rem; margin: 0.5rem 0 0.8rem; }
-  .beyond-card-motif { display: none; }
+
+.certificate-native-hint {
+  margin: 0 auto 1.5rem;
+  text-align: center;
+}
+
+.certificate-native-hint p:first-child {
+  color: var(--color-2);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+html[dir="rtl"] .certificate-native-hint p:first-child {
+  letter-spacing: 0.03em;
+}
+
+.certificate-native-hint p + p {
+  margin-top: 0.4rem;
+  color: color-mix(in srgb, var(--color-4) 70%, var(--color-1));
+  font-size: 0.78rem;
+}
+
+.certificate-native-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: min(100%, 28rem);
+  margin: 0 auto 1rem;
+}
+
+.certificate-native-arrow {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border: 1px solid var(--color-3);
+  border-radius: 50%;
+  color: var(--color-4);
+  background: color-mix(in srgb, var(--color-5) 86%, white);
+  box-shadow: 0 0.5rem 1.5rem rgb(27 23 22 / 0.08);
+  cursor: pointer;
+  transition: color 180ms ease, border-color 180ms ease, background-color 180ms ease;
+}
+
+.certificate-native-arrow:hover {
+  border-color: var(--color-2);
+  color: var(--color-5);
+  background: var(--color-2);
+}
+
+.certificate-native-count {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  color: color-mix(in srgb, var(--color-4) 62%, var(--color-1));
+  font-size: 0.8rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.certificate-native-count strong {
+  color: var(--color-2);
+  font-size: 1.55rem;
+  font-weight: 900;
+}
+
+.certificate-native-track {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.5rem max(1.25rem, calc((100% - min(82vw, 26rem)) / 2)) 1.5rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  scroll-padding-inline: max(1.25rem, calc((100% - min(82vw, 26rem)) / 2));
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.certificate-native-track::-webkit-scrollbar {
+  display: none;
+}
+
+.certificate-native-track:focus-visible {
+  outline: 3px solid var(--color-2);
+  outline-offset: 3px;
+}
+
+.certificate-wheel-card.certificate-native-card {
+  position: relative;
+  inset: auto;
+  display: block;
+  flex: 0 0 min(82vw, 26rem);
+  width: min(82vw, 26rem);
+  height: auto;
+  min-height: 0;
+  border-radius: 1.25rem;
+  opacity: 1;
+  text-align: start;
+  transform: none;
+  filter: none;
+  backface-visibility: visible;
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.certificate-wheel-card.certificate-native-card.is-active {
+  border-color: var(--color-7);
+  box-shadow: 0 0 0 2px var(--color-7), 0 1.5rem 3rem rgb(228 42 42 / 0.16);
+}
+
+.certificate-native-card .certificate-wheel-image {
+  height: clamp(9rem, 31vw, 15rem);
+}
+
+.certificate-native-card .certificate-wheel-copy {
+  min-height: 7.5rem;
+  padding: 1rem 1.1rem 1.15rem;
+}
+
+.certificate-native-details {
+  min-height: 3.5rem;
+  margin: 0.35rem auto 0;
+  padding-inline: 1rem;
+  text-align: center;
+}
+
+.certificate-native-dots {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  width: min(100%, 34rem);
+  margin: 1rem auto 0;
+}
+
+.certificate-native-dot {
+  display: grid;
+  width: 1.5rem;
+  height: 1.5rem;
+  flex: 0 0 1.5rem;
+  place-items: center;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.certificate-native-dot::after {
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-1) 72%, transparent);
+  content: '';
+  transition: width 180ms ease, background-color 180ms ease;
+}
+
+.certificate-native-dot.is-active::after {
+  width: 1rem;
+  background: var(--color-7);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .certificate-native-track {
+    scroll-behavior: auto;
+  }
+
+  .certificate-native-arrow,
+  .certificate-wheel-card.certificate-native-card,
+  .certificate-native-dot::after {
+    transition: none;
+  }
 }
