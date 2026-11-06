@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { getMotionProfile, motionConfig } from '../motion/motionConfig.js';
 import { getRevealVariants, modalBackdropVariants, modalPanelVariants } from '../motion/motionVariants.js';
 import { useMotionEnvironment } from '../motion/useReducedMotionPreference.js';
-import { gsap, ScrollTrigger } from '../motion/gsap.js';
+import { createGsapContext, gsap, scheduleScrollTriggerRefresh } from '../motion/gsap.js';
 import { projects } from '../data/portfolioData';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { GithubIcon } from './icons/github-icon';
@@ -14,11 +14,6 @@ const resolveLocalized = (field, language) => {
   }
   return field || '';
 };
-
-const prefersReducedMotion = () => (
-  typeof window !== 'undefined'
-  && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-);
 
 const ExternalLinkIcon = () => (
   <svg aria-hidden="true" className="h-4 w-4 shrink-0 transition-transform duration-300 group-hover:scale-125 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -432,8 +427,8 @@ const ProjectGallery = ({ trackRef, language, t, onSelect, hasFinePointer, onFoc
 
 const Projects = () => {
   const { t, language, langConfig } = useLanguage();
-  const { reducedMotion, isMobile, isShortViewport, hasFinePointer } = useMotionEnvironment();
-  const profile = getMotionProfile({ isMobile, isShortViewport, reducedMotion });
+  const { reducedMotion, isMobile, isTablet, isShortViewport, hasFinePointer } = useMotionEnvironment();
+  const profile = getMotionProfile({ isMobile, isTablet, isShortViewport, hasFinePointer, reducedMotion });
   const [selectedProject, setSelectedProject] = useState(null);
   const [previewItem, setPreviewItem] = useState(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -470,56 +465,58 @@ const Projects = () => {
     const section = sectionRef.current;
     const stage = stageRef.current;
     const track = trackRef.current;
-    if (!section || !stage || !track) return undefined;
-
-    if (prefersReducedMotion() || reducedMotion) {
-      section.classList.remove('is-horizontal');
+    if (!section || !stage || !track || !profile.pinnedScenes || reducedMotion) {
+      section?.classList.remove('is-horizontal');
       triggerRef.current = null;
       return undefined;
     }
 
     const directionSign = langConfig.dir === 'rtl' ? 1 : -1;
     const media = gsap.matchMedia();
-
-    media.add('(min-width: 0px)', () => {
+    media.add({
+      desktop: '(min-width: 1024px) and (min-height: 681px) and (hover: hover) and (pointer: fine)',
+    }, ({ conditions }) => {
+      if (!conditions.desktop) return undefined;
       section.classList.add('is-horizontal');
 
       const parent = track.parentElement;
-      const distance = () =>
-        Math.max(Math.max(track.scrollWidth, track.offsetWidth) - (parent?.clientWidth || 0), 0);
+      const distance = () => Math.max(
+        Math.max(track.scrollWidth, track.offsetWidth) - (parent?.clientWidth || 0),
+        0,
+      );
 
-      const tween = gsap.to(track, {
-        x: () => directionSign * distance(),
-        ease: 'none',
-        scrollTrigger: {
-          trigger: stage,
-          start: 'top top',
-          end: () => `+=${distance() + window.innerHeight * 0.65}`,
-          pin: true,
-          scrub: 0.55,
-          anticipatePin: 1,
-          invalidateOnRefresh: true,
-          onUpdate: (self) => {
-            const nextIndex = Math.round(self.progress * (projects.length - 1));
-            setActiveIndex((current) => current === nextIndex ? current : nextIndex);
+      const context = createGsapContext(section, () => {
+        const tween = gsap.to(track, {
+          x: () => directionSign * distance(),
+          ease: 'none',
+          scrollTrigger: {
+            trigger: stage,
+            start: 'top top',
+            end: () => `+=${distance() + window.innerHeight * 0.65}`,
+            pin: true,
+            scrub: 0.55,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+            onUpdate: (self) => {
+              const nextIndex = Math.round(self.progress * (projects.length - 1));
+              setActiveIndex((current) => current === nextIndex ? current : nextIndex);
+            },
           },
-        },
+        });
+        triggerRef.current = tween.scrollTrigger;
       });
-
-      triggerRef.current = tween.scrollTrigger;
-      requestAnimationFrame(() => ScrollTrigger.refresh());
+      const stopRefresh = scheduleScrollTriggerRefresh();
 
       return () => {
+        stopRefresh();
         triggerRef.current = null;
         section.classList.remove('is-horizontal');
-        tween.scrollTrigger?.kill();
-        tween.kill();
-        gsap.set(track, { clearProps: 'transform' });
+        context.revert();
       };
     });
 
     return () => media.revert();
-  }, [langConfig.dir, reducedMotion]);
+  }, [langConfig.dir, profile.pinnedScenes, reducedMotion]);
 
   useEffect(() => {
     const track = trackRef.current;

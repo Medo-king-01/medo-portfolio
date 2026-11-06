@@ -14,8 +14,8 @@ import { useLanguage } from '../context/LanguageContext.jsx';
 
 const Contact = () => {
   const { t, langConfig } = useLanguage();
-  const { reducedMotion, isMobile, isShortViewport, hasFinePointer } = useMotionEnvironment();
-  const profile = getMotionProfile({ isMobile, isShortViewport, reducedMotion });
+  const { reducedMotion, isMobile, isTablet, isShortViewport, hasFinePointer } = useMotionEnvironment();
+  const profile = getMotionProfile({ isMobile, isTablet, isShortViewport, hasFinePointer, reducedMotion });
   const leftRevealVariants = getRevealVariants({ reducedMotion, distance: profile.revealDistance });
   const rightRevealVariants = getRevealVariants({ reducedMotion, distance: profile.revealDistance, delay: 0.08 });
   const socialsStaggerVariants = getStaggerVariants({ reducedMotion, stagger: profile.stagger });

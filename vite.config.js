@@ -17,4 +17,18 @@ export default defineConfig({
     strictPort: true,
     allowedHosts: true,
   },
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          minSize: 16_000,
+          groups: [
+            { name: 'react-vendor', test: /node_modules[\\/]react(?:-dom)?[\\/]/, priority: 3 },
+            { name: 'motion-vendor', test: /node_modules[\\/](?:framer-motion|motion-dom|motion-utils|gsap)[\\/]/, priority: 2 },
+            { name: 'icons-vendor', test: /node_modules[\\/]simple-icons[\\/]/, priority: 2 },
+          ],
+        },
+      },
+    },
+  },
 })

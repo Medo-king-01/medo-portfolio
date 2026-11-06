@@ -3,8 +3,10 @@ import { useEffect, useState } from 'react';
 const MEDIA_QUERIES = {
   reducedMotion: '(prefers-reduced-motion: reduce)',
   mobile: '(max-width: 767px)',
+  tablet: '(min-width: 768px) and (max-width: 1023px)',
   shortViewport: '(max-height: 680px)',
   finePointer: '(hover: hover) and (pointer: fine)',
+  coarsePointer: '(pointer: coarse)',
 };
 
 function readQuery(query) {
@@ -42,7 +44,9 @@ export function useMotionEnvironment() {
   return {
     reducedMotion: useReducedMotionPreference(),
     isMobile: useMediaQuery(MEDIA_QUERIES.mobile),
+    isTablet: useMediaQuery(MEDIA_QUERIES.tablet),
     isShortViewport: useMediaQuery(MEDIA_QUERIES.shortViewport),
     hasFinePointer: useMediaQuery(MEDIA_QUERIES.finePointer),
+    hasCoarsePointer: useMediaQuery(MEDIA_QUERIES.coarsePointer),
   };
 }

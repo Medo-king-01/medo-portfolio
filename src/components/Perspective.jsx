@@ -6,8 +6,8 @@ import { useLanguage } from '../context/LanguageContext.jsx';
 
 const Perspective = () => {
   const { t, langConfig } = useLanguage();
-  const { reducedMotion, isMobile, isShortViewport } = useMotionEnvironment();
-  const profile = getMotionProfile({ isMobile, isShortViewport, reducedMotion });
+  const { reducedMotion, isMobile, isTablet, isShortViewport, hasFinePointer } = useMotionEnvironment();
+  const profile = getMotionProfile({ isMobile, isTablet, isShortViewport, hasFinePointer, reducedMotion });
   const perspectiveData = t('perspective');
 
   return (
