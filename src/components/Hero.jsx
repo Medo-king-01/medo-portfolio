@@ -1,9 +1,10 @@
 import { useRef, useEffect, useLayoutEffect, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
+import { animate, stagger } from 'animejs';
 import { createGsapContext, scheduleScrollTriggerRefresh, gsap } from '../motion/gsap.js';
 import { motionConfig, getMotionProfile } from '../motion/motionConfig.js';
 import { getRevealVariants } from '../motion/motionVariants.js';
-import { useMotionEnvironment } from '../motion/useReducedMotionPreference.js';
+import { useMotionEnvironment } from '../motion/useMotionEnvironment.js';
 import { siGithub, siInstagram, siFacebook, siTiktok } from 'simple-icons';
 import { GithubIcon } from './icons/github-icon';
 import { InstagramIcon } from './icons/instagram-icon';
@@ -18,8 +19,8 @@ const heroVideo = heroVideoAsset;
 
 const Hero = () => {
   const { t, langConfig, language } = useLanguage();
-  const { reducedMotion, isMobile, isTablet, isShortViewport, hasFinePointer } = useMotionEnvironment();
-  const motionProfile = getMotionProfile({ isMobile, isTablet, isShortViewport, hasFinePointer, reducedMotion });
+  const { isMobile, isTablet, isShortViewport, hasFinePointer } = useMotionEnvironment();
+  const motionProfile = getMotionProfile({ isMobile, isTablet, isShortViewport, hasFinePointer });
 
   const sectionRef = useRef(null);
   const heroGlowRef = useRef(null);
@@ -30,18 +31,19 @@ const Hero = () => {
   const [videoMuted, setVideoMuted] = useState(true);
   const [resumeOpen, setResumeOpen] = useState(false);
   const [resumeAvailable, setResumeAvailable] = useState(null);
+  const [HeroOrbitScene, setHeroOrbitScene] = useState(null);
+  const [heroOrbitSceneReady, setHeroOrbitSceneReady] = useState(false);
   const heroRevealVariants = getRevealVariants({
-    reducedMotion,
     distance: motionProfile.revealDistance,
   });
-  const heroFadeVariants = getRevealVariants({ reducedMotion, axis: null });
+  const heroFadeVariants = getRevealVariants({ axis: null });
 
   useLayoutEffect(() => {
     const section = sectionRef.current;
     const glow = heroGlowRef.current;
     const shade = heroShadeRef.current;
     const distance = motionProfile.parallaxDistance;
-    if (reducedMotion || !distance || !section || !glow || !shade) return undefined;
+    if (!distance || !section || !glow || !shade) return undefined;
 
     const context = createGsapContext(section, () => {
       gsap.to(glow, {
@@ -72,7 +74,59 @@ const Hero = () => {
       stopRefresh();
       context.revert();
     };
-  }, [language, motionProfile.parallaxDistance, reducedMotion]);
+  }, [language, motionProfile.parallaxDistance]);
+
+  useEffect(() => {
+    const nodes = sectionRef.current?.querySelectorAll('.hero-grid-node');
+    if (!nodes?.length) return undefined;
+
+    const pulse = animate(nodes, {
+      opacity: [0.28, 0.82],
+      scale: [0.78, 1.16],
+      duration: 3200,
+      ease: 'inOutSine',
+      delay: stagger(1100),
+      loop: true,
+      alternate: true,
+    });
+
+    return () => pulse.revert();
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    let idleHandle;
+    let timeoutHandle;
+
+    const loadScene = () => {
+      const importScene = () => {
+        import('./HeroOrbitScene.jsx')
+          .then(({ default: Scene }) => {
+            if (!cancelled) setHeroOrbitScene(() => Scene);
+          })
+          .catch(() => {});
+      };
+
+      if (typeof window.requestIdleCallback === 'function') {
+        idleHandle = window.requestIdleCallback(importScene, { timeout: 1500 });
+      } else {
+        timeoutHandle = window.setTimeout(importScene, 180);
+      }
+    };
+
+    if (window.__CURTAIN_OPENED__ || siteConfig.sections.preloader?.enabled === false) {
+      loadScene();
+    } else {
+      window.addEventListener('curtain:opened', loadScene, { once: true });
+    }
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener('curtain:opened', loadScene);
+      if (idleHandle && typeof window.cancelIdleCallback === 'function') window.cancelIdleCallback(idleHandle);
+      if (timeoutHandle) window.clearTimeout(timeoutHandle);
+    };
+  }, []);
 
   const handleVideoEnded = () => {
     const video = videoRef.current;
@@ -89,7 +143,7 @@ const Hero = () => {
     return heroContent.rotatingTitles;
   }, [t]);
 
-  const displayTitle = reducedMotion ? (typewriterTitles[0] || '') : typedTitle;
+  const displayTitle = typedTitle;
 
   const heroSocials = [
     socialLinks.github && { label: 'GitHub', href: socialLinks.github, icon: siGithub, Component: GithubIcon },
@@ -110,12 +164,6 @@ const Hero = () => {
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return undefined;
-
-    if (reducedMotion) {
-      video.pause();
-      videoStartedRef.current = false;
-      return undefined;
-    }
 
     const startVideo = async () => {
       if (videoStartedRef.current) return;
@@ -138,7 +186,7 @@ const Hero = () => {
     }
 
     return () => window.removeEventListener('curtain:opened', startVideo);
-  }, [reducedMotion]);
+  }, []);
 
   const toggleVideoAudio = async () => {
     const video = videoRef.current;
@@ -214,8 +262,6 @@ const Hero = () => {
   ------------------------------------------------------- */
   useEffect(() => {
     if (!typewriterTitles.length) return undefined;
-    if (reducedMotion) return undefined;
-
     let titleIndex = 0;
     let characterIndex = 0;
     let phase = 'typing';
@@ -265,7 +311,7 @@ const Hero = () => {
     return () => {
       window.clearTimeout(timerId);
     };
-  }, [typewriterTitles, language, reducedMotion]);
+  }, [typewriterTitles, language]);
 
   return (
     <section
@@ -311,16 +357,34 @@ const Hero = () => {
         className="pointer-events-none absolute bottom-0 left-[-10rem] h-[28rem] w-[28rem] rounded-full bg-[var(--color-1)]/20 blur-3xl"
       />
 
+      <div className="hero-grid-backdrop" aria-hidden="true">
+        <div className="hero-grid-plane" />
+        <div className="hero-grid-sweep" />
+        <span className="hero-grid-node hero-grid-node-one" />
+        <span className="hero-grid-node hero-grid-node-two" />
+      </div>
+
+      <div
+        className={`hero-orbit-graphic${heroOrbitSceneReady ? ' hero-orbit-graphic-with-3d' : ''}`}
+        aria-hidden="true"
+      >
+        <span className="hero-orbit-ring hero-orbit-ring-one"><i /></span>
+        <span className="hero-orbit-ring hero-orbit-ring-two"><i /></span>
+        <span className="hero-orbit-core" />
+      </div>
+
+      {HeroOrbitScene && <HeroOrbitScene onReady={setHeroOrbitSceneReady} />}
+
       {/* =====================================================
           LAPTOP VIDEO DISPLAY
       ===================================================== */}
       <motion.div
         dir="ltr"
-        initial={reducedMotion ? false : 'hidden'}
+        initial="hidden"
         whileInView="visible"
         viewport={motionConfig.viewport}
         variants={heroRevealVariants}
-        whileHover={hasFinePointer && !reducedMotion ? { y: -6 } : undefined}
+        whileHover={hasFinePointer ? { y: -6 } : undefined}
         className="
           hero-laptop-frame
           group
@@ -410,7 +474,7 @@ const Hero = () => {
                 ref={videoRef}
                 playsInline
                 muted={videoMuted}
-                preload={reducedMotion || isMobile || isTablet ? 'none' : 'metadata'}
+                preload={isMobile || isTablet ? 'none' : 'metadata'}
                 onEnded={handleVideoEnded}
                 aria-label={t('hero.ariaLabel')}
                 className="
@@ -609,10 +673,10 @@ const Hero = () => {
         <div className="flex w-full max-w-2xl flex-col items-start text-start">
           {/* LIVE AVAILABILITY BADGE */}
           <motion.div
-            initial={reducedMotion ? false : 'hidden'}
+            initial="hidden"
             whileInView="visible"
             viewport={motionConfig.viewport}
-            variants={getRevealVariants({ reducedMotion, distance: motionProfile.revealDistance, delay: 0.04 })}
+            variants={getRevealVariants({ distance: motionProfile.revealDistance, delay: 0.04 })}
             className="mb-5 inline-flex items-center gap-2.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 shadow-[0_2px_12px_rgba(16,185,129,0.12)] backdrop-blur-md transition-all duration-300 hover:scale-[1.02] hover:bg-emerald-500/15"
           >
             <span className="relative flex h-2.5 w-2.5">
@@ -625,10 +689,10 @@ const Hero = () => {
 
           {/* MAIN HEADING */}
           <motion.h1
-            initial={reducedMotion ? false : 'hidden'}
+            initial="hidden"
             whileInView="visible"
             viewport={motionConfig.viewport}
-            variants={getRevealVariants({ reducedMotion, distance: motionProfile.revealDistance, delay: 0.1 })}
+            variants={getRevealVariants({ distance: motionProfile.revealDistance, delay: 0.1 })}
             className="
               max-w-3xl
               text-4xl
@@ -654,10 +718,10 @@ const Hero = () => {
 
           {/* SUBHEADING */}
           <motion.p
-            initial={reducedMotion ? false : 'hidden'}
+            initial="hidden"
             whileInView="visible"
             viewport={motionConfig.viewport}
-            variants={getRevealVariants({ reducedMotion, distance: motionProfile.revealDistance, delay: 0.18 })}
+            variants={getRevealVariants({ distance: motionProfile.revealDistance, delay: 0.18 })}
             className="mb-8 mt-5 max-w-xl text-base font-medium leading-[1.8] text-[var(--color-4)]/75 md:text-lg"
           >
             {t('hero.subtitle')}
@@ -665,10 +729,10 @@ const Hero = () => {
 
           {/* CTA BUTTONS */}
           <motion.div
-            initial={reducedMotion ? false : 'hidden'}
+            initial="hidden"
             whileInView="visible"
             viewport={motionConfig.viewport}
-            variants={getRevealVariants({ reducedMotion, distance: motionProfile.revealDistance, delay: 0.26 })}
+            variants={getRevealVariants({ distance: motionProfile.revealDistance, delay: 0.26 })}
             className="flex w-full flex-row flex-wrap items-center gap-3"
           >
             {/* PRIMARY */}
@@ -797,15 +861,15 @@ const Hero = () => {
 
           {/* SOCIAL LINKS */}
           <motion.div
-            initial={reducedMotion ? false : 'hidden'}
+            initial="hidden"
             whileInView="visible"
             viewport={motionConfig.viewport}
-            variants={getRevealVariants({ reducedMotion, distance: motionProfile.revealDistance, delay: 0.34 })}
+            variants={getRevealVariants({ distance: motionProfile.revealDistance, delay: 0.34 })}
             className="mt-6 flex w-full items-center justify-center gap-3 sm:justify-start"
             aria-label="Social links"
           >
             {heroSocials.map(({ label, href, icon, Component }) => (
-              <a
+              <motion.a
                 key={label}
                 href={href || undefined}
                 target={href ? '_blank' : undefined}
@@ -814,6 +878,7 @@ const Hero = () => {
                 aria-label={label}
                 aria-disabled={!href}
                 tabIndex={href ? 0 : -1}
+                whileTap={{ scale: 0.9, y: -2 }}
                 className="
                   group
                   flex
@@ -846,7 +911,7 @@ const Hero = () => {
                     <path d={icon.path} />
                   </svg>
                 )}
-              </a>
+              </motion.a>
             ))}
           </motion.div>
         </div>
@@ -857,7 +922,7 @@ const Hero = () => {
       ===================================================== */}
       <motion.div
         aria-hidden="true"
-        initial={reducedMotion ? false : 'hidden'}
+        initial="hidden"
         whileInView="visible"
         viewport={motionConfig.viewport}
         variants={heroFadeVariants}

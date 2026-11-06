@@ -3,7 +3,7 @@ import { motion, useMotionValueEvent, useScroll, useTransform } from 'framer-mot
 import { leadershipList } from '../data/portfolioData';
 import { getMotionProfile, motionConfig } from '../motion/motionConfig.js';
 import { getRevealVariants } from '../motion/motionVariants.js';
-import { useMotionEnvironment } from '../motion/useReducedMotionPreference.js';
+import { useMotionEnvironment } from '../motion/useMotionEnvironment.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
 
 const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
@@ -15,29 +15,24 @@ const resolveLocalized = (field, language) => {
   return field || '';
 };
 
-const JourneyCard = ({ item, index, progress, activeIndex, reducedMotion, isMobile, language, t }) => {
+const JourneyCard = ({ item, index, progress, activeIndex, language, t }) => {
   const transform = useTransform(progress, (value) => {
-    if (reducedMotion) return 'translate3d(-50%, -50%, 0)';
     const offset = index - value;
     const distance = Math.abs(offset);
-    const verticalStep = isMobile ? 72 : 108;
-    const scaleLoss = isMobile ? 0.035 : 0.045;
-    const rotation = clamp(offset * (isMobile ? 0.8 : 1.2), -3, 3);
+    const verticalStep = 108;
+    const scaleLoss = 0.045;
+    const rotation = clamp(offset * 1.2, -3, 3);
     const scale = 1 - Math.min(distance, 2) * scaleLoss;
     return `translate3d(-50%, calc(-50% + ${offset * verticalStep}px), 0) scale(${scale}) rotate(${rotation}deg)`;
   });
   const opacity = useTransform(progress, (value) => {
     const distance = Math.abs(index - value);
-    if (reducedMotion) return Math.round(value) === index ? 1 : 0;
     return distance > 2.7 ? 0 : 1 - Math.min(distance * 0.16, 0.38);
   });
   const filter = useTransform(progress, (value) => {
-    if (reducedMotion) return 'none';
     return `blur(${Math.min(Math.abs(index - value) * 2.4, 7)}px)`;
   });
-  const zIndex = useTransform(progress, (value) => reducedMotion
-    ? (Math.round(value) === index ? 30 : 0)
-    : 30 - Math.round(Math.abs(index - value) * 3));
+  const zIndex = useTransform(progress, (value) => 30 - Math.round(Math.abs(index - value) * 3));
   const isActive = index === activeIndex;
   const chapterLabel = t('leadership.chapterLabel');
   const category = resolveLocalized(item.category, language);
@@ -82,8 +77,8 @@ const JourneyCard = ({ item, index, progress, activeIndex, reducedMotion, isMobi
 
 const Leadership = () => {
   const { t, langConfig, language } = useLanguage();
-  const { reducedMotion, isMobile, isShortViewport } = useMotionEnvironment();
-  const profile = getMotionProfile({ isMobile, isShortViewport, reducedMotion });
+  const { isMobile, isShortViewport } = useMotionEnvironment();
+  const profile = getMotionProfile({ isMobile, isShortViewport });
   const stageRef = useRef(null);
   const maxStep = Math.max(leadershipList.length - 1, 0);
   const stageLength = 100 + maxStep * profile.journeyStep;
@@ -93,7 +88,7 @@ const Leadership = () => {
     offset: ['start start', 'end end'],
   });
   const progress = useTransform(scrollYProgress, [0, 1], [0, maxStep]);
-  const headerVariants = getRevealVariants({ reducedMotion, distance: profile.revealDistance });
+  const headerVariants = getRevealVariants({ distance: profile.revealDistance });
 
   useMotionValueEvent(progress, 'change', (value) => {
     const nextIndex = clamp(Math.round(value), 0, maxStep);
@@ -105,12 +100,12 @@ const Leadership = () => {
       id="leadership"
       data-experience-section
       aria-labelledby="leadership-heading"
-      className={`section-flow beyond-code-section font-sans ${reducedMotion ? 'beyond-code-reduced' : ''}`}
+      className="section-flow beyond-code-section font-sans"
       dir={langConfig.dir}
     >
       <div className="beyond-code-inner">
         <motion.header
-          initial={reducedMotion ? false : 'hidden'}
+          initial="hidden"
           whileInView="visible"
           viewport={motionConfig.viewport}
           variants={headerVariants}
@@ -145,8 +140,6 @@ const Leadership = () => {
                   index={index}
                   progress={progress}
                   activeIndex={activeIndex}
-                  reducedMotion={reducedMotion}
-                  isMobile={isMobile}
                   language={language}
                   t={t}
                 />

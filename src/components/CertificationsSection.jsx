@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { createGsapContext, gsap, scheduleScrollTriggerRefresh } from '../motion/gsap.js';
 import { getMotionProfile, motionConfig } from '../motion/motionConfig.js';
 import { getRevealVariants, modalBackdropVariants, modalPanelVariants } from '../motion/motionVariants.js';
-import { useMotionEnvironment } from '../motion/useReducedMotionPreference.js';
+import { useMotionEnvironment } from '../motion/useMotionEnvironment.js';
 import { certifications } from '../data/certifications';
 import { useLanguage } from '../context/LanguageContext.jsx';
 
@@ -18,7 +18,7 @@ const allCertificates = certifications.flatMap((category) =>
 
 const formatNumber = (number) => String(number).padStart(2, '0');
 
-function CertificateWheel({ certificates, language, t, onSelect, reduceMotion, profile }) {
+function CertificateWheel({ certificates, language, t, onSelect, profile }) {
   const stageRef = useRef(null);
   const trackRef = useRef(null);
   const wheelRef = useRef(null);
@@ -30,7 +30,7 @@ function CertificateWheel({ certificates, language, t, onSelect, reduceMotion, p
   useLayoutEffect(() => {
     const stage = stageRef.current;
     const wheel = wheelRef.current;
-    if (nativeMode || reduceMotion || !stage || !wheel) return undefined;
+    if (nativeMode || !stage || !wheel) return undefined;
 
     const context = createGsapContext(wheel, () => {
       gsap.to(wheel, {
@@ -55,7 +55,7 @@ function CertificateWheel({ certificates, language, t, onSelect, reduceMotion, p
       stopRefresh();
       context.revert();
     };
-  }, [count, language, nativeMode, reduceMotion]);
+  }, [count, language, nativeMode]);
 
   useEffect(() => {
     const track = trackRef.current;
@@ -90,7 +90,7 @@ function CertificateWheel({ certificates, language, t, onSelect, reduceMotion, p
     const targetIndex = Math.max(0, Math.min(count - 1, index));
     if (nativeMode) {
       const card = trackRef.current?.children[targetIndex];
-      card?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: reduceMotion ? 'auto' : 'smooth' });
+      card?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
       return;
     }
 
@@ -98,8 +98,8 @@ function CertificateWheel({ certificates, language, t, onSelect, reduceMotion, p
     if (!stage) return;
     const scrollable = Math.max(0, stage.offsetHeight - window.innerHeight);
     const top = window.scrollY + stage.getBoundingClientRect().top + (scrollable * targetIndex) / (count - 1 || 1);
-    window.scrollTo({ top, behavior: reduceMotion ? 'auto' : 'smooth' });
-  }, [count, nativeMode, reduceMotion]);
+    window.scrollTo({ top, behavior: 'smooth' });
+  }, [count, nativeMode]);
 
   const handleCardClick = (certificate, index) => {
     if (index === active) onSelect(certificate);
@@ -331,8 +331,7 @@ function CertificateDetails({
   language,
   t,
   onClose,
-  reducedMotion,
-}) {
+  }) {
   const dialogRef = useRef(null);
   const latestPropsRef = useRef({ onClose, onNext, onPrev, language });
 
@@ -386,7 +385,7 @@ function CertificateDetails({
       role="dialog"
       aria-modal="true"
       aria-labelledby="certificate-detail-title"
-      initial={reducedMotion ? false : 'hidden'}
+      initial="hidden"
       animate="visible"
       exit="exit"
       variants={modalBackdropVariants}
@@ -396,7 +395,7 @@ function CertificateDetails({
       className="fixed inset-0 z-[10000] flex items-center justify-center bg-[var(--color-4)]/80 p-4 backdrop-blur-md sm:p-8"
     >
       <motion.div
-        initial={reducedMotion ? false : 'hidden'}
+        initial="hidden"
         animate="visible"
         exit="exit"
         variants={modalPanelVariants}
@@ -492,18 +491,18 @@ function CertificateDetails({
 
 export default function CertificationsSection() {
   const { language, langConfig, t } = useLanguage();
-  const { reducedMotion, isMobile, isTablet, isShortViewport, hasFinePointer } = useMotionEnvironment();
-  const profile = getMotionProfile({ isMobile, isTablet, isShortViewport, hasFinePointer, reducedMotion });
+  const { isMobile, isTablet, isShortViewport, hasFinePointer } = useMotionEnvironment();
+  const profile = getMotionProfile({ isMobile, isTablet, isShortViewport, hasFinePointer });
   const [selectedCertificate, setSelectedCertificate] = useState(null);
 
   const sectionRef = useRef(null);
   const sealRef = useRef(null);
-  const headingVariants = getRevealVariants({ reducedMotion, distance: profile.revealDistance });
+  const headingVariants = getRevealVariants({ distance: profile.revealDistance });
 
   useLayoutEffect(() => {
     const section = sectionRef.current;
     const seal = sealRef.current;
-    if (reducedMotion || !profile.parallaxDistance || !section || !seal) return undefined;
+    if (!profile.parallaxDistance || !section || !seal) return undefined;
 
     const context = createGsapContext(section, () => {
       gsap.fromTo(seal,
@@ -527,7 +526,7 @@ export default function CertificationsSection() {
       stopRefresh();
       context.revert();
     };
-  }, [language, profile.parallaxDistance, reducedMotion]);
+  }, [language, profile.parallaxDistance]);
 
   const selectedIndex = selectedCertificate
     ? allCertificates.findIndex((c) => c.file === selectedCertificate.file)
@@ -564,7 +563,7 @@ export default function CertificationsSection() {
       <div aria-hidden="true" className="pointer-events-none absolute end-0 top-16 h-72 w-72 rounded-full bg-[var(--color-8)]/10 blur-3xl" />
       <div className="relative mx-auto max-w-7xl">
         <motion.header
-          initial={reducedMotion ? false : 'hidden'}
+          initial="hidden"
           whileInView="visible"
           viewport={motionConfig.viewport}
           variants={headingVariants}
@@ -599,7 +598,7 @@ export default function CertificationsSection() {
           <div
             ref={sealRef}
             aria-hidden="true"
-            className="pointer-events-none absolute end-0 top-0 hidden h-48 w-48 items-center justify-center md:relative md:flex lg:h-64 lg:w-64"
+            className="pointer-events-none relative mx-auto flex h-40 w-40 items-center justify-center md:mx-0 md:h-48 md:w-48 lg:h-64 lg:w-64"
           >
             <div className="absolute inset-0 rounded-full border border-[var(--color-2)]/15" />
             <div className="absolute inset-3 rounded-full border border-dashed border-[var(--color-2)]/30" />
@@ -618,7 +617,6 @@ export default function CertificationsSection() {
             language={language}
             t={t}
             onSelect={setSelectedCertificate}
-            reduceMotion={reducedMotion}
             profile={profile}
           />
         </div>
@@ -636,7 +634,6 @@ export default function CertificationsSection() {
             onNext={handleNextCertificate}
             language={language}
             t={t}
-            reducedMotion={reducedMotion}
             onClose={closeCertificateDetails}
           />
         )}

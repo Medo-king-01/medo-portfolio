@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, useMotionValueEvent, useScroll } from 'framer-motion';
 import { motionConfig } from '../motion/motionConfig.js';
-import { useMotionEnvironment } from '../motion/useReducedMotionPreference.js';
 import { personalInfo } from '../data/portfolioData';
 import { siteConfig } from '../config/site.config';
 import { useLanguage } from '../context/LanguageContext.jsx';
@@ -27,7 +26,6 @@ const Navbar = () => {
   const [activeSection, setActiveSection] = useState('home');
   const { language, toggleLanguage, t, langConfig } = useLanguage();
   const { theme, toggleTheme } = useTheme();
-  const { reducedMotion } = useMotionEnvironment();
   const { scrollY } = useScroll();
 
   useMotionValueEvent(scrollY, 'change', (latest) => {
@@ -71,11 +69,11 @@ const Navbar = () => {
   return (
     <motion.nav
       aria-label={language === 'ar' ? 'التنقل الرئيسي' : 'Main navigation'}
-      initial={reducedMotion ? false : { opacity: 0, y: -16 }}
+      initial={{ opacity: 0, y: -16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{
-        duration: reducedMotion ? motionConfig.duration.micro : motionConfig.duration.reveal,
-        delay: reducedMotion ? 0 : 0.12,
+        duration: motionConfig.duration.reveal,
+        delay: 0.12,
         ease: motionConfig.ease.enter,
       }}
       className={`fixed left-0 top-0 z-50 w-full border-b transition-all duration-300 ${

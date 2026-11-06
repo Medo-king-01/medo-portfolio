@@ -1,16 +1,16 @@
 import { motion } from 'framer-motion';
 import { getMotionProfile, motionConfig } from '../motion/motionConfig.js';
 import { getRevealVariants, getStaggerVariants } from '../motion/motionVariants.js';
-import { useMotionEnvironment } from '../motion/useReducedMotionPreference.js';
+import { useMotionEnvironment } from '../motion/useMotionEnvironment.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
 
 const TechnicalSkills = () => {
   const { t, langConfig } = useLanguage();
-  const { reducedMotion, isMobile, isTablet, isShortViewport, hasFinePointer } = useMotionEnvironment();
-  const profile = getMotionProfile({ isMobile, isTablet, isShortViewport, hasFinePointer, reducedMotion });
+  const { isMobile, isTablet, isShortViewport, hasFinePointer } = useMotionEnvironment();
+  const profile = getMotionProfile({ isMobile, isTablet, isShortViewport, hasFinePointer });
   const skillsData = t('technicalSkills');
-  const itemVariants = getRevealVariants({ reducedMotion, distance: profile.revealDistance });
-  const staggerVariants = getStaggerVariants({ reducedMotion, stagger: profile.stagger });
+  const itemVariants = getRevealVariants({ distance: profile.revealDistance });
+  const staggerVariants = getStaggerVariants({ stagger: profile.stagger });
 
   return (
     <section
@@ -25,7 +25,7 @@ const TechnicalSkills = () => {
 
       <div className="relative z-10 mx-auto max-w-6xl">
         <motion.header
-          initial={reducedMotion ? false : 'hidden'}
+          initial="hidden"
           whileInView="visible"
           viewport={motionConfig.viewport}
           variants={itemVariants}
@@ -43,7 +43,7 @@ const TechnicalSkills = () => {
           {skillsData.groups.map((group, groupIndex) => (
             <motion.div
               key={group.title}
-              initial={reducedMotion ? false : 'hidden'}
+              initial="hidden"
               whileInView="visible"
               viewport={motionConfig.viewport}
               variants={itemVariants}
@@ -56,7 +56,7 @@ const TechnicalSkills = () => {
               </div>
 
               <motion.div
-                initial={reducedMotion ? false : 'hidden'}
+                initial="hidden"
                 whileInView="visible"
                 viewport={motionConfig.viewport}
                 variants={staggerVariants}
@@ -66,7 +66,7 @@ const TechnicalSkills = () => {
                   <motion.article
                     key={item.title}
                     variants={itemVariants}
-                    whileHover={hasFinePointer && !reducedMotion ? { y: -4, rotateX: 1 } : undefined}
+                    whileHover={hasFinePointer ? { y: -4, rotateX: 1 } : undefined}
                     className="rounded-2xl border border-[var(--color-3)] bg-white/80 p-5 shadow-[0_8px_24px_rgba(27,23,22,0.05)] transition-[border-color,box-shadow,background-color] duration-300 hover:border-[var(--color-2)]/40 hover:shadow-[0_16px_36px_rgba(27,23,22,0.10)] md:p-6"
                   >
                     <h4 className="text-base font-black leading-snug text-[var(--color-4)]">{item.title}</h4>

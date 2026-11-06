@@ -14,8 +14,8 @@ export const motionConfig = Object.freeze({
   },
   distance: {
     desktop: 28,
-    tablet: 18,
-    mobile: 10,
+    tablet: 28,
+    mobile: 28,
     parallax: 34,
   },
   perspective: {
@@ -24,8 +24,8 @@ export const motionConfig = Object.freeze({
     mobile: 760,
   },
   stagger: {
-    compact: 0.045,
-    tablet: 0.065,
+    compact: 0.08,
+    tablet: 0.08,
     standard: 0.08,
   },
   viewport: {
@@ -38,51 +38,25 @@ export const motionConfig = Object.freeze({
 export function getMotionProfile({
   isMobile = false,
   isTablet = false,
-  isShortViewport = false,
-  hasFinePointer = true,
-  reducedMotion = false,
 } = {}) {
   const deviceClass = isMobile ? 'mobile' : isTablet ? 'tablet' : 'desktop';
-  const pinnedScenes = !reducedMotion && hasFinePointer && !isMobile && !isTablet && !isShortViewport;
-
-  if (reducedMotion) {
-    return {
-      deviceClass,
-      revealDistance: 0,
-      stagger: 0,
-      parallaxDistance: 0,
-      perspective: 0,
-      journeyStep: 24,
-      certificateStep: 0,
-      pinnedScenes: false,
-    };
-  }
-
-  const revealDistance = isMobile
-    ? motionConfig.distance.mobile
-    : isTablet
-      ? motionConfig.distance.tablet
-      : motionConfig.distance.desktop;
+  // Scroll-scrubbed project and certificate scenes are enabled on touch devices too.
+  const pinnedScenes = true;
+  // Keep the motion language equally expressive across breakpoints; layout, not
+  // animation intensity, adapts to the available screen space.
+  const revealDistance = motionConfig.distance.desktop;
 
   return {
     deviceClass,
     revealDistance,
-    stagger: isMobile
-      ? motionConfig.stagger.compact
-      : isTablet
-        ? motionConfig.stagger.tablet
-        : motionConfig.stagger.standard,
-    parallaxDistance: isMobile || isShortViewport
-      ? 0
-      : isTablet
-        ? motionConfig.distance.parallax * 0.45
-        : motionConfig.distance.parallax,
+    stagger: motionConfig.stagger.standard,
+    parallaxDistance: motionConfig.distance.parallax,
     perspective: isMobile
       ? motionConfig.perspective.mobile
       : isTablet
         ? motionConfig.perspective.tablet
         : motionConfig.perspective.desktop,
-    journeyStep: isShortViewport ? 28 : isMobile ? 36 : 50,
+    journeyStep: 50,
     certificateStep: pinnedScenes ? 28 : 0,
     pinnedScenes,
   };

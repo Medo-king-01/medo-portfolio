@@ -8,8 +8,6 @@ async function visit(page, language = 'en') {
   }, language);
   await page.goto('/');
   const preloader = page.locator('div[class*="z-[100000]"]');
-  const prefersReducedMotion = await page.evaluate(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-  if (!prefersReducedMotion) await expect(preloader).toBeVisible();
   await preloader.waitFor({ state: 'detached' });
 }
 
@@ -107,7 +105,6 @@ test('section order, active navigation, themes, scroll progress and back-to-top'
   const backToTop = page.locator('#footer button');
   await backToTop.scrollIntoViewIfNeeded();
   await expect.poll(() => progress.evaluate((element) => new DOMMatrixReadOnly(getComputedStyle(element).transform).a)).toBeGreaterThan(0.1);
-  await page.emulateMedia({ reducedMotion: 'reduce' });
   await backToTop.click();
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(2);
 });
@@ -161,61 +158,63 @@ test('desktop projects pin and scrub horizontally without widening the page', as
   expect(finalPageOverflow).toBeLessThanOrEqual(1);
 });
 
-test('tablet and mobile projects use native horizontal snap while vertical scrolling stays free', async ({ page }, testInfo) => {
+test('touch projects and certificates scrub with vertical page scrolling', async ({ page }, testInfo) => {
   if (!['tablet', 'mobile', 'short-mobile'].includes(testInfo.project.name)) test.skip();
   await visit(page);
 
   const section = page.locator('#projects');
+  const stage = section.locator('.projects-stage');
   const track = section.locator('.projects-track');
-  const jumps = section.locator('.project-index-button');
-  await expect(section).not.toHaveClass(/is-horizontal/);
-  await expect(track).toHaveCSS('overflow-x', 'auto');
-  await expect(track).toHaveCSS('scroll-snap-type', 'x mandatory');
+  await expect(section).toHaveClass(/is-horizontal/);
+  await expect(track).toHaveCSS('overflow-x', 'visible');
   await expect(track.locator('.project-gallery-card')).toHaveCount(6);
 
-  await section.scrollIntoViewIfNeeded();
-  for (const index of [1, 5]) {
-    const jump = jumps.nth(index);
-    await jump.click();
-    await expect(jump).toHaveAttribute('aria-current', 'step');
-    await expect.poll(() => track.evaluate((element) => Math.abs(element.scrollLeft))).toBeGreaterThan(0);
-  }
+  const projectMetrics = await page.evaluate(() => {
+    const stageElement = document.querySelector('#projects .projects-stage');
+    const trackElement = document.querySelector('#projects .projects-track');
+    const parent = trackElement.parentElement;
+    const distance = Math.max(trackElement.scrollWidth - parent.clientWidth, 0);
+    return {
+      start: stageElement.getBoundingClientRect().top + window.scrollY,
+      distance,
+      scrollLength: distance + window.innerHeight * 0.65,
+    };
+  });
+  await page.evaluate((top) => window.scrollTo({ top, behavior: 'instant' }), projectMetrics.start + projectMetrics.scrollLength / 2);
+  await expect.poll(() => stage.evaluate((element) => Math.abs(element.getBoundingClientRect().top))).toBeLessThan(2);
+  await expect.poll(() => track.evaluate((element, distance) => {
+    const matrix = new DOMMatrixReadOnly(getComputedStyle(element).transform);
+    return Math.abs(matrix.m41 + distance / 2);
+  }, projectMetrics.distance)).toBeLessThan(40);
 
-  const header = section.locator('header');
-  await header.scrollIntoViewIfNeeded();
-  const box = await header.boundingBox();
-  if (!box) throw new Error('Projects heading is not visible.');
-  const beforeWheel = await page.evaluate(() => window.scrollY);
-  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-  await page.mouse.wheel(0, 240);
-  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(beforeWheel);
+  const certificateStage = page.locator('.certificate-scroll-stage');
+  const wheel = page.locator('.certificate-wheel');
+  await expect(wheel).toBeVisible();
+  await expect(page.locator('.certificate-native-track')).toHaveCount(0);
+  const certificateMetrics = await certificateStage.evaluate((element) => ({
+    start: element.getBoundingClientRect().top + window.scrollY,
+    scrollLength: element.offsetHeight - window.innerHeight,
+  }));
+  const initialRotation = await wheel.evaluate((element) => getComputedStyle(element).transform);
+  await page.evaluate((top) => window.scrollTo({ top, behavior: 'instant' }), certificateMetrics.start + certificateMetrics.scrollLength / 2);
+  await expect.poll(() => wheel.evaluate((element) => getComputedStyle(element).transform)).not.toBe(initialRotation);
+  await expect.poll(() => page.locator('.certificate-wheel-card[aria-pressed="true"]').evaluate((card) => {
+    const cards = [...document.querySelectorAll('.certificate-wheel-card')];
+    return cards.indexOf(card);
+  })).toBeGreaterThan(0);
 
   expect(await page.evaluate(() => Math.max(
     document.body.scrollWidth,
     document.documentElement.scrollWidth,
   ) <= window.innerWidth + 1)).toBe(true);
 });
-test('reduced motion uses the native horizontal snap track', async ({ page }) => {
+test('OS reduced-motion preference does not disable the animated desktop gallery', async ({ page }, testInfo) => {
+  if (testInfo.project.name !== 'desktop') test.skip();
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await visit(page);
-
-  const section = page.locator('#projects');
-  const track = section.locator('.projects-track');
-  await expect(section).not.toHaveClass(/is-horizontal/);
-  await expect(track).toHaveAttribute('role', 'group');
-  await expect(track).toHaveAttribute('tabindex', '0');
-  await expect(track).toHaveCSS('overflow-x', 'auto');
-  await expect(track).toHaveCSS('scroll-snap-type', 'x mandatory');
-  await expect(track.locator('.project-gallery-card')).toHaveCount(6);
-
-  const finalJump = section.locator('.project-index-button').nth(5);
-  await finalJump.click();
-  await expect(finalJump).toHaveAttribute('aria-current', 'step');
-  await expect.poll(() => track.evaluate((element) => Math.abs(element.scrollLeft))).toBeGreaterThan(0);
-  expect(await page.evaluate(() => Math.max(
-    document.body.scrollWidth,
-    document.documentElement.scrollWidth,
-  ) <= window.innerWidth + 1)).toBe(true);
+  await expect(page.locator('#projects')).toHaveClass(/is-horizontal/);
+  await expect(page.locator('#projects')).toHaveCSS('animation-name', 'blueprint-grid-drift');
+  await expect(page.locator('.hero-grid-plane')).toHaveCSS('animation-name', 'hero-grid-drift');
 });
 
 test('all projects and certificates open, close, and load their previews', async ({ page, request }, testInfo) => {
@@ -224,7 +223,14 @@ test('all projects and certificates open, close, and load their previews', async
   const projectJumps = page.locator('#projects .project-index-button');
   await expect(projects).toHaveCount(6);
   await expect(projectJumps).toHaveCount(6);
-  // Use the numbered controls so both the pinned and native-scroll modes are covered.
+  const projectDimensions = await projects.evaluateAll((cards) => cards.map((card) => {
+    const { width, height } = card.getBoundingClientRect();
+    return { width, height };
+  }));
+  expect(Math.max(...projectDimensions.map(({ width }) => width)) - Math.min(...projectDimensions.map(({ width }) => width))).toBeLessThanOrEqual(1);
+  expect(Math.max(...projectDimensions.map(({ height }) => height)) - Math.min(...projectDimensions.map(({ height }) => height))).toBeLessThanOrEqual(1);
+  await expect(projects.nth(5).locator('img')).toHaveClass(/object-cover/);
+  // The numbered controls scrub the pinned track on both pointer and touch layouts.
   for (const index of [0, 1, 2, 3, 4, 5, 3]) {
     const jump = projectJumps.nth(index);
     await jump.click();
@@ -261,15 +267,10 @@ test('all projects and certificates open, close, and load their previews', async
     if (!testInfo.project.use.hasTouch) await expect(card).toBeFocused();
   }
   const certificates = page.locator('.certificate-wheel-card');
-  const nativeCertificates = testInfo.project.name !== 'desktop';
   await expect(certificates).toHaveCount(11);
+  await expect(page.locator('.certificate-native-track')).toHaveCount(0);
   const selectCertificate = async (index) => {
-    if (nativeCertificates) {
-      await page.locator('.certificate-native-dot').nth(index).click();
-      await expect(certificates.nth(index)).toHaveAttribute('aria-pressed', 'true');
-    } else {
-      await scrollToCard(page, '.certificate-wheel-card', index, 11);
-    }
+    await scrollToCard(page, '.certificate-wheel-card', index, 11);
   };
   const certificateControls = testInfo.project.name === 'mobile'
     ? { next: 'التالي', previous: 'السابق' }
@@ -358,7 +359,7 @@ test('contact creates a correctly encoded mailto without claiming delivery', asy
   await expect(page.locator('#contact button[type="submit"]')).toContainText('Continue in your email app.');
 });
 
-test('journey follows scrolling forward and backward with reduced motion', async ({ page }) => {
+test('journey remains scroll-driven when the OS requests reduced motion', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await visit(page);
   const cards = page.locator('.beyond-card');
@@ -371,38 +372,36 @@ test('journey follows scrolling forward and backward with reduced motion', async
   }
 });
 
-test('reduced-motion certificates use an accessible native carousel', async ({ page }) => {
+test('OS reduced-motion preference does not disable desktop certificate motion', async ({ page }, testInfo) => {
+  if (testInfo.project.name !== 'desktop') test.skip();
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await visit(page);
-  await expect(page.locator('.certificate-wheel-scene')).toHaveCount(0);
-  const cards = page.locator('.certificate-native-card');
-  await expect(cards).toHaveCount(11);
-  await expect(page.locator('.certificate-native-track')).toHaveCSS('overflow-x', 'auto');
-  const finalDot = page.locator('.certificate-native-dot').nth(10);
-  await finalDot.click();
-  await expect(cards.nth(10)).toHaveAttribute('aria-pressed', 'true');
-  await expect.poll(() => page.evaluate(() => Math.max(document.body.scrollWidth, document.documentElement.scrollWidth) - innerWidth)).toBeLessThanOrEqual(1);
+  await expect(page.locator('.certificate-wheel-scene')).toHaveCount(1);
+  await expect(page.locator('.certificate-native-track')).toHaveCount(0);
 });
 
-test('resizing and orientation changes switch between pinned and native scenes safely', async ({ page }, testInfo) => {
+test('resizing keeps project and certificate scenes scroll-driven on touch-sized layouts', async ({ page }, testInfo) => {
   if (testInfo.project.name !== 'desktop') test.skip();
   await visit(page);
   const projects = page.locator('#projects');
+  const wheelScene = page.locator('.certificate-wheel-scene');
   await expect(projects).toHaveClass(/is-horizontal/);
-  await expect(page.locator('.certificate-wheel-scene')).toHaveCount(1);
+  await expect(wheelScene).toBeVisible();
 
   await page.setViewportSize({ width: 390, height: 844 });
-  await expect(projects).not.toHaveClass(/is-horizontal/);
-  await expect(page.locator('.certificate-native-track')).toBeVisible();
+  await expect(projects).toHaveClass(/is-horizontal/);
+  await expect(wheelScene).toBeVisible();
+  await expect(page.locator('.certificate-native-track')).toHaveCount(0);
 
   await page.setViewportSize({ width: 844, height: 390 });
-  await expect(projects).not.toHaveClass(/is-horizontal/);
-  await expect(page.locator('.certificate-native-track')).toBeVisible();
+  await expect(projects).toHaveClass(/is-horizontal/);
+  await expect(wheelScene).toBeVisible();
+  await expect(page.locator('.certificate-native-track')).toHaveCount(0);
   expect(await page.evaluate(() => Math.max(document.body.scrollWidth, document.documentElement.scrollWidth) <= innerWidth + 1)).toBe(true);
 
   await page.setViewportSize({ width: 1366, height: 768 });
   await expect(projects).toHaveClass(/is-horizontal/);
-  await expect(page.locator('.certificate-wheel-scene')).toHaveCount(1);
+  await expect(wheelScene).toBeVisible();
   expect(await page.evaluate(() => Math.max(document.body.scrollWidth, document.documentElement.scrollWidth) <= innerWidth + 1)).toBe(true);
 });
 test('aria-hidden regions contain no keyboard-focusable controls', async ({ page }) => {

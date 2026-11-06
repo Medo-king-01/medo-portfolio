@@ -79,8 +79,7 @@ function App() {
 
     const fontsReady = document.fonts?.ready?.catch(() => undefined) || Promise.resolve();
     const heroVideo = document.querySelector('#home video');
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const shouldWaitForVideo = heroVideo && heroVideo.preload !== 'none' && !reducedMotion;
+    const shouldWaitForVideo = heroVideo && heroVideo.preload !== 'none';
     const mediaReady = !shouldWaitForVideo || heroVideo.readyState >= 1
       ? Promise.resolve()
       : new Promise((resolve) => {

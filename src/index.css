@@ -116,24 +116,6 @@ button:hover > svg {
   transform: scale(1.2) rotate(8deg);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto !important;
-  }
-
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    animation-delay: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-    transition-delay: 0.01ms !important;
-  }
-
-}
-
 /* Dark mode surface & card adjustments */
 html.dark body {
   background-color: var(--color-5);
@@ -243,6 +225,33 @@ a, button {
   --project-pointer-y: 50%;
 }
 
+.project-gallery-title {
+  min-height: 1.25em;
+}
+
+.project-gallery-description {
+  min-height: 4.875em;
+}
+
+html[dir="rtl"] .project-gallery-description {
+  min-height: 5.85em;
+}
+
+.project-gallery-tags {
+  min-height: 1.5rem;
+  align-content: flex-start;
+}
+
+@media (max-width: 639px) {
+  .project-gallery-title {
+    min-height: 2.5em;
+  }
+
+  .project-gallery-tags {
+    min-height: 3rem;
+  }
+}
+
 @media (hover: hover) and (pointer: fine) {
   .project-gallery-card:hover {
     transform: perspective(1100px) rotateX(var(--project-tilt-x)) rotateY(var(--project-tilt-y));
@@ -252,7 +261,20 @@ a, button {
 @media (pointer: coarse) {
   .project-gallery-card {
     transform: none;
-    transition: box-shadow 180ms ease, border-color 180ms ease;
+    transition:
+      transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 240ms ease,
+      border-color 240ms ease;
+  }
+
+  .project-gallery-card.is-active {
+    transform: translateY(-0.35rem);
+    border-color: color-mix(in srgb, var(--color-2) 70%, var(--color-3));
+    box-shadow: 0 1.5rem 3.5rem rgba(27, 23, 22, 0.17);
+  }
+
+  .project-gallery-card:active {
+    transform: translateY(-0.1rem) scale(0.975);
   }
 
   .project-gallery-card .project-gallery-glow {
@@ -262,13 +284,6 @@ a, button {
   .project-gallery-card .project-gallery-media img,
   .project-gallery-card:hover .project-gallery-media img {
     transform: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .project-gallery-card {
-    transform: none !important;
-    transition: none !important;
   }
 }
 
@@ -368,16 +383,14 @@ a, button {
   transform-style: flat;
 }
 
-@media (max-width: 640px) {
-  #projects.is-horizontal .projects-shell {
-    width: max(calc(100% - 6.5rem), 73.333vw);
-  }
-}
-
 @media (max-width: 1023px) {
+  #projects.is-horizontal .projects-shell {
+    width: 100%;
+  }
+
   #projects.is-horizontal .projects-track {
     overflow: visible;
-    padding-inline: 0;
+    padding-inline: max(0px, calc((100vw - min(86vw, 30rem)) / 2));
     margin-inline: 0;
     scroll-snap-type: none;
   }
@@ -399,33 +412,26 @@ a, button {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  #projects.is-horizontal .projects-stage {
-    display: block;
-    height: auto;
-    overflow: visible;
-    padding-top: 0;
+@media (max-width: 1023px) and (pointer: coarse) {
+  #projects.is-horizontal .project-gallery-card.is-active {
+    transform: translateY(-0.3rem);
   }
+}
 
-  #projects.is-horizontal .projects-shell {
-    width: min(100%, 80rem);
-    overflow: visible;
-  }
-
-  #projects.is-horizontal .projects-track {
-    width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x mandatory;
-    will-change: auto;
-    transform: none !important;
-  }
-
+@media (max-width: 1023px) and (max-height: 680px) {
   #projects.is-horizontal .project-track-card {
-    flex: 0 0 min(84vw, 30rem);
-    width: min(84vw, 30rem);
-    scroll-snap-align: center;
-    scroll-snap-stop: always;
+    height: min(76svh, 30rem);
+  }
+
+  #projects.is-horizontal .project-gallery-media {
+    height: 42%;
+    flex: 0 0 42%;
+    aspect-ratio: auto;
+  }
+
+  #projects.is-horizontal .project-gallery-card > div:last-child {
+    gap: 0.75rem;
+    padding: 1rem;
   }
 }
 
@@ -470,29 +476,6 @@ a, button {
 @keyframes heroCaretBlink {
   0%, 45% { opacity: 1; }
   55%, 100% { opacity: 0; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-typewriter-caret {
-    animation: none;
-  }
-
-  .about-card-physics {
-    cursor: default;
-    transition: none;
-  }
-
-  .about-card-string {
-    transition: none;
-  }
-
-  a:hover,
-  button:hover,
-  a:hover > svg,
-  button:hover > svg,
-  .group:hover [class*="group-hover:"] {
-    transform: none !important;
-  }
 }
 
 .beyond-code-section {
@@ -734,9 +717,6 @@ html[dir="rtl"] .beyond-progress-label {
   letter-spacing: 0.03em;
 }
 
-.beyond-code-reduced { padding-bottom: 0; }
-.beyond-code-reduced .beyond-card { transition: none; }
-
 @media (max-width: 900px) {
   .beyond-code-section { padding-inline: 1.25rem; }
   .beyond-stack-stage { height: 260vh; }
@@ -787,11 +767,6 @@ html[dir="rtl"] .beyond-progress-label {
   .beyond-card-stack { height: min(66svh, 18rem); }
   .beyond-card-body { padding-top: 2rem; }
   .beyond-card-copy p { font-size: 0.72rem; line-height: 1.4; }
-  .beyond-scroll-cue { display: none; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .beyond-card { transition: none; }
   .beyond-scroll-cue { display: none; }
 }
 
@@ -1091,10 +1066,10 @@ html.dark .certificate-wheel-card {
   .certificate-wheel-scene {
     --certificate-wheel-width: clamp(138px, 39vw, 168px);
     --certificate-wheel-radius: clamp(185px, 58vw, 235px);
-    height: min(54svh, 295px);
+    height: min(54svh, 320px);
     perspective: 1050px;
   }
-  .certificate-wheel { height: 248px; }
+  .certificate-wheel { height: 245px; }
   .certificate-wheel-image { height: 104px; }
   .certificate-wheel-copy { gap: 0.2rem; padding: 0.55rem 0.7rem; }
   .certificate-wheel-copy span { font-size: 0.6rem; }
@@ -1107,13 +1082,22 @@ html.dark .certificate-wheel-card {
   .certificate-wheel-hint { top: 3.8rem; }
   .certificate-wheel-hint p + p,
   .certificate-wheel-footer > div:first-child { display: none; }
-  .certificate-wheel-scene { height: min(43svh, 175px); }
-  .certificate-wheel { height: 205px; }
+  .certificate-wheel-scene { height: min(66svh, 270px); }
+  .certificate-wheel { height: 200px; }
   .certificate-wheel-image { height: 82px; }
   .certificate-wheel-footer { bottom: 0.15rem; }
 }
 
-/* Native-snap certificate browsing for touch, tablet, short, and reduced-motion modes. */
+@media (max-height: 680px) {
+  .certificate-wheel-scene {
+    --certificate-wheel-radius: clamp(160px, 28vw, 220px);
+    height: min(68svh, 300px);
+    perspective: 1050px;
+  }
+  .certificate-wheel { height: min(48svh, 220px); }
+}
+
+/* Native-snap certificate browsing keeps touch interaction direct while the cards stay animated. */
 .certificate-native-view {
   width: min(100%, 72rem);
   margin: 2rem auto 0;
@@ -1161,8 +1145,10 @@ html[dir="rtl"] .certificate-native-hint p:first-child {
   background: color-mix(in srgb, var(--color-5) 86%, white);
   box-shadow: 0 0.5rem 1.5rem rgb(27 23 22 / 0.08);
   cursor: pointer;
-  transition: color 180ms ease, border-color 180ms ease, background-color 180ms ease;
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), color 180ms ease, border-color 180ms ease, background-color 180ms ease;
 }
+
+.certificate-native-arrow:active { transform: scale(0.88); }
 
 .certificate-native-arrow:hover {
   border-color: var(--color-2);
@@ -1220,17 +1206,25 @@ html[dir="rtl"] .certificate-native-hint p:first-child {
   border-radius: 1.25rem;
   opacity: 1;
   text-align: start;
-  transform: none;
+  transform: translateY(0) scale(0.97);
   filter: none;
   backface-visibility: visible;
   scroll-snap-align: center;
   scroll-snap-stop: always;
-  transition: border-color 180ms ease, box-shadow 180ms ease;
+  transition:
+    transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 240ms ease,
+    box-shadow 300ms ease;
 }
 
 .certificate-wheel-card.certificate-native-card.is-active {
   border-color: var(--color-7);
   box-shadow: 0 0 0 2px var(--color-7), 0 1.5rem 3rem rgb(228 42 42 / 0.16);
+  transform: translateY(-0.35rem) scale(1.02);
+}
+
+.certificate-wheel-card.certificate-native-card:active {
+  transform: translateY(-0.1rem) scale(0.975);
 }
 
 .certificate-native-card .certificate-wheel-image {
@@ -1267,7 +1261,10 @@ html[dir="rtl"] .certificate-native-hint p:first-child {
   place-items: center;
   border-radius: 50%;
   cursor: pointer;
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
 }
+
+.certificate-native-dot:active { transform: scale(0.82); }
 
 .certificate-native-dot::after {
   width: 0.42rem;
@@ -1283,14 +1280,231 @@ html[dir="rtl"] .certificate-native-hint p:first-child {
   background: var(--color-7);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .certificate-native-track {
-    scroll-behavior: auto;
-  }
+/* The blueprint grid itself drifts diagonally, with a seamless tile-length loop. */
+.section-flow:not(.hero-surface) {
+  --section-grid-size: 72px;
+  --section-grid-ink: color-mix(in srgb, var(--color-2) 5%, transparent);
+  background-image:
+    linear-gradient(90deg, var(--section-grid-ink) 1px, transparent 1px),
+    linear-gradient(0deg, var(--section-grid-ink) 1px, transparent 1px);
+  background-size: var(--section-grid-size) var(--section-grid-size);
+  background-position: 0 0, 0 0;
+  animation: blueprint-grid-drift 8s linear infinite;
+}
 
-  .certificate-native-arrow,
-  .certificate-wheel-card.certificate-native-card,
-  .certificate-native-dot::after {
-    transition: none;
+.section-flow:nth-of-type(3n + 1):not(.hero-surface) {
+  animation-delay: -2.67s;
+}
+
+.section-flow:nth-of-type(3n + 2):not(.hero-surface) {
+  animation-delay: -5.33s;
+}
+
+@keyframes blueprint-grid-drift {
+  to {
+    background-position: var(--section-grid-size) var(--section-grid-size), var(--section-grid-size) var(--section-grid-size);
   }
 }
+
+.hero-grid-backdrop {
+  --hero-grid-size: 72px;
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hero-grid-plane {
+  position: absolute;
+  inset: -72px;
+  background-image:
+    radial-gradient(circle, color-mix(in srgb, var(--color-7) 32%, transparent) 0 1.15px, transparent 1.7px),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-2) 12%, transparent) 1px, transparent 1px),
+    linear-gradient(0deg, color-mix(in srgb, var(--color-2) 12%, transparent) 1px, transparent 1px);
+  background-size: var(--hero-grid-size) var(--hero-grid-size);
+  opacity: 0.48;
+  transform: translate3d(0, 0, 0);
+  animation: hero-grid-drift 52s linear infinite;
+  -webkit-mask-image: radial-gradient(ellipse 88% 82% at 52% 46%, #000 12%, rgb(0 0 0 / 0.72) 62%, transparent 100%);
+  mask-image: radial-gradient(ellipse 88% 82% at 52% 46%, #000 12%, rgb(0 0 0 / 0.72) 62%, transparent 100%);
+  will-change: transform;
+}
+
+.hero-grid-sweep {
+  position: absolute;
+  top: -18%;
+  bottom: -18%;
+  left: -42%;
+  width: 40%;
+  background: linear-gradient(
+    110deg,
+    transparent 5%,
+    color-mix(in srgb, var(--color-7) 4%, transparent) 38%,
+    color-mix(in srgb, var(--color-7) 11%, transparent) 51%,
+    transparent 82%
+  );
+  opacity: 0;
+  transform: translate3d(-120%, 0, 0) skewX(-14deg);
+  animation: hero-grid-sweep 24s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.hero-grid-node {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border: 1px solid color-mix(in srgb, var(--color-7) 76%, white);
+  border-radius: 50%;
+  background: var(--color-7);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-7) 9%, transparent), 0 0 14px color-mix(in srgb, var(--color-7) 36%, transparent);
+  opacity: 0.5;
+  will-change: transform, opacity;
+}
+
+.hero-grid-node-one {
+  top: 33%;
+  inset-inline-start: 26%;
+}
+
+.hero-grid-node-two {
+  right: 23%;
+  bottom: 27%;
+}
+
+@keyframes hero-grid-drift {
+  to { transform: translate3d(var(--hero-grid-size), var(--hero-grid-size), 0); }
+}
+
+@keyframes hero-grid-sweep {
+  0%, 22% { opacity: 0; transform: translate3d(-120%, 0, 0) skewX(-14deg); }
+  34% { opacity: 0.28; }
+  67% { opacity: 0.18; transform: translate3d(340%, 0, 0) skewX(-14deg); }
+  78%, 100% { opacity: 0; transform: translate3d(340%, 0, 0) skewX(-14deg); }
+}
+
+@media (max-width: 640px) {
+  .hero-grid-backdrop { --hero-grid-size: 56px; }
+  .hero-grid-plane { inset: -56px; opacity: 0.48; }
+  .hero-grid-sweep { width: 48%; }
+  .hero-grid-node { width: 4px; height: 4px; }
+}
+
+/* A red orbital blueprint keeps the Hero's grid identity while framing its laptop. */
+.hero-orbit-graphic,
+.hero-orbit-stage {
+  position: absolute;
+  top: 13%;
+  inset-inline-end: 2%;
+  width: clamp(18rem, 31vw, 29rem);
+  aspect-ratio: 1;
+  pointer-events: none;
+}
+
+.hero-orbit-graphic {
+  z-index: 1;
+  opacity: 0.42;
+  perspective: 900px;
+  transform-style: preserve-3d;
+}
+
+.hero-orbit-ring {
+  position: absolute;
+  display: block;
+  border: 1px solid color-mix(in srgb, var(--color-7) 62%, transparent);
+  border-radius: 50%;
+  transform-style: preserve-3d;
+}
+
+.hero-orbit-ring-one {
+  inset: 9%;
+  animation: hero-orbit-one 31s linear infinite;
+}
+
+.hero-orbit-ring-two {
+  inset: 23%;
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--color-2) 58%, transparent);
+  animation: hero-orbit-two 23s linear infinite reverse;
+}
+
+.hero-orbit-ring i {
+  position: absolute;
+  top: 50%;
+  left: -0.22rem;
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 50%;
+  background: var(--color-7);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color-7) 75%, transparent);
+}
+
+.hero-orbit-ring-two i {
+  top: -0.16rem;
+  left: 50%;
+  width: 0.3rem;
+  height: 0.3rem;
+  background: var(--color-2);
+}
+
+.hero-orbit-core {
+  position: absolute;
+  top: 43%;
+  left: 43%;
+  width: 14%;
+  aspect-ratio: 1;
+  border: 1px solid color-mix(in srgb, var(--color-7) 54%, transparent);
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-7) 25%, transparent), transparent 72%);
+  box-shadow: 0 0 34px color-mix(in srgb, var(--color-7) 16%, transparent);
+  animation: hero-orbit-breathe 4.6s ease-in-out infinite alternate;
+}
+
+.hero-orbit-stage {
+  z-index: 2;
+  opacity: 0.48;
+}
+
+.hero-orbit-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes hero-orbit-one {
+  from { transform: rotateX(68deg) rotateZ(-18deg); }
+  to { transform: rotateX(68deg) rotateZ(342deg); }
+}
+
+@keyframes hero-orbit-two {
+  from { transform: rotateX(64deg) rotateY(48deg) rotateZ(24deg); }
+  to { transform: rotateX(64deg) rotateY(48deg) rotateZ(384deg); }
+}
+
+@keyframes hero-orbit-breathe {
+  from { opacity: 0.45; transform: scale(0.78); }
+  to { opacity: 0.9; transform: scale(1.08); }
+}
+
+@media (max-width: 1023px) {
+  .hero-orbit-graphic,
+  .hero-orbit-stage {
+    top: 42%;
+    inset-inline-end: -5%;
+    width: min(64vw, 21rem);
+  }
+
+  .hero-orbit-graphic { opacity: 0.42; }
+  .hero-orbit-stage { opacity: 0.48; }
+}
+
+@media (max-width: 640px) {
+  .hero-orbit-graphic {
+    top: 41%;
+    inset-inline-end: -7%;
+    width: min(72vw, 18rem);
+    opacity: 0.42;
+  }
+}
+
+.hero-orbit-graphic-with-3d { opacity: 0.16; }

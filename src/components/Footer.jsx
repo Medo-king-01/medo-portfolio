@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { getMotionProfile, motionConfig } from '../motion/motionConfig.js';
 import { getRevealVariants } from '../motion/motionVariants.js';
-import { useMotionEnvironment } from '../motion/useReducedMotionPreference.js';
+import { useMotionEnvironment } from '../motion/useMotionEnvironment.js';
 import { siGithub, siInstagram, siFacebook, siTiktok } from 'simple-icons';
 import { GithubIcon } from './icons/github-icon';
 import { InstagramIcon } from './icons/instagram-icon';
@@ -13,8 +13,8 @@ import { useLanguage } from '../context/LanguageContext.jsx';
 
 const Footer = () => {
   const { t, langConfig } = useLanguage();
-  const { reducedMotion, isMobile, isTablet, isShortViewport, hasFinePointer } = useMotionEnvironment();
-  const profile = getMotionProfile({ isMobile, isTablet, isShortViewport, hasFinePointer, reducedMotion });
+  const { isMobile, isTablet, isShortViewport, hasFinePointer } = useMotionEnvironment();
+  const profile = getMotionProfile({ isMobile, isTablet, isShortViewport, hasFinePointer });
   const brandName = siteConfig.brand.name;
   const contactEmail = personalInfo?.emails?.primary;
 
@@ -29,7 +29,7 @@ const Footer = () => {
   const handleBackToTop = () => {
     window.scrollTo({
       top: 0,
-      behavior: reducedMotion ? 'auto' : 'smooth',
+      behavior: 'smooth',
     });
   };
 
@@ -37,10 +37,10 @@ const Footer = () => {
     <motion.footer
       id="footer"
       data-experience-section
-      initial={reducedMotion ? false : 'hidden'}
+      initial="hidden"
       whileInView="visible"
       viewport={motionConfig.viewport}
-      variants={getRevealVariants({ reducedMotion, distance: profile.revealDistance })}
+      variants={getRevealVariants({ distance: profile.revealDistance })}
       className="section-flow relative w-full overflow-hidden border-t border-[var(--color-3)] bg-[var(--color-6)] px-5 py-8 font-sans text-[var(--color-4)] sm:px-8 lg:px-12"
       dir={langConfig.dir}
     >
