@@ -1,5 +1,6 @@
 import { siteConfig } from './config/site.config';
 import { translations } from './data/translations';
+import ScrollProgress from './components/ScrollProgress';
 import Preloader from './components/Preloader';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -68,6 +69,7 @@ function App() {
 
   return (
     <>
+      <ScrollProgress />
       {activeSections.map(([key]) => {
         const Component = SECTION_COMPONENTS[key];
         return Component ? <Component key={key} /> : null;

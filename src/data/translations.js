@@ -34,6 +34,11 @@ export const translations = {
       certificatesCount: 'certificates',
       view: 'View certificate (PDF)',
       verify: 'Verify online',
+      all: 'All',
+      gridView: 'Grid View',
+      wheelView: '3D Wheel',
+      prev: 'Previous',
+      next: 'Next',
     },
 
     // Preloader
@@ -367,6 +372,11 @@ The goal is not to escape the world; I have the freedom to choose my place in it
       certificatesCount: 'شهادات',
       view: 'عرض الشهادة (PDF)',
       verify: 'التحقق من الشهادة',
+      all: 'الكل',
+      gridView: 'عرض البطاقات',
+      wheelView: 'العجلة ثلاثية الأبعاد',
+      prev: 'السابق',
+      next: 'التالي',
     },
 
     // Preloader

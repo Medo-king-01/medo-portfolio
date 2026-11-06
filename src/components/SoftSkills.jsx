@@ -21,7 +21,7 @@ const SkillIcon = ({ type }) => {
   };
 
   return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8">
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8 transition-transform duration-300 group-hover:scale-115 group-hover:rotate-6">
       <path d={paths[type] || paths.communication} />
     </svg>
   );

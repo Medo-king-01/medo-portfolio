@@ -1,5 +1,9 @@
 import { useState } from 'react';
 import { siGithub, siInstagram, siFacebook, siTiktok } from 'simple-icons';
+import { GithubIcon } from './icons/github-icon';
+import { InstagramIcon } from './icons/instagram-icon';
+import { FacebookIcon } from './icons/facebook-icon';
+import { GmailIcon } from './icons/gmail-icon';
 import { personalInfo, socialLinks } from '../data/portfolioData';
 import { siteConfig } from '../config/site.config';
 import { useLanguage } from '../context/LanguageContext.jsx';
@@ -26,6 +30,7 @@ const Contact = () => {
       handle: '@Medo-king-01',
       href: socialLinks.github,
       icon: siGithub,
+      Component: GithubIcon,
     },
     socialLinks?.instagram && {
       key: 'instagram',
@@ -33,6 +38,7 @@ const Contact = () => {
       handle: '@kodomedo',
       href: socialLinks.instagram,
       icon: siInstagram,
+      Component: InstagramIcon,
     },
     socialLinks?.facebook && {
       key: 'facebook',
@@ -40,6 +46,7 @@ const Contact = () => {
       handle: 'Medo',
       href: socialLinks.facebook,
       icon: siFacebook,
+      Component: FacebookIcon,
     },
     socialLinks?.tiktok && {
       key: 'tiktok',
@@ -47,6 +54,7 @@ const Contact = () => {
       handle: '@kodomedo',
       href: socialLinks.tiktok,
       icon: siTiktok,
+      Component: null,
     },
   ].filter(Boolean);
 
@@ -175,10 +183,14 @@ const Contact = () => {
                     className="group flex items-center justify-between gap-3 rounded-2xl border border-[var(--color-3)] bg-white/85 px-4 py-3.5 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-[var(--color-2)]/45 hover:bg-white hover:shadow-[0_14px_30px_rgba(27,23,22,0.09)]"
                   >
                     <div className="flex items-center gap-3">
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--color-6)] text-[var(--color-4)] transition-colors duration-300 group-hover:bg-[var(--color-2)] group-hover:text-[var(--color-5)]">
-                        <svg viewBox="0 0 24 24" className="h-4.5 w-4.5" fill="currentColor" aria-hidden="true">
-                          <path d={platform.icon.path} />
-                        </svg>
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--color-6)] text-[var(--color-4)] shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 group-hover:bg-[var(--color-2)] group-hover:text-[var(--color-5)]">
+                        {platform.Component ? (
+                          <platform.Component size={20} strokeWidth={2} className="h-5 w-5" />
+                        ) : (
+                          <svg viewBox="0 0 24 24" className="h-4.5 w-4.5 transition-transform duration-300 group-hover:scale-120" fill="currentColor" aria-hidden="true">
+                            <path d={platform.icon.path} />
+                          </svg>
+                        )}
                       </span>
                       <div className="flex flex-col text-start" dir="ltr">
                         <span className="text-sm font-black leading-tight text-[var(--color-4)]">
@@ -192,7 +204,7 @@ const Contact = () => {
 
                     <span
                       aria-hidden="true"
-                      className="text-sm font-bold text-[var(--color-1)] transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[var(--color-2)]"
+                      className="text-sm font-bold text-[var(--color-1)] transition-transform duration-300 group-hover:-translate-y-1 group-hover:translate-x-1 group-hover:scale-125 group-hover:text-[var(--color-2)]"
                     >
                       &#8599;
                     </span>
@@ -206,12 +218,9 @@ const Contact = () => {
               <a
                 href={`mailto:${contactEmail}`}
                 dir="ltr"
-                className="inline-flex items-center gap-2.5 rounded-full border border-[var(--color-3)] bg-white/85 px-4 py-2 text-xs font-bold text-[var(--color-4)]/80 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--color-2)]/45 hover:text-[var(--color-2)]"
+                className="group inline-flex items-center gap-2.5 rounded-full border border-[var(--color-3)] bg-white/85 px-4 py-2 text-xs font-bold text-[var(--color-4)]/80 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--color-2)]/45 hover:text-[var(--color-2)]"
               >
-                <svg viewBox="0 0 24 24" className="h-4 w-4 text-[var(--color-2)]" fill="none" stroke="currentColor" strokeWidth="1.8">
-                  <rect x="3" y="5" width="18" height="14" rx="2" />
-                  <path d="m3 7 9 6 9-6" />
-                </svg>
+                <GmailIcon size={16} strokeWidth={2} className="text-[var(--color-2)] shrink-0" />
                 <span>{contactEmail}</span>
               </a>
             </div>

@@ -1,0 +1,8 @@
+{
+  "name": "MEDO — Business Information Systems Portfolio",
+  "description": "Mohamed Elsayed Abu Jumaa (Medo), a Business Information Systems student at the Higher Institute of Management and Computer Science, Ras El Bar. Self-directed learner building practical projects with AI-assisted development.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

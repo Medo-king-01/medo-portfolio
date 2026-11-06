@@ -2,6 +2,9 @@ import { useRef, useEffect, useState, useMemo } from 'react';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import { siGithub, siInstagram, siFacebook, siTiktok } from 'simple-icons';
+import { GithubIcon } from './icons/github-icon';
+import { InstagramIcon } from './icons/instagram-icon';
+import { FacebookIcon } from './icons/facebook-icon';
 import { heroContent, socialLinks } from '../data/portfolioData';
 import { siteConfig } from '../config/site.config';
 import { useLanguage } from '../context/LanguageContext.jsx';
@@ -33,10 +36,10 @@ const Hero = () => {
   }, [t]);
 
   const heroSocials = [
-    socialLinks.github && { label: 'GitHub', href: socialLinks.github, icon: siGithub },
-    socialLinks.instagram && { label: 'Instagram (@kodomedo)', href: socialLinks.instagram, icon: siInstagram },
-    socialLinks.facebook && { label: 'Facebook', href: socialLinks.facebook, icon: siFacebook },
-    socialLinks.tiktok && { label: 'TikTok (@kodomedo)', href: socialLinks.tiktok, icon: siTiktok },
+    socialLinks.github && { label: 'GitHub', href: socialLinks.github, icon: siGithub, Component: GithubIcon },
+    socialLinks.instagram && { label: 'Instagram (@kodomedo)', href: socialLinks.instagram, icon: siInstagram, Component: InstagramIcon },
+    socialLinks.facebook && { label: 'Facebook', href: socialLinks.facebook, icon: siFacebook, Component: FacebookIcon },
+    socialLinks.tiktok && { label: 'TikTok (@kodomedo)', href: socialLinks.tiktok, icon: siTiktok, Component: null },
   ].filter(Boolean);
 
   const resumeHref = t('hero.ctaResume.href') && t('hero.ctaResume.href') !== 'hero.ctaResume.href'
@@ -532,6 +535,21 @@ const Hero = () => {
         "
       >
         <div className="flex w-full max-w-2xl flex-col items-start text-start">
+          {/* LIVE AVAILABILITY BADGE */}
+          <div
+            data-aos="fade-down"
+            data-aos-delay="100"
+            className="mb-5 inline-flex items-center gap-2.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 shadow-[0_2px_12px_rgba(16,185,129,0.12)] backdrop-blur-md transition-all duration-300 hover:scale-[1.02] hover:bg-emerald-500/15"
+          >
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+            </span>
+            <span className="text-xs font-bold tracking-wide text-emerald-800 dark:text-emerald-300">
+              {language === 'ar' ? 'متاح للتدريب / العمل الحر' : 'Open for Projects & Internships'}
+            </span>
+          </div>
+
           {/* MAIN HEADING */}
           <h1
             data-aos="fade-up"
@@ -660,6 +678,7 @@ const Hero = () => {
                   setResumeOpen(true);
                 }}
                 className="
+                  group
                   inline-flex
                   h-12
                   w-full
@@ -684,7 +703,7 @@ const Hero = () => {
                   sm:min-w-[175px]
                 "
               >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="h-4 w-4 transition-transform duration-300 group-hover:translate-y-0.5 group-hover:scale-115" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -702,7 +721,7 @@ const Hero = () => {
             className="mt-6 flex w-full items-center justify-center gap-3 sm:justify-start"
             aria-label="Social links"
           >
-            {heroSocials.map(({ label, href, icon }) => (
+            {heroSocials.map(({ label, href, icon, Component }) => (
               <a
                 key={label}
                 href={href || undefined}
@@ -713,6 +732,7 @@ const Hero = () => {
                 aria-disabled={!href}
                 tabIndex={href ? 0 : -1}
                 className="
+                  group
                   flex
                   h-11
                   w-11
@@ -726,17 +746,23 @@ const Hero = () => {
                   shadow-sm
                   transition-all
                   duration-300
-                  hover:-translate-y-1
-                  hover:scale-105
+                  hover:-translate-y-1.5
+                  hover:scale-110
                   hover:border-[var(--color-2)]
                   hover:bg-[var(--color-2)]
                   hover:text-[var(--color-5)]
                   hover:shadow-md
+                  dark:border-white/10
+                  dark:bg-[var(--color-6)]
                 "
               >
-                <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
-                  <path d={icon.path} />
-                </svg>
+                {Component ? (
+                  <Component size={20} strokeWidth={2} className="h-5 w-5" />
+                ) : (
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5 transition-transform duration-300 group-hover:scale-125 group-hover:-rotate-12">
+                    <path d={icon.path} />
+                  </svg>
+                )}
               </a>
             ))}
           </div>

@@ -3,20 +3,20 @@ import { useLanguage } from '../context/LanguageContext.jsx';
 const InterestIcon = ({ name }) => {
   const icons = {
     drawing: (
-      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12">
         <path d="M12 3l2 7 7 2-2 7-7 2-7-2 2-7 7-2-7-2z" />
         <circle cx="12" cy="12" r="3" />
       </svg>
     ),
     swimming: (
-      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6 transition-transform duration-300 group-hover:scale-125 group-hover:-rotate-6">
         <path d="M5 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
         <path d="M8 14s2-3 5-3 5 3 5 3" />
         <path d="M10 17s2-2 4-2 4 2 4 2" />
       </svg>
     ),
     design: (
-      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6">
         <rect x="3" y="3" width="18" height="18" rx="2" />
         <path d="M3 9h18" />
         <path d="M9 3v18" />
@@ -24,7 +24,7 @@ const InterestIcon = ({ name }) => {
       </svg>
     ),
     anime: (
-      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6 transition-transform duration-300 group-hover:scale-125 group-hover:-rotate-12">
         <circle cx="12" cy="12" r="10" />
         <path d="M8 14s1.5 2 4 2 4-2 4-2" />
         <line x1="9" y1="9" x2="9.01" y2="9" />
@@ -32,7 +32,7 @@ const InterestIcon = ({ name }) => {
       </svg>
     ),
     film: (
-      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12">
         <rect x="2" y="2" width="20" height="20" rx="2" />
         <path d="M2 8h20" />
         <path d="M8 2v20" />

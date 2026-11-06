@@ -11,7 +11,7 @@ const ProcessIcon = ({ type }) => {
   };
 
   return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="h-7 w-7">
+    <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="h-7 w-7 transition-transform duration-300 group-hover:scale-125 group-hover:rotate-6">
       <path d={paths[type] || paths.understand} />
     </svg>
   );
