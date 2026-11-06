@@ -8,7 +8,7 @@ export function getRevealVariants({
 } = {}) {
   return {
     hidden: {
-      opacity: 1,
+      opacity: 0,
       ...(axis ? { [axis]: distance } : {}),
       ...(depth ? { scale: 0.985 } : {}),
     },

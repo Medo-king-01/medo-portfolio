@@ -207,6 +207,7 @@ const Contact = () => {
                   <motion.a
                     variants={socialItemVariants}
                     whileHover={hasFinePointer ? { y: -4 } : undefined}
+                    whileTap={{ scale: 0.975 }}
                     key={platform.key}
                     href={platform.href}
                     target="_blank"

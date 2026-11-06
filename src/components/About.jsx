@@ -210,8 +210,8 @@ const About = () => {
   }, [updateVisual]);
 
   const handlePointerDown = (event) => {
-    if (event.pointerType === 'touch') return;
-    if (!frameRef.current || !canDragRef.current) return;
+    const supportsPointerDrag = canDragRef.current || event.pointerType === 'touch' || event.pointerType === 'pen';
+    if (!frameRef.current || !supportsPointerDrag) return;
 
     const physics = physicsRef.current;
     physics.dragging = true;
@@ -239,7 +239,7 @@ const About = () => {
       // Ignore.
     }
 
-    event.preventDefault();
+    if (event.pointerType !== 'touch') event.preventDefault();
     schedulePhysicsRef.current();
   };
 
@@ -272,7 +272,7 @@ const About = () => {
     physics.rotation = clamp(nextX * 0.032 + physics.velocityX * 0.018, -10, 10);
 
     updateVisual();
-    event.preventDefault();
+    if (event.pointerType !== 'touch') event.preventDefault();
   };
 
   const releaseCard = (event) => {
@@ -295,7 +295,7 @@ const About = () => {
     }
 
     physics.pointerId = null;
-    event.preventDefault();
+    if (event.pointerType !== 'touch') event.preventDefault();
     schedulePhysicsRef.current();
   };
 
@@ -310,7 +310,7 @@ const About = () => {
     physics.velocityY *= 0.12;
 
     frameRef.current?.classList.remove('about-card-grabbing');
-    event.preventDefault();
+    if (event.pointerType !== 'touch') event.preventDefault();
     schedulePhysicsRef.current();
   };
 

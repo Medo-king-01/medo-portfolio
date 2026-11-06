@@ -225,6 +225,33 @@ a, button {
   --project-pointer-y: 50%;
 }
 
+.project-gallery-title {
+  min-height: 1.25em;
+}
+
+.project-gallery-description {
+  min-height: 4.875em;
+}
+
+html[dir="rtl"] .project-gallery-description {
+  min-height: 5.85em;
+}
+
+.project-gallery-tags {
+  min-height: 1.5rem;
+  align-content: flex-start;
+}
+
+@media (max-width: 639px) {
+  .project-gallery-title {
+    min-height: 2.5em;
+  }
+
+  .project-gallery-tags {
+    min-height: 3rem;
+  }
+}
+
 @media (hover: hover) and (pointer: fine) {
   .project-gallery-card:hover {
     transform: perspective(1100px) rotateX(var(--project-tilt-x)) rotateY(var(--project-tilt-y));
@@ -234,7 +261,20 @@ a, button {
 @media (pointer: coarse) {
   .project-gallery-card {
     transform: none;
-    transition: box-shadow 180ms ease, border-color 180ms ease;
+    transition:
+      transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 240ms ease,
+      border-color 240ms ease;
+  }
+
+  .project-gallery-card.is-active {
+    transform: translateY(-0.35rem);
+    border-color: color-mix(in srgb, var(--color-2) 70%, var(--color-3));
+    box-shadow: 0 1.5rem 3.5rem rgba(27, 23, 22, 0.17);
+  }
+
+  .project-gallery-card:active {
+    transform: translateY(-0.1rem) scale(0.975);
   }
 
   .project-gallery-card .project-gallery-glow {
@@ -343,16 +383,14 @@ a, button {
   transform-style: flat;
 }
 
-@media (max-width: 640px) {
-  #projects.is-horizontal .projects-shell {
-    width: max(calc(100% - 6.5rem), 73.333vw);
-  }
-}
-
 @media (max-width: 1023px) {
+  #projects.is-horizontal .projects-shell {
+    width: 100%;
+  }
+
   #projects.is-horizontal .projects-track {
     overflow: visible;
-    padding-inline: 0;
+    padding-inline: max(0px, calc((100vw - min(86vw, 30rem)) / 2));
     margin-inline: 0;
     scroll-snap-type: none;
   }
@@ -371,6 +409,29 @@ a, button {
     height: auto;
     min-height: 0;
     aspect-ratio: 16 / 10;
+  }
+}
+
+@media (max-width: 1023px) and (pointer: coarse) {
+  #projects.is-horizontal .project-gallery-card.is-active {
+    transform: translateY(-0.3rem);
+  }
+}
+
+@media (max-width: 1023px) and (max-height: 680px) {
+  #projects.is-horizontal .project-track-card {
+    height: min(76svh, 30rem);
+  }
+
+  #projects.is-horizontal .project-gallery-media {
+    height: 42%;
+    flex: 0 0 42%;
+    aspect-ratio: auto;
+  }
+
+  #projects.is-horizontal .project-gallery-card > div:last-child {
+    gap: 0.75rem;
+    padding: 1rem;
   }
 }
 
@@ -1005,10 +1066,10 @@ html.dark .certificate-wheel-card {
   .certificate-wheel-scene {
     --certificate-wheel-width: clamp(138px, 39vw, 168px);
     --certificate-wheel-radius: clamp(185px, 58vw, 235px);
-    height: min(54svh, 295px);
+    height: min(54svh, 320px);
     perspective: 1050px;
   }
-  .certificate-wheel { height: 248px; }
+  .certificate-wheel { height: 245px; }
   .certificate-wheel-image { height: 104px; }
   .certificate-wheel-copy { gap: 0.2rem; padding: 0.55rem 0.7rem; }
   .certificate-wheel-copy span { font-size: 0.6rem; }
@@ -1021,13 +1082,22 @@ html.dark .certificate-wheel-card {
   .certificate-wheel-hint { top: 3.8rem; }
   .certificate-wheel-hint p + p,
   .certificate-wheel-footer > div:first-child { display: none; }
-  .certificate-wheel-scene { height: min(43svh, 175px); }
-  .certificate-wheel { height: 205px; }
+  .certificate-wheel-scene { height: min(66svh, 270px); }
+  .certificate-wheel { height: 200px; }
   .certificate-wheel-image { height: 82px; }
   .certificate-wheel-footer { bottom: 0.15rem; }
 }
 
-/* Native-snap certificate browsing for touch, tablet, short, and reduced-motion modes. */
+@media (max-height: 680px) {
+  .certificate-wheel-scene {
+    --certificate-wheel-radius: clamp(160px, 28vw, 220px);
+    height: min(68svh, 300px);
+    perspective: 1050px;
+  }
+  .certificate-wheel { height: min(48svh, 220px); }
+}
+
+/* Native-snap certificate browsing keeps touch interaction direct while the cards stay animated. */
 .certificate-native-view {
   width: min(100%, 72rem);
   margin: 2rem auto 0;
@@ -1075,8 +1145,10 @@ html[dir="rtl"] .certificate-native-hint p:first-child {
   background: color-mix(in srgb, var(--color-5) 86%, white);
   box-shadow: 0 0.5rem 1.5rem rgb(27 23 22 / 0.08);
   cursor: pointer;
-  transition: color 180ms ease, border-color 180ms ease, background-color 180ms ease;
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), color 180ms ease, border-color 180ms ease, background-color 180ms ease;
 }
+
+.certificate-native-arrow:active { transform: scale(0.88); }
 
 .certificate-native-arrow:hover {
   border-color: var(--color-2);
@@ -1134,17 +1206,25 @@ html[dir="rtl"] .certificate-native-hint p:first-child {
   border-radius: 1.25rem;
   opacity: 1;
   text-align: start;
-  transform: none;
+  transform: translateY(0) scale(0.97);
   filter: none;
   backface-visibility: visible;
   scroll-snap-align: center;
   scroll-snap-stop: always;
-  transition: border-color 180ms ease, box-shadow 180ms ease;
+  transition:
+    transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 240ms ease,
+    box-shadow 300ms ease;
 }
 
 .certificate-wheel-card.certificate-native-card.is-active {
   border-color: var(--color-7);
   box-shadow: 0 0 0 2px var(--color-7), 0 1.5rem 3rem rgb(228 42 42 / 0.16);
+  transform: translateY(-0.35rem) scale(1.02);
+}
+
+.certificate-wheel-card.certificate-native-card:active {
+  transform: translateY(-0.1rem) scale(0.975);
 }
 
 .certificate-native-card .certificate-wheel-image {
@@ -1181,7 +1261,10 @@ html[dir="rtl"] .certificate-native-hint p:first-child {
   place-items: center;
   border-radius: 50%;
   cursor: pointer;
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
 }
+
+.certificate-native-dot:active { transform: scale(0.82); }
 
 .certificate-native-dot::after {
   width: 0.42rem;
@@ -1197,13 +1280,30 @@ html[dir="rtl"] .certificate-native-hint p:first-child {
   background: var(--color-7);
 }
 
-/* A quiet blueprint texture links the major sections; the Hero carries the motion. */
+/* The blueprint grid itself drifts diagonally, with a seamless tile-length loop. */
 .section-flow:not(.hero-surface) {
-  --section-grid-ink: color-mix(in srgb, var(--color-2) 3%, transparent);
+  --section-grid-size: 72px;
+  --section-grid-ink: color-mix(in srgb, var(--color-2) 5%, transparent);
   background-image:
     linear-gradient(90deg, var(--section-grid-ink) 1px, transparent 1px),
     linear-gradient(0deg, var(--section-grid-ink) 1px, transparent 1px);
-  background-size: 84px 84px;
+  background-size: var(--section-grid-size) var(--section-grid-size);
+  background-position: 0 0, 0 0;
+  animation: blueprint-grid-drift 8s linear infinite;
+}
+
+.section-flow:nth-of-type(3n + 1):not(.hero-surface) {
+  animation-delay: -2.67s;
+}
+
+.section-flow:nth-of-type(3n + 2):not(.hero-surface) {
+  animation-delay: -5.33s;
+}
+
+@keyframes blueprint-grid-drift {
+  to {
+    background-position: var(--section-grid-size) var(--section-grid-size), var(--section-grid-size) var(--section-grid-size);
+  }
 }
 
 .hero-grid-backdrop {
@@ -1285,7 +1385,126 @@ html[dir="rtl"] .certificate-native-hint p:first-child {
 
 @media (max-width: 640px) {
   .hero-grid-backdrop { --hero-grid-size: 56px; }
-  .hero-grid-plane { inset: -56px; opacity: 0.34; }
+  .hero-grid-plane { inset: -56px; opacity: 0.48; }
   .hero-grid-sweep { width: 48%; }
   .hero-grid-node { width: 4px; height: 4px; }
 }
+
+/* A red orbital blueprint keeps the Hero's grid identity while framing its laptop. */
+.hero-orbit-graphic,
+.hero-orbit-stage {
+  position: absolute;
+  top: 13%;
+  inset-inline-end: 2%;
+  width: clamp(18rem, 31vw, 29rem);
+  aspect-ratio: 1;
+  pointer-events: none;
+}
+
+.hero-orbit-graphic {
+  z-index: 1;
+  opacity: 0.42;
+  perspective: 900px;
+  transform-style: preserve-3d;
+}
+
+.hero-orbit-ring {
+  position: absolute;
+  display: block;
+  border: 1px solid color-mix(in srgb, var(--color-7) 62%, transparent);
+  border-radius: 50%;
+  transform-style: preserve-3d;
+}
+
+.hero-orbit-ring-one {
+  inset: 9%;
+  animation: hero-orbit-one 31s linear infinite;
+}
+
+.hero-orbit-ring-two {
+  inset: 23%;
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--color-2) 58%, transparent);
+  animation: hero-orbit-two 23s linear infinite reverse;
+}
+
+.hero-orbit-ring i {
+  position: absolute;
+  top: 50%;
+  left: -0.22rem;
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 50%;
+  background: var(--color-7);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color-7) 75%, transparent);
+}
+
+.hero-orbit-ring-two i {
+  top: -0.16rem;
+  left: 50%;
+  width: 0.3rem;
+  height: 0.3rem;
+  background: var(--color-2);
+}
+
+.hero-orbit-core {
+  position: absolute;
+  top: 43%;
+  left: 43%;
+  width: 14%;
+  aspect-ratio: 1;
+  border: 1px solid color-mix(in srgb, var(--color-7) 54%, transparent);
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--color-7) 25%, transparent), transparent 72%);
+  box-shadow: 0 0 34px color-mix(in srgb, var(--color-7) 16%, transparent);
+  animation: hero-orbit-breathe 4.6s ease-in-out infinite alternate;
+}
+
+.hero-orbit-stage {
+  z-index: 2;
+  opacity: 0.48;
+}
+
+.hero-orbit-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes hero-orbit-one {
+  from { transform: rotateX(68deg) rotateZ(-18deg); }
+  to { transform: rotateX(68deg) rotateZ(342deg); }
+}
+
+@keyframes hero-orbit-two {
+  from { transform: rotateX(64deg) rotateY(48deg) rotateZ(24deg); }
+  to { transform: rotateX(64deg) rotateY(48deg) rotateZ(384deg); }
+}
+
+@keyframes hero-orbit-breathe {
+  from { opacity: 0.45; transform: scale(0.78); }
+  to { opacity: 0.9; transform: scale(1.08); }
+}
+
+@media (max-width: 1023px) {
+  .hero-orbit-graphic,
+  .hero-orbit-stage {
+    top: 42%;
+    inset-inline-end: -5%;
+    width: min(64vw, 21rem);
+  }
+
+  .hero-orbit-graphic { opacity: 0.42; }
+  .hero-orbit-stage { opacity: 0.48; }
+}
+
+@media (max-width: 640px) {
+  .hero-orbit-graphic {
+    top: 41%;
+    inset-inline-end: -7%;
+    width: min(72vw, 18rem);
+    opacity: 0.42;
+  }
+}
+
+.hero-orbit-graphic-with-3d { opacity: 0.16; }

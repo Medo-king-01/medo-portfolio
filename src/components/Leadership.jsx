@@ -15,13 +15,13 @@ const resolveLocalized = (field, language) => {
   return field || '';
 };
 
-const JourneyCard = ({ item, index, progress, activeIndex, isMobile, language, t }) => {
+const JourneyCard = ({ item, index, progress, activeIndex, language, t }) => {
   const transform = useTransform(progress, (value) => {
     const offset = index - value;
     const distance = Math.abs(offset);
-    const verticalStep = isMobile ? 72 : 108;
-    const scaleLoss = isMobile ? 0.035 : 0.045;
-    const rotation = clamp(offset * (isMobile ? 0.8 : 1.2), -3, 3);
+    const verticalStep = 108;
+    const scaleLoss = 0.045;
+    const rotation = clamp(offset * 1.2, -3, 3);
     const scale = 1 - Math.min(distance, 2) * scaleLoss;
     return `translate3d(-50%, calc(-50% + ${offset * verticalStep}px), 0) scale(${scale}) rotate(${rotation}deg)`;
   });
@@ -140,7 +140,6 @@ const Leadership = () => {
                   index={index}
                   progress={progress}
                   activeIndex={activeIndex}
-                  isMobile={isMobile}
                   language={language}
                   t={t}
                 />

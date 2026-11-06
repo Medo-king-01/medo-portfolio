@@ -31,6 +31,8 @@ const Hero = () => {
   const [videoMuted, setVideoMuted] = useState(true);
   const [resumeOpen, setResumeOpen] = useState(false);
   const [resumeAvailable, setResumeAvailable] = useState(null);
+  const [HeroOrbitScene, setHeroOrbitScene] = useState(null);
+  const [heroOrbitSceneReady, setHeroOrbitSceneReady] = useState(false);
   const heroRevealVariants = getRevealVariants({
     distance: motionProfile.revealDistance,
   });
@@ -89,6 +91,41 @@ const Hero = () => {
     });
 
     return () => pulse.revert();
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    let idleHandle;
+    let timeoutHandle;
+
+    const loadScene = () => {
+      const importScene = () => {
+        import('./HeroOrbitScene.jsx')
+          .then(({ default: Scene }) => {
+            if (!cancelled) setHeroOrbitScene(() => Scene);
+          })
+          .catch(() => {});
+      };
+
+      if (typeof window.requestIdleCallback === 'function') {
+        idleHandle = window.requestIdleCallback(importScene, { timeout: 1500 });
+      } else {
+        timeoutHandle = window.setTimeout(importScene, 180);
+      }
+    };
+
+    if (window.__CURTAIN_OPENED__ || siteConfig.sections.preloader?.enabled === false) {
+      loadScene();
+    } else {
+      window.addEventListener('curtain:opened', loadScene, { once: true });
+    }
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener('curtain:opened', loadScene);
+      if (idleHandle && typeof window.cancelIdleCallback === 'function') window.cancelIdleCallback(idleHandle);
+      if (timeoutHandle) window.clearTimeout(timeoutHandle);
+    };
   }, []);
 
   const handleVideoEnded = () => {
@@ -326,6 +363,17 @@ const Hero = () => {
         <span className="hero-grid-node hero-grid-node-one" />
         <span className="hero-grid-node hero-grid-node-two" />
       </div>
+
+      <div
+        className={`hero-orbit-graphic${heroOrbitSceneReady ? ' hero-orbit-graphic-with-3d' : ''}`}
+        aria-hidden="true"
+      >
+        <span className="hero-orbit-ring hero-orbit-ring-one"><i /></span>
+        <span className="hero-orbit-ring hero-orbit-ring-two"><i /></span>
+        <span className="hero-orbit-core" />
+      </div>
+
+      {HeroOrbitScene && <HeroOrbitScene onReady={setHeroOrbitSceneReady} />}
 
       {/* =====================================================
           LAPTOP VIDEO DISPLAY
@@ -821,7 +869,7 @@ const Hero = () => {
             aria-label="Social links"
           >
             {heroSocials.map(({ label, href, icon, Component }) => (
-              <a
+              <motion.a
                 key={label}
                 href={href || undefined}
                 target={href ? '_blank' : undefined}
@@ -830,6 +878,7 @@ const Hero = () => {
                 aria-label={label}
                 aria-disabled={!href}
                 tabIndex={href ? 0 : -1}
+                whileTap={{ scale: 0.9, y: -2 }}
                 className="
                   group
                   flex
@@ -862,7 +911,7 @@ const Hero = () => {
                     <path d={icon.path} />
                   </svg>
                 )}
-              </a>
+              </motion.a>
             ))}
           </motion.div>
         </div>

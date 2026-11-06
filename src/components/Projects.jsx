@@ -306,7 +306,8 @@ const ProjectCard = ({ project, language, t, onOpenPreview }) => {
   );
 };
 
-const ProjectGalleryCard = ({ project, language, t, onSelect, hasFinePointer, index, onFocusProject }) => {
+const ProjectGalleryCard = ({ project, language, t, onSelect, hasFinePointer, index, activeIndex, onFocusProject }) => {
+  const isActive = index === activeIndex;
   const title = resolveLocalized(project.title, language);
   const description = resolveLocalized(project.description, language);
   const status = getProjectStatus(project, language);
@@ -340,7 +341,7 @@ const ProjectGalleryCard = ({ project, language, t, onSelect, hasFinePointer, in
         onPointerMove={handlePointerMove}
         onPointerLeave={clearPointerPosition}
         aria-label={`${t('projects.openCaseStudy')}: ${title}`}
-        className="project-gallery-card group relative flex h-full w-full flex-col overflow-hidden rounded-[1.75rem] border border-[var(--color-3)] bg-white/95 text-start shadow-[0_14px_40px_rgba(27,23,22,0.08)] transition-[border-color,box-shadow,transform] duration-300 hover:border-[var(--color-2)]/45 hover:shadow-[0_24px_58px_rgba(27,23,22,0.16)] focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-2)] dark:border-white/10 dark:bg-[var(--color-6)]/90"
+        className={`project-gallery-card group relative flex h-full w-full flex-col overflow-hidden rounded-[1.75rem] border border-[var(--color-3)] bg-white/95 text-start shadow-[0_14px_40px_rgba(27,23,22,0.08)] transition-[border-color,box-shadow,transform] duration-300 hover:border-[var(--color-2)]/45 hover:shadow-[0_24px_58px_rgba(27,23,22,0.16)] focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-2)] dark:border-white/10 dark:bg-[var(--color-6)]/90 ${isActive ? 'is-active' : ''}`}
       >
         <div className="project-gallery-media relative aspect-[16/10] w-full overflow-hidden border-b border-[var(--color-3)] bg-[var(--color-6)]">
           {project.image ? (
@@ -378,10 +379,10 @@ const ProjectGalleryCard = ({ project, language, t, onSelect, hasFinePointer, in
         <div className="flex flex-1 items-start gap-4 p-5 sm:p-6">
           <span aria-hidden="true" className="pt-0.5 text-sm font-black tabular-nums text-[var(--color-2)]">{project.number}</span>
           <div className="min-w-0 flex-1">
-            <span className="block text-lg font-black leading-tight text-[var(--color-4)] sm:text-xl">{title}</span>
-            <span className="mt-2 line-clamp-3 block text-xs font-medium leading-relaxed text-[var(--color-4)]/72 sm:text-sm">{description}</span>
+            <span className="project-gallery-title line-clamp-2 block text-lg font-black leading-tight text-[var(--color-4)] sm:text-xl">{title}</span>
+            <span className="project-gallery-description mt-2 line-clamp-3 block text-xs font-medium leading-relaxed text-[var(--color-4)]/72 sm:text-sm">{description}</span>
             {project.techTags?.length > 0 && (
-              <div className="mt-4 flex flex-wrap gap-1.5">
+              <div className="project-gallery-tags mt-4 flex flex-wrap gap-1.5">
                 {project.techTags.slice(0, 3).map((tag) => (
                   <span key={tag} dir="ltr" className={`rounded-full border px-2.5 py-1 text-[10px] font-bold ${getTechStyle(tag)}`}>
                     {tag}
@@ -400,7 +401,7 @@ const ProjectGalleryCard = ({ project, language, t, onSelect, hasFinePointer, in
   );
 };
 
-const ProjectGallery = ({ trackRef, language, t, onSelect, hasFinePointer, onFocusProject }) => (
+const ProjectGallery = ({ trackRef, language, t, onSelect, hasFinePointer, onFocusProject, activeIndex }) => (
   <div className="projects-shell shell">
     <div
       ref={trackRef}
@@ -419,6 +420,7 @@ const ProjectGallery = ({ trackRef, language, t, onSelect, hasFinePointer, onFoc
           onSelect={onSelect}
           onFocusProject={onFocusProject}
           hasFinePointer={hasFinePointer}
+          activeIndex={activeIndex}
         />
       ))}
     </div>
@@ -448,9 +450,7 @@ const Projects = () => {
     const behavior = behaviorOverride || 'instant';
     setActiveIndex(index);
 
-    if (track.scrollWidth > track.clientWidth + 4) {
-      target.scrollIntoView({ inline: 'center', block: 'nearest', behavior });
-    } else if (triggerRef.current) {
+    if (triggerRef.current) {
       const trigger = triggerRef.current;
       const progress = index / Math.max(projects.length - 1, 1);
       const destination = trigger.start + (trigger.end - trigger.start) * progress;
@@ -458,6 +458,8 @@ const Projects = () => {
         top: Math.min(destination, trigger.end - 1),
         behavior,
       });
+    } else if (track.scrollWidth > track.clientWidth + 4) {
+      target.scrollIntoView({ inline: 'center', block: 'nearest', behavior });
     }
   };
 
@@ -473,10 +475,7 @@ const Projects = () => {
 
     const directionSign = langConfig.dir === 'rtl' ? 1 : -1;
     const media = gsap.matchMedia();
-    media.add({
-      desktop: '(min-width: 1024px) and (min-height: 681px) and (hover: hover) and (pointer: fine)',
-    }, ({ conditions }) => {
-      if (!conditions.desktop) return undefined;
+    media.add('(min-width: 320px)', () => {
       section.classList.add('is-horizontal');
 
       const parent = track.parentElement;
@@ -619,10 +618,11 @@ const Projects = () => {
           aria-label={language === 'ar' ? 'التنقل بين المشاريع' : 'Project navigation'}
         >
           {projects.map((project, index) => (
-            <button
+            <motion.button
               key={project.id}
               type="button"
               onClick={() => jumpToProject(index)}
+              whileTap={{ scale: 0.88 }}
               aria-current={activeIndex === index ? 'step' : undefined}
               aria-label={language === 'ar'
                 ? `انتقل إلى المشروع ${project.number}: ${resolveLocalized(project.title, language)}`
@@ -632,7 +632,7 @@ const Projects = () => {
                 : 'border-[var(--color-3)] bg-white/75 text-[var(--color-4)]/70 hover:border-[var(--color-2)]/60 hover:text-[var(--color-2)] dark:bg-[var(--color-6)]/75'}`}
             >
               {project.number}
-            </button>
+            </motion.button>
           ))}
         </nav>
       </header>
@@ -645,6 +645,7 @@ const Projects = () => {
           onSelect={openProject}
           onFocusProject={jumpToProject}
           hasFinePointer={hasFinePointer}
+          activeIndex={activeIndex}
         />
       </div>
 

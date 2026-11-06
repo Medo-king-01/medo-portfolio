@@ -598,7 +598,7 @@ export default function CertificationsSection() {
           <div
             ref={sealRef}
             aria-hidden="true"
-            className="pointer-events-none absolute end-0 top-0 hidden h-48 w-48 items-center justify-center md:relative md:flex lg:h-64 lg:w-64"
+            className="pointer-events-none relative mx-auto flex h-40 w-40 items-center justify-center md:mx-0 md:h-48 md:w-48 lg:h-64 lg:w-64"
           >
             <div className="absolute inset-0 rounded-full border border-[var(--color-2)]/15" />
             <div className="absolute inset-3 rounded-full border border-dashed border-[var(--color-2)]/30" />
