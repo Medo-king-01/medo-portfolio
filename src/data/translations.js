@@ -7,15 +7,12 @@ export const translations = {
       about: 'About',
       story: 'My Story',
       skills: 'What I Do Well',
-      process: 'How I Build',
-      howIWork: 'How I Work',
       projects: 'Projects',
       certifications: 'Certifications',
       beyondTech: 'Beyond Technology',
       aiToolkit: 'My AI Toolkit',
       perspective: 'My Perspective',
       leadership: 'Journey',
-      softSkills: 'Soft Skills',
       contact: 'Contact',
     },
 
@@ -86,44 +83,6 @@ export const translations = {
       motto: 'Capability before certificates.',
       techStack: [],
       altText: 'MEDO — Business Information Systems | AI-Assisted Development',
-    },
-
-    // Skills Content (Process / How I Build)
-    skillsContent: {
-      badge: 'HOW I BUILD',
-      heading: 'How I Build',
-      description: 'I focus on turning ideas into practical products. I define requirements, guide AI tools during development, review the output, identify issues, and test the result before considering the work complete. I value transparency: AI assists with code generation, while I focus on direction, requirements, review, testing, and improvement. <strong class="text-[var(--color-2)]">Capability &gt; Certificate</strong>',
-      stageLabel: 'Stage {number}',
-      cards: [
-        {
-          number: '01',
-          title: 'AI-Assisted Development / Vibe Coding',
-          text: 'Turning ideas into working digital products by guiding AI tools. Reviewing generated code and requesting corrections and improvements.',
-          keywords: ['AI Guidance', 'Code Review', 'Iterative Improvement'],
-          icon: 'understand',
-        },
-        {
-          number: '02',
-          title: 'Requirements Definition & Review',
-          text: 'Defining project goals and functional requirements. Reviewing implementations and identifying problems.',
-          keywords: ['Requirements', 'Review', 'Problem Identification'],
-          icon: 'design',
-        },
-        {
-          number: '03',
-          title: 'Product Testing',
-          text: 'Testing functionality and user experience. Checking responsiveness across different devices and screen sizes.',
-          keywords: ['Functionality Testing', 'UX Testing', 'Responsive Testing'],
-          icon: 'build',
-        },
-        {
-          number: '04',
-          title: 'Creative & Visual Skills',
-          text: 'Visual identity and graphic design. Motion graphics. Adobe InDesign — basic knowledge.',
-          keywords: ['Graphic Design', 'Motion Graphics', 'InDesign'],
-          icon: 'refine',
-        },
-      ],
     },
 
     // Technical Skills (Personal Skills)
@@ -215,13 +174,6 @@ export const translations = {
       exploreLabel: 'Explore projects',
     },
 
-    // Soft Skills
-    softSkills: {
-      badge: 'CORE COMPETENCIES',
-      heading: 'Professional Soft Skills',
-      subheading: 'Essential traits that make me an effective builder, problem-solver, and communicator.',
-    },
-
     // My Story
     story: {
       heading: 'My Story',
@@ -230,16 +182,6 @@ export const translations = {
 What kept me hooked is that this field never stands still. There’s always something new to try.
 
 To me, technology isn’t knowledge to memorize. It’s an idea you test until it becomes something that works in the real world.`,
-    },
-
-    // How I Work
-    howIWork: {
-      heading: 'How I Work',
-      content: `I enjoy the process of testing, learning, and continuously improving what I build.
-
-I pay close attention to details and believe that a project should not stop at simply working. It should be tested, reviewed, and refined to become better.
-
-I see every project as an opportunity to learn something new and improve my approach.`,
     },
 
     // Beyond Technology
@@ -345,15 +287,12 @@ The goal is not to escape the world; I have the freedom to choose my place in it
       about: 'من أنا',
       story: 'قصتي',
       skills: 'ما أجيده',
-      process: 'كيف أبني',
-      howIWork: 'أسلوبي في العمل',
       projects: 'المشاريع',
       certifications: 'الشهادات',
       beyondTech: 'اهتماماتي',
       aiToolkit: 'أدواتي في العمل',
       perspective: 'فلسفتي',
       leadership: 'مسيرتي',
-      softSkills: 'مهارات شخصية',
       contact: 'تواصل',
     },
 
@@ -424,44 +363,6 @@ The goal is not to escape the world; I have the freedom to choose my place in it
       motto: 'القدرة قبل الشهادة.',
       techStack: [],
       altText: 'MEDO — نظم معلومات الأعمال | التطوير بمساعدة الذكاء الاصطناعي',
-    },
-
-    // Skills Content (Process / How I Build)
-    skillsContent: {
-      badge: 'كيف أبني',
-      heading: 'كيف أبني',
-      description: 'أركز على تحويل الأفكار إلى منتجات عملية. أحدد المتطلبات، وأوجّه أدوات الذكاء الاصطناعي أثناء التطوير، وأراجع النتائج، وأكتشف المشكلات، وأختبر المنتج قبل اعتباره مكتملًا. أحرص على الشفافية: يساعدني الذكاء الاصطناعي في كتابة الكود، بينما أركز على تحديد الاتجاه والمتطلبات والمراجعة والاختبار والتحسين. <strong class="text-[var(--color-2)]">القدرة &gt; الشهادة</strong>',
-      stageLabel: 'مرحلة {number}',
-      cards: [
-        {
-          number: '01',
-          title: 'التطوير بمساعدة الذكاء الاصطناعي / Vibe Coding',
-          text: 'تحويل الأفكار إلى منتجات رقمية قابلة للعمل من خلال توجيه أدوات الذكاء الاصطناعي. مراجعة الكود الناتج وطلب إصلاح الأخطاء والتحسينات.',
-          keywords: ['توجيه الذكاء الاصطناعي', 'مراجعة الكود', 'تحسين تكراري'],
-          icon: 'understand',
-        },
-        {
-          number: '02',
-          title: 'تحديد المتطلبات والمراجعة',
-          text: 'تحديد أهداف المشروع ومتطلباته الوظيفية. مراجعة التنفيذ واكتشاف المشكلات.',
-          keywords: ['المتطلبات', 'المراجعة', 'اكتشاف المشكلات'],
-          icon: 'design',
-        },
-        {
-          number: '03',
-          title: 'اختبار المنتجات',
-          text: 'اختبار الوظائف وتجربة المستخدم. التحقق من الاستجابة على الأجهزة ومقاسات الشاشات المختلفة.',
-          keywords: ['اختبار الوظائف', 'اختبار تجربة المستخدم', 'اختبار الاستجابة'],
-          icon: 'build',
-        },
-        {
-          number: '04',
-          title: 'المهارات الإبداعية والبصرية',
-          text: 'تصميم الهوية البصرية والتصميم الجرافيكي. الموشن جرافيك. Adobe InDesign — أساسيات.',
-          keywords: ['التصميم الجرافيكي', 'الموشن جرافيك', 'InDesign'],
-          icon: 'refine',
-        },
-      ],
     },
 
     // Technical Skills (Personal Skills)
@@ -553,13 +454,6 @@ The goal is not to escape the world; I have the freedom to choose my place in it
       exploreLabel: 'استكشاف المشاريع',
     },
 
-    // Soft Skills
-    softSkills: {
-      badge: 'الكفاءات الأساسية',
-      heading: 'المهارات الشخصية الاحترافية',
-      subheading: 'صفات أساسية تعزّز قدرتي على البناء وحل المشكلات والتواصل الفعّال.',
-    },
-
     // My Story
     story: {
       heading: 'قصتي',
@@ -568,16 +462,6 @@ The goal is not to escape the world; I have the freedom to choose my place in it
 ما شدّني بعد ذلك هو أن هذا المجال لا يتوقف عن التغيّر، فهناك دائمًا شيء جديد أجرّبه.
 
 بالنسبة لي، التكنولوجيا ليست معرفة تُحفظ، بل فكرة تُجرَّب حتى تصبح شيئًا يعمل في الواقع.`,
-    },
-
-    // How I Work
-    howIWork: {
-      heading: 'أسلوبي في العمل',
-      content: `أستمتع بعملية الاختبار والتعلم والتحسين المستمر لما أقوم ببنائه.
-
-أهتم بالتفاصيل الدقيقة، وأؤمن بأن المشروع لا ينبغي أن يتوقف عند مجرد كونه يعمل، بل يجب اختباره ومراجعته وتطويره ليصبح أفضل.
-
-أعتبر كل مشروع فرصة لتعلم شيء جديد وتحسين أسلوبي في العمل.`,
     },
 
     // Beyond Technology

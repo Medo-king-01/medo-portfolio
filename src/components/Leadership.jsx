@@ -1,5 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
+import { motion, useMotionValueEvent, useScroll, useTransform } from 'framer-motion';
 import { leadershipList } from '../data/portfolioData';
+import { getMotionProfile, motionConfig } from '../motion/motionConfig.js';
+import { getRevealVariants } from '../motion/motionVariants.js';
+import { useMotionEnvironment } from '../motion/useReducedMotionPreference.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
 
 const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
@@ -11,26 +15,39 @@ const resolveLocalized = (field, language) => {
   return field || '';
 };
 
-const JourneyCard = ({ item, index, progress, activeIndex, reducedMotion, language, t }) => {
-  const offset = index - progress;
-  const distance = Math.abs(offset);
+const JourneyCard = ({ item, index, progress, activeIndex, reducedMotion, isMobile, language, t }) => {
+  const transform = useTransform(progress, (value) => {
+    if (reducedMotion) return 'translate3d(-50%, -50%, 0)';
+    const offset = index - value;
+    const distance = Math.abs(offset);
+    const verticalStep = isMobile ? 72 : 108;
+    const scaleLoss = isMobile ? 0.035 : 0.045;
+    const rotation = clamp(offset * (isMobile ? 0.8 : 1.2), -3, 3);
+    const scale = 1 - Math.min(distance, 2) * scaleLoss;
+    return `translate3d(-50%, calc(-50% + ${offset * verticalStep}px), 0) scale(${scale}) rotate(${rotation}deg)`;
+  });
+  const opacity = useTransform(progress, (value) => {
+    const distance = Math.abs(index - value);
+    if (reducedMotion) return Math.round(value) === index ? 1 : 0;
+    return distance > 2.7 ? 0 : 1 - Math.min(distance * 0.16, 0.38);
+  });
+  const filter = useTransform(progress, (value) => {
+    if (reducedMotion) return 'none';
+    return `blur(${Math.min(Math.abs(index - value) * 2.4, 7)}px)`;
+  });
+  const zIndex = useTransform(progress, (value) => reducedMotion
+    ? (Math.round(value) === index ? 30 : 0)
+    : 30 - Math.round(Math.abs(index - value) * 3));
   const isActive = index === activeIndex;
-  const style = {
-    transform: `translate3d(-50%, calc(-50% + ${offset * (reducedMotion ? 72 : 108)}px), 0) scale(${1 - Math.min(distance, 2) * (reducedMotion ? 0.025 : 0.045)}) rotate(${clamp(offset * (reducedMotion ? 0.5 : 1.2), -3, 3)}deg)`,
-    opacity: distance > 2.7 ? 0 : 1 - Math.min(distance * (reducedMotion ? 0.1 : 0.16), reducedMotion ? 0.24 : 0.38),
-    filter: reducedMotion ? 'none' : `blur(${Math.min(distance * 2.4, 7)}px)`,
-    zIndex: 30 - Math.round(distance * 3),
-  };
-
   const chapterLabel = t('leadership.chapterLabel');
   const category = resolveLocalized(item.category, language);
   const title = resolveLocalized(item.title, language);
   const paragraphs = resolveLocalized(item.content, language);
 
   return (
-    <article
+    <motion.article
       className={`beyond-card beyond-card-${item.motif} ${isActive ? 'beyond-card-active' : ''}`}
-      style={style}
+      style={{ transform, opacity, filter, zIndex }}
       aria-hidden={!isActive}
     >
       <div className="beyond-card-topline">
@@ -59,79 +76,61 @@ const JourneyCard = ({ item, index, progress, activeIndex, reducedMotion, langua
           <span />
         </div>
       </div>
-    </article>
+    </motion.article>
   );
 };
 
 const Leadership = () => {
   const { t, langConfig, language } = useLanguage();
+  const { reducedMotion, isMobile, isShortViewport } = useMotionEnvironment();
+  const profile = getMotionProfile({ isMobile, isShortViewport, reducedMotion });
   const stageRef = useRef(null);
-  const [progress, setProgress] = useState(0);
-  const [reducedMotion, setReducedMotion] = useState(false);
+  const maxStep = Math.max(leadershipList.length - 1, 0);
+  const stageLength = 100 + maxStep * profile.journeyStep;
+  const [activeIndex, setActiveIndex] = useState(0);
+  const { scrollYProgress } = useScroll({
+    target: stageRef,
+    offset: ['start start', 'end end'],
+  });
+  const progress = useTransform(scrollYProgress, [0, 1], [0, maxStep]);
+  const headerVariants = getRevealVariants({ reducedMotion, distance: profile.revealDistance });
 
-  useEffect(() => {
-    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const updateMotion = () => setReducedMotion(motionQuery.matches);
-    updateMotion();
-    motionQuery.addEventListener?.('change', updateMotion);
-
-    let frameId = 0;
-    const updateProgress = () => {
-      frameId = 0;
-      if (!stageRef.current) return;
-      const stage = stageRef.current;
-      const maxStep = Math.max(leadershipList.length - 1, 0);
-      if (maxStep === 0) {
-        setProgress(0);
-        return;
-      }
-      const scrollDistance = Math.max(stage.offsetHeight - window.innerHeight, 1);
-      const stageTop = stage.getBoundingClientRect().top + window.scrollY;
-      const nextProgress = ((window.scrollY - stageTop) / scrollDistance) * maxStep;
-      setProgress(clamp(nextProgress, 0, maxStep));
-    };
-
-    const handleScroll = () => {
-      if (document.hidden || motionQuery.matches) {
-        updateProgress();
-        return;
-      }
-      if (!frameId) frameId = window.requestAnimationFrame(updateProgress);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', handleScroll);
-    handleScroll();
-
-    return () => {
-      motionQuery.removeEventListener?.('change', updateMotion);
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleScroll);
-      if (frameId) window.cancelAnimationFrame(frameId);
-    };
-  }, []);
-
-  const activeIndex = Math.round(progress);
+  useMotionValueEvent(progress, 'change', (value) => {
+    const nextIndex = clamp(Math.round(value), 0, maxStep);
+    setActiveIndex((current) => current === nextIndex ? current : nextIndex);
+  });
 
   return (
     <section
       id="leadership"
-      className={`beyond-code-section font-sans ${reducedMotion ? 'beyond-code-reduced' : ''}`}
+      data-experience-section
+      aria-labelledby="leadership-heading"
+      className={`section-flow beyond-code-section font-sans ${reducedMotion ? 'beyond-code-reduced' : ''}`}
       dir={langConfig.dir}
     >
       <div className="beyond-code-inner">
-        <header data-aos="fade-up" className="beyond-code-header">
+        <motion.header
+          initial={reducedMotion ? false : 'hidden'}
+          whileInView="visible"
+          viewport={motionConfig.viewport}
+          variants={headerVariants}
+          className="beyond-code-header"
+        >
           <span className="beyond-code-eyebrow">{t('leadership.eyebrow')}</span>
-          <h2>{t('leadership.heading')}</h2>
+          <h2 id="leadership-heading">{t('leadership.heading')}</h2>
           <p className="italic">{t('leadership.subheading')}</p>
-        </header>
+        </motion.header>
 
-        <div ref={stageRef} className="beyond-stack-stage" style={{ height: `${100 + (leadershipList.length - 1) * 65}vh` }}>
+        <div ref={stageRef} className="beyond-stack-stage" style={{ height: `${stageLength}svh` }}>
           <div className="beyond-stack-sticky">
             <div
               className="beyond-progress"
+              role="progressbar"
               dir="ltr"
-              aria-label={`${t('leadership.progressLabel')}: ${activeIndex + 1} / ${leadershipList.length}`}
+              aria-label={t('leadership.progressLabel')}
+              aria-valuemin={1}
+              aria-valuemax={leadershipList.length}
+              aria-valuenow={activeIndex + 1}
             >
               <span>{String(activeIndex + 1).padStart(2, '0')}</span>
               <i>/</i>
@@ -147,6 +146,7 @@ const Leadership = () => {
                   progress={progress}
                   activeIndex={activeIndex}
                   reducedMotion={reducedMotion}
+                  isMobile={isMobile}
                   language={language}
                   t={t}
                 />

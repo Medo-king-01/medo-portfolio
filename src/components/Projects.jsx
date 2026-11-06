@@ -1,5 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
-import { motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from 'framer-motion';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { getMotionProfile, motionConfig } from '../motion/motionConfig.js';
+import { getRevealVariants, modalBackdropVariants, modalPanelVariants } from '../motion/motionVariants.js';
+import { useMotionEnvironment } from '../motion/useReducedMotionPreference.js';
+import { gsap, ScrollTrigger } from '../motion/gsap.js';
 import { projects } from '../data/portfolioData';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import { GithubIcon } from './icons/github-icon';
@@ -10,6 +14,11 @@ const resolveLocalized = (field, language) => {
   }
   return field || '';
 };
+
+const prefersReducedMotion = () => (
+  typeof window !== 'undefined'
+  && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+);
 
 const ExternalLinkIcon = () => (
   <svg aria-hidden="true" className="h-4 w-4 shrink-0 transition-transform duration-300 group-hover:scale-125 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -96,9 +105,6 @@ const getProjectStatus = (project, language) => {
 };
 
 const ProjectCard = ({ project, language, t, onOpenPreview }) => {
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [isHovered, setIsHovered] = useState(false);
-
   const title = resolveLocalized(project.title, language);
   const description = resolveLocalized(project.description, language);
   const note = resolveLocalized(project.note, language);
@@ -109,27 +115,31 @@ const ProjectCard = ({ project, language, t, onOpenPreview }) => {
   const demoLabel = resolveLocalized(project.links?.demoLabel, language) || t('projects.liveDemo');
   const status = getProjectStatus(project, language);
 
-  const handleMouseMove = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  const handlePointerMove = (event) => {
+    if (event.pointerType !== 'mouse' || !window.matchMedia('(pointer: fine)').matches) return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    event.currentTarget.style.setProperty('--project-pointer-x', `${event.clientX - bounds.left}px`);
+    event.currentTarget.style.setProperty('--project-pointer-y', `${event.clientY - bounds.top}px`);
+  };
+
+  const clearPointerPosition = (event) => {
+    event.currentTarget.style.removeProperty('--project-pointer-x');
+    event.currentTarget.style.removeProperty('--project-pointer-y');
   };
 
   return (
     <article
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onMouseMove={handleMouseMove}
-      className="group relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-[var(--color-3)] bg-white/95 shadow-[0_14px_40px_rgba(27,23,22,0.07)] transition-all duration-300 hover:shadow-[0_20px_50px_rgba(27,23,22,0.14)] dark:border-white/10 dark:bg-[var(--color-6)]/90"
+      onPointerMove={handlePointerMove}
+      onPointerLeave={clearPointerPosition}
+      className="project-case-study group relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-[var(--color-3)] bg-white/95 shadow-[0_14px_40px_rgba(27,23,22,0.07)] transition-all duration-300 hover:shadow-[0_20px_50px_rgba(27,23,22,0.14)] dark:border-white/10 dark:bg-[var(--color-6)]/90"
     >
-      {/* Interactive cursor follow glow */}
-      {isHovered && (
-        <div
-          className="pointer-events-none absolute -inset-px z-30 rounded-[1.75rem] opacity-75 transition-opacity duration-300"
-          style={{
-            background: `radial-gradient(450px circle at ${mousePos.x}px ${mousePos.y}px, rgba(228, 42, 42, 0.12), transparent 80%)`,
-          }}
-        />
-      )}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -inset-px z-30 rounded-[1.75rem] opacity-0 transition-opacity duration-300 group-hover:opacity-70"
+        style={{
+          background: 'radial-gradient(450px circle at var(--project-pointer-x, 50%) var(--project-pointer-y, 50%), rgba(228, 42, 42, 0.12), transparent 80%)',
+        }}
+      />
 
       {/* Visual Preview Header */}
       <div className="relative aspect-[16/10] overflow-hidden border-b border-[var(--color-3)] bg-[var(--color-6)]">
@@ -172,7 +182,7 @@ const ProjectCard = ({ project, language, t, onOpenPreview }) => {
           </span>
           {status && (
             <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-bold shadow-sm backdrop-blur-sm ${status.badgeClass}`}>
-              <span className={`h-2 w-2 rounded-full ${status.dotClass} animate-pulse`} />
+              <span className={`h-2 w-2 rounded-full ${status.dotClass}`} aria-hidden="true" />
               <span>{status.label}</span>
             </span>
           )}
@@ -301,123 +311,249 @@ const ProjectCard = ({ project, language, t, onOpenPreview }) => {
   );
 };
 
-// Cards orbit around the selected project as the page scrolls in either direction.
-const OrbitItem = ({ project, index, progress, active, language, t, onSelect, onFocus, reduceMotion }) => {
-  const pose = useTransform(progress, (value) => {
-    const offset = index - value * (projects.length - 1);
-    const angle = offset * 0.82;
-    const x = Math.sin(angle) * (reduceMotion ? 0.45 : 1);
-    const y = offset * (reduceMotion ? 18 : 92);
-    const z = (Math.cos(angle) - 1) * (reduceMotion ? 40 : 260);
-    const rotate = reduceMotion ? 0 : -Math.sin(angle) * 25;
-    const tilt = reduceMotion ? 0 : offset * -3;
-    return `translate(-50%, -50%) translate3d(clamp(-390px, ${x * 36}vw, 390px), ${y}px, ${z}px) rotateY(${rotate}deg) rotateZ(${tilt}deg)`;
-  });
-  const opacity = useTransform(progress, (value) => {
-    const distance = Math.abs(index - value * (projects.length - 1));
-    return Math.max(0, Math.min(1, 1.7 - distance * 0.7));
-  });
+const ProjectGalleryCard = ({ project, language, t, onSelect, hasFinePointer, index, onFocusProject }) => {
   const title = resolveLocalized(project.title, language);
+  const description = resolveLocalized(project.description, language);
   const status = getProjectStatus(project, language);
 
+  const handlePointerMove = (event) => {
+    if (event.pointerType !== 'mouse' || !hasFinePointer) return;
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const x = (event.clientX - bounds.left) / bounds.width;
+    const y = (event.clientY - bounds.top) / bounds.height;
+    event.currentTarget.style.setProperty('--project-pointer-x', `${x * 100}%`);
+    event.currentTarget.style.setProperty('--project-pointer-y', `${y * 100}%`);
+    event.currentTarget.style.setProperty('--project-tilt-x', `${(0.5 - y) * 2.4}deg`);
+    event.currentTarget.style.setProperty('--project-tilt-y', `${(x - 0.5) * 3.6}deg`);
+  };
+
+  const clearPointerPosition = (event) => {
+    event.currentTarget.style.removeProperty('--project-pointer-x');
+    event.currentTarget.style.removeProperty('--project-pointer-y');
+    event.currentTarget.style.removeProperty('--project-tilt-x');
+    event.currentTarget.style.removeProperty('--project-tilt-y');
+  };
+
   return (
-    <motion.div style={{ transform: pose, opacity, zIndex: active ? 10 : 1, pointerEvents: active ? 'auto' : 'none' }} className="absolute left-1/2 top-1/2 w-[min(80vw,60vh,34rem)] [backface-visibility:hidden]">
-      <button type="button" onFocus={() => onFocus(index)} onClick={() => onSelect(project)} aria-label={`${t('projects.openCaseStudy')}: ${title}`} className={`group block w-full cursor-pointer overflow-hidden rounded-[1.75rem] border border-[var(--color-3)] bg-[var(--color-5)] text-start shadow-[0_18px_48px_rgba(27,23,22,0.14)] transition-all duration-300 hover:shadow-[0_26px_60px_rgba(27,23,22,0.24)] focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-2)] dark:border-white/10 dark:bg-[var(--color-6)] ${active ? '' : 'pointer-events-none'}`}>
-        <div className="relative aspect-[16/10] overflow-hidden bg-[var(--color-3)]">
-          <img src={project.image} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
-          
-          <div className="absolute start-4 top-4 z-10 flex flex-wrap items-center gap-1.5">
-            <span className="rounded-full border border-[var(--color-3)] bg-[var(--color-5)]/95 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-[var(--color-2)] shadow-sm backdrop-blur-sm dark:bg-[var(--color-6)]/90">
+    <article
+      onFocus={() => onFocusProject(index)}
+      className="project-track-card card h-full"
+    >
+      <button
+        type="button"
+        onClick={() => onSelect(project)}
+        onPointerMove={handlePointerMove}
+        onPointerLeave={clearPointerPosition}
+        aria-label={`${t('projects.openCaseStudy')}: ${title}`}
+        className="project-gallery-card group relative flex h-full w-full flex-col overflow-hidden rounded-[1.75rem] border border-[var(--color-3)] bg-white/95 text-start shadow-[0_14px_40px_rgba(27,23,22,0.08)] transition-[border-color,box-shadow,transform] duration-300 hover:border-[var(--color-2)]/45 hover:shadow-[0_24px_58px_rgba(27,23,22,0.16)] focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-2)] dark:border-white/10 dark:bg-[var(--color-6)]/90"
+      >
+        <div className="project-gallery-media relative aspect-[16/10] w-full overflow-hidden border-b border-[var(--color-3)] bg-[var(--color-6)]">
+          {project.image ? (
+            <img
+              src={project.image}
+              alt={`${title} project preview`}
+              loading="lazy"
+              decoding="async"
+              className="h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center text-[var(--color-2)]" aria-hidden="true"><StackIcon /></div>
+          )}
+          <span aria-hidden="true" className="project-gallery-glow pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--color-4)]/75 via-[var(--color-4)]/10 to-transparent" />
+
+          <div className="absolute start-4 top-4 z-10 flex flex-wrap items-center gap-2">
+            <span className="rounded-full border border-[var(--color-3)] bg-white/95 px-3.5 py-1 text-[11px] font-black uppercase tracking-[0.1em] text-[var(--color-2)] shadow-sm backdrop-blur-sm dark:bg-[var(--color-5)]/90">
               {resolveLocalized(project.badge, language)}
             </span>
-            {status && (
-              <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-bold shadow-sm backdrop-blur-sm ${status.badgeClass}`}>
-                <span className={`h-1.5 w-1.5 rounded-full ${status.dotClass} animate-pulse`} />
-                <span>{status.label}</span>
-              </span>
-            )}
-          </div>
-
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--color-4)]/60 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 flex items-end p-4">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-5)]/90 px-3 py-1 text-xs font-bold text-[var(--color-4)] backdrop-blur-sm shadow-md">
-              <span>{language === 'ar' ? 'عرض تفاصيل المشروع' : 'View Case Study & Demo'}</span>
-              <span>↗</span>
+            <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-bold shadow-sm backdrop-blur-sm ${status.badgeClass}`}>
+              <span className={`h-2 w-2 rounded-full ${status.dotClass}`} />
+              <span>{status.label}</span>
             </span>
           </div>
+          <span aria-hidden="true" className="absolute bottom-3 end-5 z-10 text-3xl font-black italic tracking-tight text-white drop-shadow-[0_2px_8px_rgba(27,23,22,0.75)]">
+            {project.number}
+          </span>
+          <span className="absolute bottom-4 start-5 z-10 inline-flex items-center gap-2 rounded-full bg-[var(--color-4)]/90 px-3.5 py-2 text-xs font-bold text-[var(--color-5)] shadow-lg backdrop-blur-md transition-transform duration-300 group-hover:-translate-y-1">
+            <ZoomIcon />
+            <span>{t('projects.openCaseStudy')}</span>
+          </span>
         </div>
-        <div className="flex items-start gap-4 p-5 sm:p-6">
-          <span aria-hidden="true" className="text-sm font-black tabular-nums text-[var(--color-2)]">{project.number}</span>
+
+        <div className="flex flex-1 items-start gap-4 p-5 sm:p-6">
+          <span aria-hidden="true" className="pt-0.5 text-sm font-black tabular-nums text-[var(--color-2)]">{project.number}</span>
           <div className="min-w-0 flex-1">
             <span className="block text-lg font-black leading-tight text-[var(--color-4)] sm:text-xl">{title}</span>
-            <span className="mt-2 line-clamp-2 block text-xs font-medium leading-relaxed text-[var(--color-4)]/70 sm:text-sm">{resolveLocalized(project.description, language)}</span>
-            {project.techTags && (
-              <div className="mt-3 flex flex-wrap gap-1.5">
+            <span className="mt-2 line-clamp-3 block text-xs font-medium leading-relaxed text-[var(--color-4)]/72 sm:text-sm">{description}</span>
+            {project.techTags?.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-1.5">
                 {project.techTags.slice(0, 3).map((tag) => (
-                  <span key={tag} dir="ltr" className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${getTechStyle(tag)}`}>
+                  <span key={tag} dir="ltr" className={`rounded-full border px-2.5 py-1 text-[10px] font-bold ${getTechStyle(tag)}`}>
                     {tag}
                   </span>
                 ))}
                 {project.techTags.length > 3 && (
-                  <span className="rounded-full border border-[var(--color-3)] px-2 py-0.5 text-[10px] font-medium text-[var(--color-4)]/60">
-                    +{project.techTags.length - 3}
-                  </span>
+                  <span className="rounded-full border border-[var(--color-3)] px-2.5 py-1 text-[10px] font-medium text-[var(--color-4)]/60">+{project.techTags.length - 3}</span>
                 )}
               </div>
             )}
           </div>
-          <span aria-hidden="true" className="text-lg text-[var(--color-2)] transition-transform group-hover:translate-x-1 motion-reduce:transition-none">↗</span>
+          <span aria-hidden="true" className="pt-0.5 text-lg text-[var(--color-2)] transition-transform duration-300 group-hover:translate-x-1 rtl:group-hover:-translate-x-1">↗</span>
         </div>
       </button>
-    </motion.div>
+    </article>
   );
 };
 
-const OrbitGallery = ({ language, t, onSelect }) => {
-  const stageRef = useRef(null);
-  const [active, setActive] = useState(0);
-  const reduceMotion = useReducedMotion();
-  const { scrollYProgress } = useScroll({ target: stageRef, offset: ['start start', 'end end'] });
-  useMotionValueEvent(scrollYProgress, 'change', (value) => {
-    const next = Math.max(0, Math.min(projects.length - 1, Math.round(value * (projects.length - 1))));
-    setActive((current) => current === next ? current : next);
-  });
-
-  const focusProject = (index) => {
-    const stage = stageRef.current;
-    if (!stage || index === active) return;
-    const scrollable = Math.max(0, stage.offsetHeight - window.innerHeight);
-    const top = window.scrollY + stage.getBoundingClientRect().top + scrollable * index / (projects.length - 1);
-    window.scrollTo({ top, behavior: reduceMotion ? 'instant' : 'smooth' });
-  };
-
-  return (
-    <div ref={stageRef} style={{ height: `${100 + (projects.length - 1) * 65}svh` }} className="relative">
-      <div className="sticky top-0 flex h-[100svh] flex-col items-center justify-center overflow-hidden">
-        <div aria-hidden="true" className="pointer-events-none absolute h-[min(65vw,32rem)] w-[min(65vw,32rem)] rounded-full border border-[var(--color-2)]/10 shadow-[0_0_0_3rem_rgba(161,147,146,0.06),0_0_0_6rem_rgba(161,147,146,0.035)]" />
-        <p className="absolute top-24 z-20 px-4 text-center text-xs font-bold tracking-wide text-[var(--color-2)] sm:top-28">{t('projects.scrollGallery')}</p>
-        <div className="pointer-events-none relative h-[65svh] w-full max-w-6xl [perspective:1100px] [transform-style:preserve-3d]">
-          {projects.map((project, index) => (
-            <OrbitItem key={project.id} project={project} index={index} progress={scrollYProgress} active={index === active} language={language} t={t} onSelect={onSelect} onFocus={focusProject} reduceMotion={reduceMotion} />
-          ))}
-        </div>
-        <div className="absolute bottom-6 z-20 flex flex-col items-center gap-3 sm:bottom-10">
-          <div className="flex items-center gap-3" dir="ltr" aria-hidden="true">
-            {projects.map((project, index) => <span key={project.id} className={`h-1 rounded-full transition-all duration-300 ${index === active ? 'w-8 bg-[var(--color-2)]' : 'w-3 bg-[var(--color-1)]/50'}`} />)}
-          </div>
-          <span className="text-center text-xs font-semibold text-[var(--color-4)]/70">{t('projects.selectProject')}</span>
-          <span className="sr-only" aria-live="polite">{String(active + 1).padStart(2, '0')} / {String(projects.length).padStart(2, '0')}</span>
-        </div>
-      </div>
+const ProjectGallery = ({ trackRef, language, t, onSelect, hasFinePointer, onFocusProject }) => (
+  <div className="projects-shell shell">
+    <div
+      ref={trackRef}
+      className="projects-track track"
+      role="group"
+      tabIndex={0}
+      aria-label={language === 'ar' ? 'معرض المشاريع' : 'Project gallery'}
+    >
+      {projects.map((project, index) => (
+        <ProjectGalleryCard
+          key={project.id}
+          project={project}
+          index={index}
+          language={language}
+          t={t}
+          onSelect={onSelect}
+          onFocusProject={onFocusProject}
+          hasFinePointer={hasFinePointer}
+        />
+      ))}
     </div>
-  );
-};
+  </div>
+);
 
 const Projects = () => {
   const { t, language, langConfig } = useLanguage();
+  const { reducedMotion, isMobile, isShortViewport, hasFinePointer } = useMotionEnvironment();
+  const profile = getMotionProfile({ isMobile, isShortViewport, reducedMotion });
   const [selectedProject, setSelectedProject] = useState(null);
   const [previewItem, setPreviewItem] = useState(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const sectionRef = useRef(null);
+  const stageRef = useRef(null);
+  const trackRef = useRef(null);
+  const triggerRef = useRef(null);
   const modalRef = useRef(null);
   const returnFocusRef = useRef(null);
+  const headingVariants = getRevealVariants({ reducedMotion, distance: profile.revealDistance });
+
+  const jumpToProject = (index, behaviorOverride) => {
+    const track = trackRef.current;
+    const target = track?.children[index];
+    if (!track || !target) return;
+
+    const behavior = behaviorOverride || (reducedMotion ? 'auto' : 'instant');
+    setActiveIndex(index);
+
+    if (track.scrollWidth > track.clientWidth + 4) {
+      target.scrollIntoView({ inline: 'center', block: 'nearest', behavior });
+    } else if (triggerRef.current) {
+      const trigger = triggerRef.current;
+      const progress = index / Math.max(projects.length - 1, 1);
+      const destination = trigger.start + (trigger.end - trigger.start) * progress;
+      window.scrollTo({
+        top: Math.min(destination, trigger.end - 1),
+        behavior,
+      });
+    }
+  };
+
+  useLayoutEffect(() => {
+    const section = sectionRef.current;
+    const stage = stageRef.current;
+    const track = trackRef.current;
+    if (!section || !stage || !track) return undefined;
+
+    if (prefersReducedMotion() || reducedMotion) {
+      section.classList.remove('is-horizontal');
+      triggerRef.current = null;
+      return undefined;
+    }
+
+    const directionSign = langConfig.dir === 'rtl' ? 1 : -1;
+    const media = gsap.matchMedia();
+
+    media.add('(min-width: 0px)', () => {
+      section.classList.add('is-horizontal');
+
+      const parent = track.parentElement;
+      const distance = () =>
+        Math.max(Math.max(track.scrollWidth, track.offsetWidth) - (parent?.clientWidth || 0), 0);
+
+      const tween = gsap.to(track, {
+        x: () => directionSign * distance(),
+        ease: 'none',
+        scrollTrigger: {
+          trigger: stage,
+          start: 'top top',
+          end: () => `+=${distance() + window.innerHeight * 0.65}`,
+          pin: true,
+          scrub: 0.55,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            const nextIndex = Math.round(self.progress * (projects.length - 1));
+            setActiveIndex((current) => current === nextIndex ? current : nextIndex);
+          },
+        },
+      });
+
+      triggerRef.current = tween.scrollTrigger;
+      requestAnimationFrame(() => ScrollTrigger.refresh());
+
+      return () => {
+        triggerRef.current = null;
+        section.classList.remove('is-horizontal');
+        tween.scrollTrigger?.kill();
+        tween.kill();
+        gsap.set(track, { clearProps: 'transform' });
+      };
+    });
+
+    return () => media.revert();
+  }, [langConfig.dir, reducedMotion]);
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return undefined;
+
+    let frame = 0;
+    const updateActiveIndex = () => {
+      if (triggerRef.current) return;
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        const cards = Array.from(track.children);
+        if (!cards.length) return;
+
+        const center = track.getBoundingClientRect().left + track.clientWidth / 2;
+        const nextIndex = cards.reduce((closest, card, index) => {
+          const bounds = card.getBoundingClientRect();
+          const cardCenter = (bounds.left + bounds.right) / 2;
+          const distanceFromCenter = Math.abs(cardCenter - center);
+          return distanceFromCenter < closest.distance
+            ? { index, distance: distanceFromCenter }
+            : closest;
+        }, { index: 0, distance: Number.POSITIVE_INFINITY }).index;
+
+        setActiveIndex((current) => current === nextIndex ? current : nextIndex);
+      });
+    };
+
+    track.addEventListener('scroll', updateActiveIndex, { passive: true });
+    updateActiveIndex();
+    return () => {
+      track.removeEventListener('scroll', updateActiveIndex);
+      window.cancelAnimationFrame(frame);
+    };
+  }, [reducedMotion]);
 
   const openProject = (project) => {
     returnFocusRef.current = document.activeElement;
@@ -428,14 +564,7 @@ const Projects = () => {
     if (!selectedProject) return undefined;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      returnFocusRef.current?.focus();
-    };
-  }, [selectedProject]);
 
-  useEffect(() => {
-    if (!selectedProject) return undefined;
     const modal = modalRef.current;
     modal?.querySelector('button')?.focus();
     const handleKeyDown = (event) => {
@@ -448,46 +577,135 @@ const Projects = () => {
         if (!controls.length) return;
         const first = controls[0];
         const last = controls[controls.length - 1];
-        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
-        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
       }
     };
+
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [selectedProject, previewItem]);
 
   return (
-    <section id="projects" className="relative w-full bg-[var(--color-6)] px-6 pb-28 pt-28 font-sans md:px-12 md:pt-36" dir={langConfig.dir}>
-      <div className="pointer-events-none absolute right-0 top-20 h-80 w-80 rounded-full bg-[var(--color-8)]/15 blur-3xl" />
-      <div className="relative mx-auto max-w-7xl">
-        <div data-aos="fade-up" className="max-w-3xl">
-          <h2 className="text-4xl font-black leading-[1.08] tracking-tight text-[var(--color-4)] md:text-6xl">{t('projects.heading')}</h2>
-        </div>
-      </div>
-      <div className="mt-10"><OrbitGallery language={language} t={t} onSelect={openProject} /></div>
+    <section
+      id="projects"
+      data-experience-section
+      aria-labelledby="projects-heading"
+      ref={sectionRef}
+      className="projects-section section-flow relative w-full overflow-visible bg-[var(--color-6)] font-sans"
+      dir={langConfig.dir}
+    >
+      <div aria-hidden="true" className="pointer-events-none absolute right-0 top-20 h-80 w-80 rounded-full bg-[var(--color-8)]/15 blur-3xl" />
+      <header className="projects-header relative z-10 mx-auto flex w-full max-w-7xl flex-col gap-7 px-6 pb-8 pt-28 md:flex-row md:items-end md:justify-between md:gap-10 md:px-10 md:pb-10 md:pt-36">
+        <motion.div
+          initial={reducedMotion ? false : 'hidden'}
+          whileInView="visible"
+          viewport={motionConfig.viewport}
+          variants={headingVariants}
+          className="max-w-3xl"
+        >
+          <h2 id="projects-heading" className="text-4xl font-black leading-[1.08] tracking-tight text-[var(--color-4)] md:text-6xl">
+            {t('projects.heading')}
+          </h2>
+        </motion.div>
 
-      {selectedProject && (
-        <div role="dialog" aria-modal="true" aria-label={previewItem ? previewItem.title : resolveLocalized(selectedProject.title, language)} ref={modalRef} onMouseDown={(event) => {
-          if (event.target === event.currentTarget) {
-            if (previewItem) setPreviewItem(null);
-            else setSelectedProject(null);
-          }
-        }} className="fixed inset-0 z-[10000] flex items-center justify-center bg-[var(--color-4)]/85 p-3 backdrop-blur-md sm:p-8">
-          <div className="relative flex max-h-[90dvh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-[var(--color-3)] bg-[var(--color-5)] shadow-2xl">
-            <div className="flex shrink-0 items-center justify-between gap-4 border-b border-[var(--color-3)] bg-[var(--color-5)] px-5 py-3">
-              <h3 className="text-base font-black text-[var(--color-4)]">{previewItem ? previewItem.title : t('projects.caseStudyBadge')}</h3>
-              <button type="button" onClick={() => previewItem ? setPreviewItem(null) : setSelectedProject(null)} aria-label={previewItem ? t('projects.closePreview') : t('projects.closeCaseStudy')} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--color-3)] text-[var(--color-4)] hover:bg-[var(--color-2)] hover:text-[var(--color-5)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-7)]">✕</button>
-            </div>
-            <div className="min-h-0 overflow-y-auto">
-              {previewItem ? (
-                <div className="bg-[var(--color-4)] p-2 sm:p-4"><img src={previewItem.image} alt={`${previewItem.title} screenshot`} className="mx-auto max-h-[75vh] w-auto object-contain" /></div>
-              ) : (
-                <ProjectCard project={selectedProject} language={language} t={t} onOpenPreview={setPreviewItem} />
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+        <nav
+          className="projects-index flex flex-wrap items-center gap-2"
+          aria-label={language === 'ar' ? 'التنقل بين المشاريع' : 'Project navigation'}
+        >
+          {projects.map((project, index) => (
+            <button
+              key={project.id}
+              type="button"
+              onClick={() => jumpToProject(index)}
+              aria-current={activeIndex === index ? 'step' : undefined}
+              aria-label={language === 'ar'
+                ? `انتقل إلى المشروع ${project.number}: ${resolveLocalized(project.title, language)}`
+                : `Go to project ${project.number}: ${resolveLocalized(project.title, language)}`}
+              className={`project-index-button inline-flex h-11 min-w-11 items-center justify-center rounded-full border px-3 font-mono text-xs font-black tabular-nums tracking-wide transition-colors focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-[var(--color-2)] ${activeIndex === index
+                ? 'border-[var(--color-2)] bg-[var(--color-2)] text-[var(--color-5)] shadow-md'
+                : 'border-[var(--color-3)] bg-white/75 text-[var(--color-4)]/70 hover:border-[var(--color-2)]/60 hover:text-[var(--color-2)] dark:bg-[var(--color-6)]/75'}`}
+            >
+              {project.number}
+            </button>
+          ))}
+        </nav>
+      </header>
+
+      <div ref={stageRef} className="projects-stage stage relative w-full">
+        <ProjectGallery
+          trackRef={trackRef}
+          language={language}
+          t={t}
+          onSelect={openProject}
+          onFocusProject={jumpToProject}
+          hasFinePointer={hasFinePointer}
+        />
+      </div>
+
+      <AnimatePresence
+        onExitComplete={() => returnFocusRef.current?.focus({ preventScroll: true })}
+      >
+        {selectedProject && (
+          <motion.div
+            key="project-dialog"
+            ref={modalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label={previewItem ? previewItem.title : resolveLocalized(selectedProject.title, language)}
+            initial={reducedMotion ? false : 'hidden'}
+            animate="visible"
+            exit="exit"
+            variants={modalBackdropVariants}
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) {
+                if (previewItem) setPreviewItem(null);
+                else setSelectedProject(null);
+              }
+            }}
+            className="fixed inset-0 z-[10000] flex items-center justify-center bg-[var(--color-4)]/85 p-3 backdrop-blur-md sm:p-8"
+          >
+            <motion.div
+              initial={reducedMotion ? false : 'hidden'}
+              animate="visible"
+              exit="exit"
+              variants={modalPanelVariants}
+              className="relative flex max-h-[90dvh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-[var(--color-3)] bg-[var(--color-5)] shadow-2xl"
+            >
+              <div className="flex shrink-0 items-center justify-between gap-4 border-b border-[var(--color-3)] bg-[var(--color-5)] px-5 py-3">
+                <h3 className="text-base font-black text-[var(--color-4)]">
+                  {previewItem ? previewItem.title : t('projects.caseStudyBadge')}
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => previewItem ? setPreviewItem(null) : setSelectedProject(null)}
+                  aria-label={previewItem ? t('projects.closePreview') : t('projects.closeCaseStudy')}
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--color-3)] text-[var(--color-4)] hover:bg-[var(--color-2)] hover:text-[var(--color-5)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-7)]"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="min-h-0 overflow-y-auto">
+                {previewItem ? (
+                  <div className="bg-[var(--color-4)] p-2 sm:p-4">
+                    <img src={previewItem.image} alt={`${previewItem.title} screenshot`} className="mx-auto max-h-[75vh] w-auto object-contain" />
+                  </div>
+                ) : (
+                  <ProjectCard project={selectedProject} language={language} t={t} onOpenPreview={setPreviewItem} />
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 };

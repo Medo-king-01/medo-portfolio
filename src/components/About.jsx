@@ -1,4 +1,8 @@
 import { useEffect, useRef, useCallback } from 'react';
+import { motion } from 'framer-motion';
+import { getMotionProfile, motionConfig } from '../motion/motionConfig.js';
+import { getRevealVariants, getStaggerVariants } from '../motion/motionVariants.js';
+import { useMotionEnvironment } from '../motion/useReducedMotionPreference.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import stackImageAsset from '../assets/about/medo.jpg';
 
@@ -13,11 +17,14 @@ const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 const About = () => {
   const { t, langConfig } = useLanguage();
-  const cardRef = useRef(null);
+  const { reducedMotion, isMobile, isShortViewport } = useMotionEnvironment();
+  const profile = getMotionProfile({ isMobile, isShortViewport, reducedMotion });
   const frameRef = useRef(null);
   const ropePathRef = useRef(null);
   const ropeHighlightRef = useRef(null);
   const physicsFrameRef = useRef(null);
+  const inViewRef = useRef(false);
+  const schedulePhysicsRef = useRef(() => {});
 
   const physicsRef = useRef({
     x: 0,
@@ -82,13 +89,44 @@ const About = () => {
   }, [updateRope]);
 
   useEffect(() => {
-    const motionQuery = window.matchMedia('(prefers-reduced-motion: no-preference)');
-    canDragRef.current = true;
-    motionEnabledRef.current = motionQuery.matches;
-
+    const frameElement = frameRef.current;
+    const pointerQuery = window.matchMedia('(pointer: fine)');
+    motionEnabledRef.current = !reducedMotion;
+    canDragRef.current = !reducedMotion && pointerQuery.matches;
     let previousTime = performance.now();
+    let observer;
+
+    const isMoving = () => {
+      const physics = physicsRef.current;
+      return physics.dragging || returningRef.current ||
+        Math.abs(physics.x) > 0.08 || Math.abs(physics.y) > 0.08 ||
+        Math.abs(physics.velocityX) > 0.08 || Math.abs(physics.velocityY) > 0.08 ||
+        Math.abs(physics.rotation) > 0.08;
+    };
+
+    const resetMotion = () => {
+      const physics = physicsRef.current;
+      physics.x = 0;
+      physics.y = 0;
+      physics.targetX = 0;
+      physics.targetY = 0;
+      physics.velocityX = 0;
+      physics.velocityY = 0;
+      physics.rotation = 0;
+      physics.dragging = false;
+      physics.pointerId = null;
+      returningRef.current = false;
+      if (frameRef.current) frameRef.current.style.willChange = 'auto';
+      updateVisual();
+    };
 
     const tick = (time) => {
+      physicsFrameRef.current = null;
+      if (!inViewRef.current || !motionEnabledRef.current) {
+        if (!motionEnabledRef.current) resetMotion();
+        return;
+      }
+
       const physics = physicsRef.current;
       const deltaTime = Math.min((time - previousTime) / 1000, 0.04);
       previousTime = time;
@@ -96,36 +134,23 @@ const About = () => {
       if (physics.dragging) {
         const dx = physics.targetX - physics.x;
         const dy = physics.targetY - physics.y;
-
         physics.x += dx * 0.3;
         physics.y += dy * 0.3;
-
-        physics.velocityX =
-          physics.velocityX * 0.78 + (dx * 0.22) / Math.max(deltaTime, 0.016);
-        physics.velocityY =
-          physics.velocityY * 0.78 + (dy * 0.22) / Math.max(deltaTime, 0.016);
-
+        physics.velocityX = physics.velocityX * 0.78 + (dx * 0.22) / Math.max(deltaTime, 0.016);
+        physics.velocityY = physics.velocityY * 0.78 + (dy * 0.22) / Math.max(deltaTime, 0.016);
         const desiredRotation = physics.velocityX * 0.018 + physics.x * 0.032;
         physics.rotation += (desiredRotation - physics.rotation) * 0.28;
         physics.rotation = clamp(physics.rotation, -10, 10);
       } else {
-        const springX = 26;
-        const dampingX = 8.5;
-        const springY = 30;
-        const dampingY = 8.5;
-        const springRotation = 34;
-        const dampingRotation = 9;
-
-        const forceX = -springX * physics.x - dampingX * physics.velocityX;
+        const forceX = -26 * physics.x - 8.5 * physics.velocityX;
         physics.velocityX += forceX * deltaTime;
         physics.x += physics.velocityX * deltaTime;
 
-        const forceY = -springY * physics.y - dampingY * physics.velocityY;
+        const forceY = -30 * physics.y - 8.5 * physics.velocityY;
         physics.velocityY += forceY * deltaTime;
         physics.y += physics.velocityY * deltaTime;
 
-        const rotationForce =
-          -springRotation * physics.rotation - dampingRotation * physics.rotation;
+        const rotationForce = -43 * physics.rotation;
         physics.rotation += rotationForce * deltaTime;
         physics.rotation += physics.velocityX * 0.0007;
         physics.rotation = clamp(physics.rotation, -10, 10);
@@ -134,21 +159,15 @@ const About = () => {
           physics.x = 0;
           physics.velocityX = 0;
         }
-
         if (Math.abs(physics.y) < 0.08 && Math.abs(physics.velocityY) < 0.08) {
           physics.y = 0;
           physics.velocityY = 0;
         }
-
-        if (Math.abs(physics.rotation) < 0.08) {
-          physics.rotation = 0;
-        }
+        if (Math.abs(physics.rotation) < 0.08) physics.rotation = 0;
 
         if (
-          Math.abs(physics.x) < 0.08 &&
-          Math.abs(physics.y) < 0.08 &&
-          Math.abs(physics.velocityX) < 0.08 &&
-          Math.abs(physics.velocityY) < 0.08 &&
+          Math.abs(physics.x) < 0.08 && Math.abs(physics.y) < 0.08 &&
+          Math.abs(physics.velocityX) < 0.08 && Math.abs(physics.velocityY) < 0.08 &&
           Math.abs(physics.rotation) < 0.08
         ) {
           physics.x = 0;
@@ -160,27 +179,58 @@ const About = () => {
         }
       }
 
-      if (!motionEnabledRef.current && !physics.dragging && !returningRef.current) {
-        physics.x = 0;
-        physics.y = 0;
-        physics.velocityX = 0;
-        physics.velocityY = 0;
-        physics.rotation = 0;
-      }
-
       updateVisual();
-      physicsFrameRef.current = requestAnimationFrame(tick);
+      if (isMoving() && inViewRef.current) {
+        physicsFrameRef.current = window.requestAnimationFrame(tick);
+      } else if (frameRef.current) {
+        frameRef.current.style.willChange = 'auto';
+      }
     };
 
-    physicsFrameRef.current = requestAnimationFrame(tick);
+    const schedule = () => {
+      if (!frameRef.current || physicsFrameRef.current || !inViewRef.current || !motionEnabledRef.current || !isMoving()) return;
+      frameRef.current.style.willChange = 'transform';
+      previousTime = performance.now();
+      physicsFrameRef.current = window.requestAnimationFrame(tick);
+    };
+    schedulePhysicsRef.current = schedule;
+
+    const handlePointerChange = () => {
+      canDragRef.current = !reducedMotion && pointerQuery.matches;
+    };
+    if (typeof pointerQuery.addEventListener === 'function') pointerQuery.addEventListener('change', handlePointerChange);
+    else pointerQuery.addListener?.(handlePointerChange);
+
+    if (frameElement && typeof IntersectionObserver !== 'undefined') {
+      observer = new IntersectionObserver(([entry]) => {
+        inViewRef.current = entry.isIntersecting;
+        if (entry.isIntersecting) {
+          schedulePhysicsRef.current();
+        } else if (physicsFrameRef.current) {
+          window.cancelAnimationFrame(physicsFrameRef.current);
+          physicsFrameRef.current = null;
+          frameRef.current.style.willChange = 'auto';
+        }
+      }, { rootMargin: '120px 0px' });
+      observer.observe(frameElement);
+    } else {
+      inViewRef.current = true;
+    }
+
+    if (reducedMotion) resetMotion();
 
     return () => {
+      observer?.disconnect();
+      if (typeof pointerQuery.removeEventListener === 'function') pointerQuery.removeEventListener('change', handlePointerChange);
+      else pointerQuery.removeListener?.(handlePointerChange);
       if (physicsFrameRef.current) {
-        cancelAnimationFrame(physicsFrameRef.current);
+        window.cancelAnimationFrame(physicsFrameRef.current);
         physicsFrameRef.current = null;
       }
+      if (frameElement) frameElement.style.willChange = 'auto';
+      schedulePhysicsRef.current = () => {};
     };
-  }, [updateVisual]);
+  }, [updateVisual, reducedMotion]);
 
   const handlePointerDown = (event) => {
     if (event.pointerType === 'touch') return;
@@ -213,6 +263,7 @@ const About = () => {
     }
 
     event.preventDefault();
+    schedulePhysicsRef.current();
   };
 
   const handlePointerMove = (event) => {
@@ -268,6 +319,7 @@ const About = () => {
 
     physics.pointerId = null;
     event.preventDefault();
+    schedulePhysicsRef.current();
   };
 
   const handlePointerCancel = (event) => {
@@ -282,13 +334,16 @@ const About = () => {
 
     frameRef.current?.classList.remove('about-card-grabbing');
     event.preventDefault();
+    schedulePhysicsRef.current();
   };
 
   return (
     <section
       id="about"
       dir={langConfig.dir}
+      data-experience-section
       className="
+        section-flow
         relative
         w-full
         overflow-hidden
@@ -306,7 +361,13 @@ const About = () => {
           dir="ltr"
           className="mt-12 flex w-full shrink-0 flex-col items-center md:mt-0 md:w-[350px]"
         >
-          <div ref={cardRef} data-aos="drop-bounce" className="relative flex w-full justify-center">
+          <motion.div
+            initial={reducedMotion ? false : 'hidden'}
+            whileInView="visible"
+            viewport={motionConfig.viewport}
+            variants={getRevealVariants({ reducedMotion, distance: profile.revealDistance })}
+            className="relative flex w-full justify-center"
+          >
             {/* ANCHORED FLEXIBLE ROPE */}
             <svg
               aria-hidden="true"
@@ -359,13 +420,12 @@ const About = () => {
                 max-w-[280px]
                 cursor-grab
                 select-none
-                touch-none
+                touch-pan-y
                 overflow-visible
                 rounded-2xl
                 bg-[var(--color-4)]
                 p-3
                 shadow-[0_24px_50px_rgba(27,23,22,0.36)]
-                will-change-transform
               "
               style={{
                 transform: 'translate3d(0,0,0) rotateZ(0deg)',
@@ -453,30 +513,42 @@ const About = () => {
                 )}
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* TEXT */}
-        <div
-          data-aos="fade-left"
-          data-aos-delay="200"
+        <motion.div
+          initial={reducedMotion ? false : 'hidden'}
+          whileInView="visible"
+          viewport={motionConfig.viewport}
+          variants={getRevealVariants({ reducedMotion, distance: profile.revealDistance, delay: 0.08 })}
           className="relative z-20 mt-8 flex-1 text-start text-[var(--color-4)] md:mt-0"
         >
           <h2 className="mb-4 text-4xl font-black text-[var(--color-4)] md:text-5xl">
             {t('about.heading')}
           </h2>
 
-          <div className="max-w-3xl space-y-5 text-base font-medium leading-relaxed text-[var(--color-4)]/80 md:text-lg">
+          <motion.div
+            initial={reducedMotion ? false : 'hidden'}
+            whileInView="visible"
+            viewport={motionConfig.viewport}
+            variants={getStaggerVariants({ reducedMotion, stagger: profile.stagger })}
+            className="max-w-3xl space-y-5 text-base font-medium leading-relaxed text-[var(--color-4)]/80 md:text-lg"
+          >
             {t('about.paragraphs').map((paragraph, index, paragraphs) => (
-              <p key={paragraph} className="font-semibold text-[var(--color-4)]/85">
+              <motion.p
+                key={paragraph}
+                variants={getRevealVariants({ reducedMotion, distance: profile.revealDistance })}
+                className="font-semibold text-[var(--color-4)]/85"
+              >
                 {paragraph}
                 {index === paragraphs.length - 1 && (
                   <> <strong className="text-[var(--color-2)]">{t('about.motto')}</strong></>
                 )}
-              </p>
+              </motion.p>
             ))}
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
 
       {/* BOTTOM DIVIDER */}

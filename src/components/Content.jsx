@@ -1,4 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
+import { getMotionProfile, motionConfig } from '../motion/motionConfig.js';
+import { getRevealVariants, getStaggerVariants } from '../motion/motionVariants.js';
+import { useMotionEnvironment } from '../motion/useReducedMotionPreference.js';
 import { siGithub, siInstagram, siFacebook, siTiktok } from 'simple-icons';
 import { GithubIcon } from './icons/github-icon';
 import { InstagramIcon } from './icons/instagram-icon';
@@ -10,6 +14,13 @@ import { useLanguage } from '../context/LanguageContext.jsx';
 
 const Contact = () => {
   const { t, langConfig } = useLanguage();
+  const { reducedMotion, isMobile, isShortViewport, hasFinePointer } = useMotionEnvironment();
+  const profile = getMotionProfile({ isMobile, isShortViewport, reducedMotion });
+  const leftRevealVariants = getRevealVariants({ reducedMotion, distance: profile.revealDistance });
+  const rightRevealVariants = getRevealVariants({ reducedMotion, distance: profile.revealDistance, delay: 0.08 });
+  const socialsStaggerVariants = getStaggerVariants({ reducedMotion, stagger: profile.stagger });
+  const socialItemVariants = getRevealVariants({ reducedMotion, distance: profile.revealDistance });
+  const sendTimerRef = useRef(null);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -19,6 +30,10 @@ const Contact = () => {
 
   const [isSending, setIsSending] = useState(false);
   const [sent, setSent] = useState(false);
+
+  useEffect(() => () => {
+    if (sendTimerRef.current) window.clearTimeout(sendTimerRef.current);
+  }, []);
 
   const brandName = siteConfig.brand.name;
   const contactEmail = personalInfo?.emails?.primary || 'contact@example.com';
@@ -90,7 +105,9 @@ const Contact = () => {
 
     window.location.href = `mailto:${contactEmail}?subject=${subject}&body=${body}`;
 
-    setTimeout(() => {
+    if (sendTimerRef.current) window.clearTimeout(sendTimerRef.current);
+    sendTimerRef.current = window.setTimeout(() => {
+      sendTimerRef.current = null;
       setIsSending(false);
       setSent(true);
     }, 500);
@@ -99,8 +116,11 @@ const Contact = () => {
   return (
     <section
       id="contact"
+      data-experience-section
+      aria-labelledby="contact-heading"
       className="
         contact-section
+        section-flow
         relative
         w-full
         overflow-hidden
@@ -125,18 +145,22 @@ const Contact = () => {
         {/* TWO COLUMN */}
         <div className="grid grid-cols-1 gap-16 lg:grid-cols-12 lg:items-start lg:gap-20">
           {/* START COLUMN */}
-          <div data-aos="fade-up" className="relative lg:col-span-6 lg:pe-8">
+          <motion.div
+            initial={reducedMotion ? false : 'hidden'}
+            whileInView="visible"
+            viewport={motionConfig.viewport}
+            variants={leftRevealVariants}
+            className="relative lg:col-span-6 lg:pe-8"
+          >
             {/* Badge */}
             <div className="mb-8 inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.22em] text-[var(--color-2)]">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inset-0 animate-ping rounded-full bg-[var(--color-7)] opacity-45" />
-                <span className="relative h-1.5 w-1.5 rounded-full bg-[var(--color-7)]" />
-              </span>
+              <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-[var(--color-7)]" />
               {t('contact.leftLabel')}
             </div>
 
             {/* Heading */}
             <h2
+              id="contact-heading"
               className="
                 max-w-[760px]
                 whitespace-pre-line
@@ -172,15 +196,23 @@ const Contact = () => {
                 {t('contact.socialsLabel')}
               </p>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <motion.div
+                initial={reducedMotion ? false : 'hidden'}
+                whileInView="visible"
+                viewport={motionConfig.viewport}
+                variants={socialsStaggerVariants}
+                className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+              >
                 {socialPlatforms.map((platform) => (
-                  <a
+                  <motion.a
+                    variants={socialItemVariants}
+                    whileHover={hasFinePointer && !reducedMotion ? { y: -4 } : undefined}
                     key={platform.key}
                     href={platform.href}
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={`${platform.name} (${platform.handle})`}
-                    className="group flex items-center justify-between gap-3 rounded-2xl border border-[var(--color-3)] bg-white/85 px-4 py-3.5 shadow-sm backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-[var(--color-2)]/45 hover:bg-white hover:shadow-[0_14px_30px_rgba(27,23,22,0.09)]"
+                    className="group flex items-center justify-between gap-3 rounded-2xl border border-[var(--color-3)] bg-white/85 px-4 py-3.5 shadow-sm backdrop-blur-sm transition-all duration-300 hover:border-[var(--color-2)]/45 hover:bg-white hover:shadow-[0_14px_30px_rgba(27,23,22,0.09)]"
                   >
                     <div className="flex items-center gap-3">
                       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--color-6)] text-[var(--color-4)] shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 group-hover:bg-[var(--color-2)] group-hover:text-[var(--color-5)]">
@@ -208,9 +240,9 @@ const Contact = () => {
                     >
                       &#8599;
                     </span>
-                  </a>
+                  </motion.a>
                 ))}
-              </div>
+              </motion.div>
             </div>
 
             {/* Direct Email */}
@@ -224,10 +256,16 @@ const Contact = () => {
                 <span>{contactEmail}</span>
               </a>
             </div>
-          </div>
+          </motion.div>
 
           {/* END COLUMN — FORM */}
-          <div data-aos="fade-up" data-aos-delay="150" className="lg:col-span-6">
+          <motion.div
+            initial={reducedMotion ? false : 'hidden'}
+            whileInView="visible"
+            viewport={motionConfig.viewport}
+            variants={rightRevealVariants}
+            className="lg:col-span-6"
+          >
             <div
               className="
                 relative
@@ -444,18 +482,20 @@ const Contact = () => {
                 </div>
               </form>
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* BOTTOM LINE */}
-        <div
-          data-aos="fade-up"
-          data-aos-delay="250"
+        <motion.div
+          initial={reducedMotion ? false : 'hidden'}
+          whileInView="visible"
+          viewport={motionConfig.viewport}
+          variants={getRevealVariants({ reducedMotion, distance: profile.revealDistance, delay: 0.08 })}
           className="mt-20 flex flex-col gap-3 border-t border-[var(--color-3)] pt-5 text-[10px] font-black uppercase tracking-[0.18em] text-[var(--color-4)]/50 sm:flex-row sm:items-center sm:justify-between"
         >
           <span>{brandName} / PORTFOLIO</span>
           <span>© {new Date().getFullYear()} {brandName}</span>
-        </div>
+        </motion.div>
       </div>
 
       <style>{`
@@ -503,6 +543,17 @@ const Contact = () => {
           border-color: var(--color-2);
         }
 
+        .contact-input:focus-visible {
+          outline: 2px solid var(--color-2);
+          outline-offset: 3px;
+          border-radius: 0.25rem;
+        }
+
+        .contact-send-button:focus-visible {
+          outline: 3px solid var(--color-2);
+          outline-offset: 3px;
+        }
+
         .contact-send-button::after {
           content: '';
           position: absolute;
@@ -512,13 +563,6 @@ const Contact = () => {
           pointer-events: none;
         }
 
-        @media (prefers-reduced-motion: reduce) {
-          .contact-input,
-          .contact-label,
-          .contact-send-button {
-            transition: none;
-          }
-        }
       `}</style>
     </section>
   );

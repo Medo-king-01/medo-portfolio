@@ -1,4 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { motion, useMotionValueEvent, useScroll } from 'framer-motion';
+import { motionConfig } from '../motion/motionConfig.js';
+import { useMotionEnvironment } from '../motion/useReducedMotionPreference.js';
 import { personalInfo } from '../data/portfolioData';
 import { siteConfig } from '../config/site.config';
 import { useLanguage } from '../context/LanguageContext.jsx';
@@ -9,40 +12,72 @@ const ALL_NAV_LINKS = [
   { key: 'about', sectionKey: 'about', href: '#about' },
   { key: 'story', sectionKey: 'story', href: '#story' },
   { key: 'skills', sectionKey: 'skills', href: '#skills' },
-  { key: 'process', sectionKey: 'process', href: '#process' },
-  { key: 'howIWork', sectionKey: 'howIWork', href: '#how-i-work' },
   { key: 'projects', sectionKey: 'projects', href: '#projects' },
   { key: 'certifications', sectionKey: 'certifications', href: '#certifications' },
   { key: 'beyondTech', sectionKey: 'beyondTech', href: '#beyond-tech' },
   { key: 'aiToolkit', sectionKey: 'aiToolkit', href: '#ai-toolkit' },
   { key: 'leadership', sectionKey: 'leadership', href: '#leadership' },
   { key: 'perspective', sectionKey: 'perspective', href: '#perspective' },
-  { key: 'softSkills', sectionKey: 'softskills', href: '#softskills' },
   { key: 'contact', sectionKey: 'contact', href: '#contact' },
 ];
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState('home');
   const { language, toggleLanguage, t, langConfig } = useLanguage();
   const { theme, toggleTheme } = useTheme();
+  const { reducedMotion } = useMotionEnvironment();
+  const { scrollY } = useScroll();
+
+  useMotionValueEvent(scrollY, 'change', (latest) => {
+    const nextScrolled = latest > 50;
+    setIsScrolled((current) => current === nextScrolled ? current : nextScrolled);
+  });
+
+  const navLinks = useMemo(
+    () => ALL_NAV_LINKS.filter((link) => siteConfig.sections[link.sectionKey]?.enabled !== false),
+    []
+  );
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    const sectionElements = navLinks
+      .map((link) => document.querySelector(link.href))
+      .filter(Boolean);
+    if (!sectionElements.length || typeof IntersectionObserver === 'undefined') return undefined;
 
-  const navLinks = ALL_NAV_LINKS.filter(
-    (link) => siteConfig.sections[link.sectionKey]?.enabled !== false
-  );
+    const observer = new IntersectionObserver((entries) => {
+      const visible = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((first, second) => Math.abs(first.boundingClientRect.top) - Math.abs(second.boundingClientRect.top));
+      if (visible[0]) setActiveSection(visible[0].target.id);
+    }, { rootMargin: '-22% 0px -68% 0px', threshold: 0 });
+
+    sectionElements.forEach((element) => observer.observe(element));
+    return () => observer.disconnect();
+  }, [navLinks]);
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') setIsOpen(false);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [isOpen]);
 
   const hireMeMailto = '#contact';
 
   return (
-    <nav
+    <motion.nav
+      aria-label={language === 'ar' ? 'التنقل الرئيسي' : 'Main navigation'}
+      initial={reducedMotion ? false : { opacity: 0, y: -16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        duration: reducedMotion ? motionConfig.duration.micro : motionConfig.duration.reveal,
+        delay: reducedMotion ? 0 : 0.12,
+        ease: motionConfig.ease.enter,
+      }}
       className={`fixed left-0 top-0 z-50 w-full border-b transition-all duration-300 ${
         isOpen || isScrolled
           ? 'border-[var(--color-3)] bg-[var(--color-5)]/92 py-3 shadow-[0_8px_30px_rgba(27,23,22,0.08)] backdrop-blur-xl'
@@ -59,15 +94,16 @@ const Navbar = () => {
         </div>
 
         {/* Center: Desktop Menu Links */}
-        <div className="hidden min-w-0 flex-1 items-center gap-3.5 overflow-x-auto py-2 xl:flex 2xl:gap-5">
+        <div className="hidden min-w-0 flex-1 items-center gap-2 overflow-x-auto py-2 xl:flex 2xl:gap-2.5">
           {navLinks.map((link) => (
             <a
               key={link.key}
               href={link.href}
-              className="group relative whitespace-nowrap text-xs font-semibold text-[var(--color-4)]/72 transition-colors duration-300 hover:text-[var(--color-4)] 2xl:text-[13px]"
+              aria-current={activeSection === link.href.slice(1) ? 'location' : undefined}
+              className={`group relative whitespace-nowrap text-xs font-semibold transition-colors duration-300 hover:text-[var(--color-4)] ${activeSection === link.href.slice(1) ? 'text-[var(--color-4)]' : 'text-[var(--color-4)]/72'}`}
             >
               {t(`nav.${link.key}`)}
-              <span className="absolute -bottom-1 start-0 h-0.5 w-0 bg-[var(--color-7)] transition-all duration-300 group-hover:w-full" />
+              <span className={`absolute -bottom-1 start-0 h-0.5 bg-[var(--color-7)] transition-all duration-300 ${activeSection === link.href.slice(1) ? 'w-full' : 'w-0 group-hover:w-full'}`} />
             </a>
           ))}
         </div>
@@ -167,7 +203,7 @@ const Navbar = () => {
         aria-hidden={!isOpen}
         className={`absolute left-0 top-full w-full transition-all duration-300 xl:hidden ${
           isOpen
-            ? 'max-h-[calc(100vh-4.5rem)] overflow-y-auto border-t border-[var(--color-3)] bg-[var(--color-5)] py-4 opacity-100 shadow-xl'
+            ? 'max-h-[calc(100dvh-4.5rem)] overflow-y-auto border-t border-[var(--color-3)] bg-[var(--color-5)] py-4 opacity-100 shadow-xl'
             : 'max-h-0 overflow-hidden opacity-0'
         }`}
         dir={langConfig.dir}
@@ -177,8 +213,9 @@ const Navbar = () => {
             <a
               key={link.key}
               href={link.href}
+              aria-current={activeSection === link.href.slice(1) ? 'location' : undefined}
               onClick={() => setIsOpen(false)}
-              className="border-b border-[var(--color-3)] pb-2 text-base font-bold text-[var(--color-4)] transition-colors hover:text-[var(--color-2)]"
+              className={`border-b border-[var(--color-3)] pb-2 text-base font-bold transition-colors hover:text-[var(--color-2)] ${activeSection === link.href.slice(1) ? 'text-[var(--color-2)]' : 'text-[var(--color-4)]'}`}
             >
               {t(`nav.${link.key}`)}
             </a>
@@ -234,7 +271,7 @@ const Navbar = () => {
           </div>
         </div>
       </div>
-    </nav>
+    </motion.nav>
   );
 };
 

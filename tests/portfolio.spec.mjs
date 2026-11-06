@@ -7,7 +7,10 @@ async function visit(page, language = 'en') {
     if (!localStorage.getItem('portfolio-language')) localStorage.setItem('portfolio-language', value);
   }, language);
   await page.goto('/');
-  await page.locator('div[class*="z-[100000]"]').waitFor({ state: 'detached' });
+  const preloader = page.locator('div[class*="z-[100000]"]');
+  const prefersReducedMotion = await page.evaluate(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  if (!prefersReducedMotion) await expect(preloader).toBeVisible();
+  await preloader.waitFor({ state: 'detached' });
 }
 
 async function scrollToCard(page, selector, index, count) {
@@ -17,6 +20,16 @@ async function scrollToCard(page, selector, index, count) {
     window.scrollTo({ top: start + (stage.offsetHeight - window.innerHeight) * index / (count - 1), behavior: 'instant' });
   }, { index, count });
   await page.waitForTimeout(400);
+  await expect(page.locator(selector).nth(index)).toHaveAttribute('aria-pressed', 'true');
+}
+
+async function activateAtVisualCenter(page, locator, useTouch) {
+  const box = await locator.boundingBox();
+  if (!box) throw new Error('Cannot interact with a card outside the viewport.');
+  const x = box.x + box.width / 2;
+  const y = box.y + box.height / 2;
+  if (useTouch) await page.touchscreen.tap(x, y);
+  else await page.mouse.click(x, y);
 }
 
 test('language, navigation, layout, form validation and storage persistence', async ({ page }, testInfo) => {
@@ -28,7 +41,7 @@ test('language, navigation, layout, form validation and storage persistence', as
   });
   await visit(page);
   await expect(page.locator('html')).toHaveAttribute('dir', 'ltr');
-  const switcher = page.locator('nav button[aria-label]:visible').filter({ hasText: testInfo.project.name === 'mobile' ? 'AR' : 'العربية' });
+  const switcher = page.locator('nav button[aria-label]:visible').filter({ hasText: testInfo.project.name === 'desktop' ? 'العربية' : 'AR' });
   await switcher.click();
   await expect(page.locator('html')).toHaveAttribute('lang', 'ar');
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
@@ -37,7 +50,7 @@ test('language, navigation, layout, form validation and storage persistence', as
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('lang', 'ar');
   await page.locator('div[class*="z-[100000]"]').waitFor({ state: 'detached' });
-  if (testInfo.project.name === 'mobile') {
+  if (testInfo.project.name !== 'desktop') {
     const menu = page.locator('nav button[aria-expanded]');
     await expect(page.locator('#mobile-menu')).toHaveAttribute('inert', '');
     await menu.click();
@@ -62,14 +75,152 @@ test('language, navigation, layout, form validation and storage persistence', as
   expect(badLocalResponses).toEqual([]);
 });
 
+test('section order, active navigation, themes, scroll progress and back-to-top', async ({ page }) => {
+  await visit(page);
+  const sectionOrder = await page.locator('[data-experience-section]').evaluateAll((sections) => sections.map((section) => section.id));
+  expect(sectionOrder).toEqual(['home', 'about', 'story', 'skills', 'projects', 'certifications', 'beyond-tech', 'ai-toolkit', 'leadership', 'perspective', 'contact', 'footer']);
+  const desktopNavOrder = await page.locator('nav > div:first-child > div:nth-child(2) a').evaluateAll((links) => links.map((link) => link.getAttribute('href')));
+  expect(desktopNavOrder).toEqual(['#home', '#about', '#story', '#skills', '#projects', '#certifications', '#beyond-tech', '#ai-toolkit', '#leadership', '#perspective', '#contact']);
+  for (const removedId of ['process', 'how-i-work', 'softskills']) {
+    await expect(page.locator(`#${removedId}`)).toHaveCount(0);
+    await expect(page.locator(`nav a[href="#${removedId}"]`)).toHaveCount(0);
+  }
+  await expect(page.locator('nav a[href="#home"][aria-current="location"]').first()).toBeAttached();
+  await page.locator('#projects').scrollIntoViewIfNeeded();
+  await expect(page.locator('nav a[href="#projects"][aria-current="location"]').first()).toBeAttached();
+
+  const themeButton = page.getByRole('button', { name: 'Switch to Dark Mode' }).first();
+  await themeButton.click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('portfolio-theme'))).toBe('dark');
+  await page.getByRole('button', { name: 'Switch to Light Mode' }).first().click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+
+  const progress = page.locator('#root > div[aria-hidden="true"] > div');
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+  await expect.poll(() => progress.evaluate((element) => new DOMMatrixReadOnly(getComputedStyle(element).transform).a)).toBeLessThan(0.01);
+  const backToTop = page.locator('#footer button');
+  await backToTop.scrollIntoViewIfNeeded();
+  await expect.poll(() => progress.evaluate((element) => new DOMMatrixReadOnly(getComputedStyle(element).transform).a)).toBeGreaterThan(0.1);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await backToTop.click();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(2);
+});
+
+test('projects pin and scrub horizontally without widening the page', async ({ page }, testInfo) => {
+  if (!['desktop', 'mobile'].includes(testInfo.project.name)) test.skip();
+  if (testInfo.project.name === 'desktop') await page.setViewportSize({ width: 1366, height: 768 });
+  await visit(page);
+
+  const section = page.locator('#projects');
+  const stage = section.locator('.projects-stage');
+  const track = section.locator('.projects-track');
+  const jumps = section.locator('.project-index-button');
+  await expect(section).toHaveClass(/is-horizontal/);
+  await expect(track).toHaveAttribute('role', 'group');
+  await expect(track).toHaveAttribute('tabindex', '0');
+  await expect(jumps).toHaveCount(6);
+
+  const initial = await page.evaluate(() => {
+    const stageElement = document.querySelector('#projects .projects-stage');
+    const trackElement = document.querySelector('#projects .projects-track');
+    const firstCard = trackElement.children[0];
+    const distance = Math.max(
+      Math.max(trackElement.scrollWidth, trackElement.offsetWidth) - (trackElement.parentElement?.clientWidth || 0),
+      0,
+    );
+    const scrollLength = distance + window.innerHeight * 0.65;
+    return {
+      stageStart: stageElement.getBoundingClientRect().top + window.scrollY,
+      cardWidth: firstCard.getBoundingClientRect().width,
+      distance,
+      scrollLength,
+      pageOverflow: Math.max(document.body.scrollWidth, document.documentElement.scrollWidth) - window.innerWidth,
+    };
+  });
+  expect(initial.pageOverflow).toBeLessThanOrEqual(1);
+
+  if (testInfo.project.name === 'desktop') {
+    await page.evaluate((top) => window.scrollTo({ top, behavior: 'instant' }), initial.stageStart + initial.scrollLength / 2);
+    await expect.poll(async () => Math.abs(await stage.evaluate((element) => element.getBoundingClientRect().top))).toBeLessThan(2);
+    await expect.poll(async () => page.locator('.projects-track').evaluate((element, distance) => {
+      const matrix = new DOMMatrixReadOnly(getComputedStyle(element).transform);
+      return Math.abs(matrix.m41 + distance / 2);
+    }, initial.distance)).toBeLessThan(35);
+    const desktopCardWidth = await track.locator('.project-track-card').first().evaluate((element) => element.getBoundingClientRect().width);
+    expect(Math.abs(desktopCardWidth - 832)).toBeLessThan(2);
+  } else {
+    expect(Math.abs(initial.cardWidth - 335.4)).toBeLessThan(1);
+    expect(Math.abs(initial.distance - 1845)).toBeLessThan(10);
+    await page.evaluate(({ top, offset }) => window.scrollTo({ top: top + offset, behavior: 'instant' }), {
+      top: initial.stageStart,
+      offset: 170 / initial.distance * initial.scrollLength,
+    });
+    await expect.poll(async () => page.locator('.projects-track').evaluate((element) => (
+      Math.abs(new DOMMatrixReadOnly(getComputedStyle(element).transform).m41 + 170)
+    ))).toBeLessThan(25);
+    await page.evaluate(() => window.scrollBy({ top: 405, behavior: 'instant' }));
+    await expect.poll(async () => page.locator('.projects-track').evaluate((element) => (
+      new DOMMatrixReadOnly(getComputedStyle(element).transform).m41
+    ))).toBeLessThan(-472);
+    await expect.poll(async () => page.locator('.projects-track').evaluate((element) => (
+      new DOMMatrixReadOnly(getComputedStyle(element).transform).m41
+    ))).toBeGreaterThan(-492);
+    await expect(jumps.nth(1)).toHaveAttribute('aria-current', 'step');
+    await expect.poll(async () => Math.abs(await stage.evaluate((element) => element.getBoundingClientRect().top))).toBeLessThan(2);
+  }
+
+  const finalPageOverflow = await page.evaluate(() => Math.max(
+    document.body.scrollWidth,
+    document.documentElement.scrollWidth,
+  ) - window.innerWidth);
+  expect(finalPageOverflow).toBeLessThanOrEqual(1);
+});
+
+test('reduced motion uses the native horizontal snap track', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await visit(page);
+
+  const section = page.locator('#projects');
+  const track = section.locator('.projects-track');
+  await expect(section).not.toHaveClass(/is-horizontal/);
+  await expect(track).toHaveAttribute('role', 'group');
+  await expect(track).toHaveAttribute('tabindex', '0');
+  await expect(track).toHaveCSS('overflow-x', 'auto');
+  await expect(track).toHaveCSS('scroll-snap-type', 'x mandatory');
+  await expect(track.locator('.project-gallery-card')).toHaveCount(6);
+
+  const finalJump = section.locator('.project-index-button').nth(5);
+  await finalJump.click();
+  await expect(finalJump).toHaveAttribute('aria-current', 'step');
+  await expect.poll(() => track.evaluate((element) => Math.abs(element.scrollLeft))).toBeGreaterThan(0);
+  expect(await page.evaluate(() => Math.max(
+    document.body.scrollWidth,
+    document.documentElement.scrollWidth,
+  ) <= window.innerWidth + 1)).toBe(true);
+});
+
 test('all projects and certificates open, close, and load their previews', async ({ page, request }, testInfo) => {
   await visit(page, testInfo.project.name === 'mobile' ? 'ar' : 'en');
-  const projects = page.locator('#projects .sticky button');
+  const projects = page.locator('#projects .project-gallery-card');
+  const projectJumps = page.locator('#projects .project-index-button');
   await expect(projects).toHaveCount(6);
-  // Check both directions, including middle cards whose 3D layers can overlap on mobile.
+  await expect(projectJumps).toHaveCount(6);
+  // Use the numbered controls so both the pinned and native-scroll modes are covered.
   for (const index of [0, 1, 2, 3, 4, 5, 3]) {
-    await scrollToCard(page, '#projects .sticky button', index, 6);
+    const jump = projectJumps.nth(index);
+    await jump.click();
+    await expect(jump).toHaveAttribute('aria-current', 'step');
+    await expect.poll(async () => {
+      const box = await page.locator('.projects-stage').boundingBox();
+      return Math.abs(box?.y ?? Number.POSITIVE_INFINITY);
+    }, { timeout: 10000 }).toBeLessThan(3);
     const card = projects.nth(index);
+    await expect.poll(async () => {
+      const box = await card.boundingBox();
+      const centerX = box && box.x + box.width / 2;
+      return box && centerX >= -2 && centerX <= testInfo.project.use.viewport.width + 2;
+    }, { timeout: 10000 }).toBe(true);
     const name = (await card.getAttribute('aria-label')).split(': ').slice(1).join(': ');
     await card.click();
     const dialog = page.getByRole('dialog');
@@ -89,15 +240,26 @@ test('all projects and certificates open, close, and load their previews', async
     }
     await page.keyboard.press('Escape');
     await expect(dialog).toHaveCount(0);
-    await expect(card).toBeFocused();
+    if (!testInfo.project.use.hasTouch) await expect(card).toBeFocused();
   }
   const certificates = page.locator('.certificate-wheel-card');
   await expect(certificates).toHaveCount(11);
+  await scrollToCard(page, '.certificate-wheel-card', 0, 11);
+  const certificateControls = testInfo.project.name === 'mobile'
+    ? { next: 'التالي', previous: 'السابق' }
+    : { next: 'Next', previous: 'Previous' };
+  await page.getByRole('button', { name: certificateControls.next }).click();
+  await expect(certificates.nth(1)).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: certificateControls.previous }).click();
+  await expect(certificates.nth(0)).toHaveAttribute('aria-pressed', 'true');
+  await page.locator('button[aria-label^="Go to certificate 11:"]').click();
+  await expect(certificates.nth(10)).toHaveAttribute('aria-pressed', 'true');
+  await scrollToCard(page, '.certificate-wheel-card', 0, 11);
   for (let index = 0; index < 11; index++) {
     await scrollToCard(page, '.certificate-wheel-card', index, 11);
     const card = certificates.nth(index);
     await expect.poll(() => card.locator('img').evaluate((image) => image.complete && image.naturalWidth > 0)).toBe(true);
-    await card.click();
+    await activateAtVisualCenter(page, card, testInfo.project.use.hasTouch);
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible();
     await expect.poll(() => dialog.locator('img').evaluate((image) => image.complete && image.naturalWidth > 0)).toBe(true);
@@ -113,7 +275,37 @@ test('all projects and certificates open, close, and load their previews', async
     }
     await page.keyboard.press('Escape');
     await expect(dialog).toHaveCount(0);
-    await expect(card).toBeFocused();
+    if (!testInfo.project.use.hasTouch) await expect(card).toBeFocused();
+  }
+});
+
+test('About portrait drags with a fine pointer and allows touch scrolling', async ({ page, context }, testInfo) => {
+  await visit(page);
+  const portrait = page.locator('#about .about-card-physics');
+  await portrait.scrollIntoViewIfNeeded();
+  const box = await portrait.boundingBox();
+  if (!box) throw new Error('About portrait is not visible.');
+  const x = box.x + box.width / 2;
+  const y = box.y + box.height / 2;
+
+  if (testInfo.project.use.hasTouch) {
+    const before = await page.evaluate(() => window.scrollY);
+    const session = await context.newCDPSession(page);
+    await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y, id: 1 }] });
+    await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y - 140, id: 1 }] });
+    await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(before + 10);
+    await expect(portrait).not.toHaveClass(/about-card-grabbing/);
+    await session.detach();
+  } else {
+    const initialTransform = await portrait.evaluate((element) => element.style.transform);
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await page.mouse.move(x + 120, y - 45, { steps: 6 });
+    await expect(portrait).toHaveClass(/about-card-grabbing/);
+    await expect.poll(() => portrait.evaluate((element) => element.style.transform)).not.toBe(initialTransform);
+    await page.mouse.up();
+    await expect(portrait).not.toHaveClass(/about-card-grabbing/);
   }
 });
 

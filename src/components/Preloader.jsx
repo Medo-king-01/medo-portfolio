@@ -1,41 +1,70 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { motionConfig } from '../motion/motionConfig.js';
+import { useReducedMotionPreference } from '../motion/useReducedMotionPreference.js';
 import { personalInfo } from '../data/portfolioData';
 import { siteConfig } from '../config/site.config';
 import { useLanguage } from '../context/LanguageContext.jsx';
 
+const PRELOADER_FAILSAFE_MS = 7000;
+
+const announceCurtainOpened = () => {
+  window.__CURTAIN_OPENED__ = true;
+  window.dispatchEvent(new CustomEvent('curtain:opened'));
+};
+
 const Preloader = () => {
-  const [isLoading, setIsLoading] = useState(true);
+  const prefersReducedMotion = useReducedMotionPreference();
+  const [isLoading, setIsLoading] = useState(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return true;
+    return !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  });
   const { t, langConfig } = useLanguage();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 2600);
+    let finished = false;
+    let fallbackTimer;
 
-    return () => clearTimeout(timer);
-  }, []);
+    const finishLoading = () => {
+      if (finished) return;
+      finished = true;
+      if (fallbackTimer) window.clearTimeout(fallbackTimer);
+      setIsLoading(false);
+    };
+
+    if (prefersReducedMotion) {
+      finishLoading();
+      announceCurtainOpened();
+      return undefined;
+    }
+
+    if (window.__APP_READY__) finishLoading();
+    else window.addEventListener('app:ready', finishLoading, { once: true });
+
+    // A safety net only: the app-ready signal is the normal completion path.
+    fallbackTimer = window.setTimeout(finishLoading, PRELOADER_FAILSAFE_MS);
+
+    return () => {
+      window.removeEventListener('app:ready', finishLoading);
+      if (fallbackTimer) window.clearTimeout(fallbackTimer);
+    };
+  }, [prefersReducedMotion]);
 
   const brandName = personalInfo?.brandName || siteConfig.brand.brandName;
   const brandHandle = siteConfig.brand.handle;
 
   return (
-    <AnimatePresence
-      mode="wait"
-      onExitComplete={() => {
-        window.__CURTAIN_OPENED__ = true;
-        window.dispatchEvent(new CustomEvent('curtain:opened'));
-      }}
-    >
+    <AnimatePresence mode="wait" onExitComplete={announceCurtainOpened}>
       {isLoading && (
         <motion.div
           key="preloader"
           initial={{ opacity: 1 }}
           exit={{
             y: '-100%',
+            opacity: 0,
             transition: {
-              duration: 0.65,
-              ease: [0.76, 0, 0.24, 1],
+              duration: motionConfig.duration.curtain,
+              ease: motionConfig.ease.exit,
             },
           }}
           className="
@@ -307,29 +336,16 @@ const Preloader = () => {
               </span>
 
               {/* Dots */}
-              <div className="flex gap-1">
+              <div className="flex gap-1" aria-hidden="true">
                 {[0, 0.15, 0.3].map((delay) => (
                   <motion.span
                     key={delay}
-                    animate={{ opacity: [0.25, 1, 0.25] }}
-                    transition={{ duration: 1, repeat: Infinity, delay }}
+                    animate={prefersReducedMotion ? { opacity: 0.7 } : { opacity: [0.25, 1, 0.25] }}
+                    transition={prefersReducedMotion ? undefined : { duration: 1, repeat: Infinity, delay }}
                     className="h-1 w-1 rounded-full bg-[var(--color-7)]"
                   />
                 ))}
               </div>
-            </div>
-
-            {/* Progress */}
-            <div
-              dir="ltr"
-              className="h-px w-40 overflow-hidden rounded-full bg-[var(--color-3)]"
-            >
-              <motion.div
-                initial={{ x: '-100%' }}
-                animate={{ x: '0%' }}
-                transition={{ duration: 2.4, delay: 0.25, ease: 'easeInOut' }}
-                className="h-full w-full origin-left bg-[var(--color-7)]"
-              />
             </div>
           </motion.div>
 
