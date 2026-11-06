@@ -109,16 +109,14 @@ html[dir="rtl"] section h3 {
 }
 
 /* Smooth Interactive Icon Micro-Animations */
-svg:not([preserveAspectRatio]) {
+a > svg,
+button > svg,
+.interactive-icon {
   transition: transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1), color 250ms ease, opacity 250ms ease;
 }
 
-svg[preserveAspectRatio] {
-  transform: none !important;
-}
-
-a:hover > svg:not([preserveAspectRatio]),
-button:hover > svg:not([preserveAspectRatio]) {
+a:hover > svg,
+button:hover > svg {
   transform: scale(1.15) rotate(4deg);
 }
 

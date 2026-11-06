@@ -4,9 +4,9 @@ import stackImageAsset from '../assets/about/medo.jpg';
 
 const stackImage = stackImageAsset;
 
-const ROPE_LENGTH = 235;
+const ROPE_LENGTH = 300;
 const MAX_X = 220;
-const MIN_Y = -130;
+const MIN_Y = -120;
 const MAX_Y = 160;
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -16,6 +16,7 @@ const About = () => {
   const cardRef = useRef(null);
   const frameRef = useRef(null);
   const ropePathRef = useRef(null);
+  const ropeHighlightRef = useRef(null);
   const physicsFrameRef = useRef(null);
 
   const physicsRef = useRef({
@@ -46,24 +47,29 @@ const About = () => {
     if (!rope) return;
 
     const physics = physicsRef.current;
-    const movement = clamp(physics.velocityX * 0.018, -24, 24);
-    const positionCurve = clamp(physics.x * 0.08, -18, 18);
-    const curve = movement + positionCurve;
-    const verticalCurve = clamp(physics.velocityY * 0.006, -10, 10);
+    const { x, y, velocityX, velocityY } = physics;
 
-    const path = `
-      M 55 0
-      C
-        ${55 + curve * 0.25} ${ROPE_LENGTH * 0.18},
-        ${55 + curve} ${ROPE_LENGTH * 0.48},
-        ${55 + curve * 0.55} ${ROPE_LENGTH * 0.72}
-      C
-        ${55 + curve * 0.25} ${ROPE_LENGTH * 0.84},
-        ${55 + verticalCurve} ${ROPE_LENGTH * 0.94},
-        55 ${ROPE_LENGTH}
-    `;
+    const sway = clamp(velocityX * 0.02 - x * 0.08, -36, 36);
+    const vStretch = clamp(velocityY * 0.008, -16, 16);
+
+    const startX = 0;
+    const startY = -ROPE_LENGTH;
+
+    const endX = x;
+    const endY = y - 8;
+
+    const cp1X = startX + (endX - startX) * 0.22 + sway * 0.5;
+    const cp1Y = startY + (endY - startY) * 0.45;
+
+    const cp2X = startX + (endX - startX) * 0.75 + sway * 0.85;
+    const cp2Y = startY + (endY - startY) * 0.82 + vStretch;
+
+    const path = `M ${startX} ${startY} C ${cp1X} ${cp1Y}, ${cp2X} ${cp2Y}, ${endX} ${endY}`;
 
     rope.setAttribute('d', path);
+    if (ropeHighlightRef.current) {
+      ropeHighlightRef.current.setAttribute('d', path);
+    }
   }, []);
 
   const updateVisual = useCallback(() => {
@@ -301,6 +307,44 @@ const About = () => {
           className="mt-12 flex w-full shrink-0 flex-col items-center md:mt-0 md:w-[350px]"
         >
           <div ref={cardRef} data-aos="drop-bounce" className="relative flex w-full justify-center">
+            {/* ANCHORED FLEXIBLE ROPE */}
+            <svg
+              aria-hidden="true"
+              className="pointer-events-none absolute overflow-visible"
+              style={{
+                left: '50%',
+                top: '0',
+                width: '1px',
+                height: '1px',
+                zIndex: 10,
+              }}
+            >
+              {/* Ceiling mount anchor */}
+              <circle cx="0" cy={-ROPE_LENGTH} r="6" fill="#1b1716" />
+              <circle cx="0" cy={-ROPE_LENGTH} r="2.5" fill="#a19392" />
+
+              {/* Main rope */}
+              <path
+                ref={ropePathRef}
+                d={`M 0 ${-ROPE_LENGTH} C 0 ${-ROPE_LENGTH * 0.52}, 0 ${-ROPE_LENGTH * 0.2}, 0 -8`}
+                fill="none"
+                stroke="#1b1716"
+                strokeWidth="7"
+                strokeLinecap="round"
+              />
+
+              {/* Rope texture / highlight stripe */}
+              <path
+                ref={ropeHighlightRef}
+                d={`M 0 ${-ROPE_LENGTH} C 0 ${-ROPE_LENGTH * 0.52}, 0 ${-ROPE_LENGTH * 0.2}, 0 -8`}
+                fill="none"
+                stroke="#a19392"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                opacity="0.5"
+              />
+            </svg>
+
             <div
               ref={frameRef}
               onPointerDown={handlePointerDown}
@@ -328,60 +372,16 @@ const About = () => {
                 transformOrigin: '50% 0%',
               }}
             >
-              {/* LONG FLEXIBLE ROPE */}
-              <svg
-                aria-hidden="true"
-                className="pointer-events-none absolute overflow-visible"
-                style={{
-                  left: '50%',
-                  top: `-${ROPE_LENGTH}px`,
-                  width: '110px',
-                  height: `${ROPE_LENGTH + 12}px`,
-                  transform: 'translateX(-50%)',
-                  zIndex: 0,
-                }}
-                viewBox={`0 0 110 ${ROPE_LENGTH + 12}`}
-                preserveAspectRatio="none"
-              >
-                <path
-                  ref={ropePathRef}
-                  d={`
-                    M 55 0
-                    C 55 ${ROPE_LENGTH * 0.2}, 55 ${ROPE_LENGTH * 0.5}, 55 ${ROPE_LENGTH * 0.72}
-                    C 55 ${ROPE_LENGTH * 0.84}, 55 ${ROPE_LENGTH * 0.94}, 55 ${ROPE_LENGTH}
-                  `}
-                  fill="none"
-                  stroke="#1b1716"
-                  strokeWidth="8"
-                  strokeLinecap="round"
-                />
-                <path
-                  d={`
-                    M 55 0
-                    C 55 ${ROPE_LENGTH * 0.2}, 55 ${ROPE_LENGTH * 0.5}, 55 ${ROPE_LENGTH * 0.72}
-                    C 55 ${ROPE_LENGTH * 0.84}, 55 ${ROPE_LENGTH * 0.94}, 55 ${ROPE_LENGTH}
-                  `}
-                  fill="none"
-                  stroke="#a19392"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  opacity="0.4"
-                  pointerEvents="none"
-                />
-              </svg>
-
               {/* CLIP */}
               <div
                 className="
                   pointer-events-none
                   absolute
                   -top-6
-                  left-1/2
                   z-30
                   flex
                   h-12
                   w-6
-                  -translate-x-1/2
                   items-center
                   justify-center
                   rounded-md
@@ -392,6 +392,7 @@ const About = () => {
                   to-[var(--color-3)]
                   shadow-[0_3px_12px_rgba(27,23,22,0.32)]
                 "
+                style={{ left: 'calc(50% - 12px)' }}
               >
                 <div className="h-5 w-2 rounded-full bg-[var(--color-1)]/70 shadow-inner" />
               </div>
@@ -402,17 +403,16 @@ const About = () => {
                   pointer-events-none
                   absolute
                   -top-3
-                  left-1/2
                   z-20
                   flex
                   h-6
                   w-16
-                  -translate-x-1/2
                   items-center
                   justify-center
                   rounded-t-xl
                   bg-[var(--color-4)]
                 "
+                style={{ left: 'calc(50% - 32px)' }}
               >
                 <div className="h-2 w-8 rounded-full bg-black/30 shadow-inner" />
               </div>
