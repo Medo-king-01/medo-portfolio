@@ -349,12 +349,16 @@ const Hero = () => {
         ref={heroGlowRef}
         aria-hidden="true"
         className="pointer-events-none absolute right-[-12rem] top-16 h-[32rem] w-[32rem] rounded-full bg-[var(--color-8)]/15 blur-3xl"
+        data-parallax-layer
+        data-parallax-depth="0.55"
       />
 
       <div
         ref={heroShadeRef}
         aria-hidden="true"
         className="pointer-events-none absolute bottom-0 left-[-10rem] h-[28rem] w-[28rem] rounded-full bg-[var(--color-1)]/20 blur-3xl"
+        data-parallax-layer
+        data-parallax-depth="0.35"
       />
 
       <div className="hero-grid-backdrop" aria-hidden="true">
@@ -367,6 +371,8 @@ const Hero = () => {
       <div
         className={`hero-orbit-graphic${heroOrbitSceneReady ? ' hero-orbit-graphic-with-3d' : ''}`}
         aria-hidden="true"
+        data-parallax-layer
+        data-parallax-depth="0.25"
       >
         <span className="hero-orbit-ring hero-orbit-ring-one"><i /></span>
         <span className="hero-orbit-ring hero-orbit-ring-two"><i /></span>
@@ -677,7 +683,7 @@ const Hero = () => {
             whileInView="visible"
             viewport={motionConfig.viewport}
             variants={getRevealVariants({ distance: motionProfile.revealDistance, delay: 0.04 })}
-            className="mb-5 inline-flex items-center gap-2.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 shadow-[0_2px_12px_rgba(16,185,129,0.12)] backdrop-blur-md transition-all duration-300 hover:scale-[1.02] hover:bg-emerald-500/15"
+            className="availability-pulse mb-5 inline-flex items-center gap-2.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 shadow-[0_2px_12px_rgba(16,185,129,0.12)] backdrop-blur-md transition-all duration-300 hover:scale-[1.02] hover:bg-emerald-500/15"
           >
             <span className="relative flex h-2.5 w-2.5">
               <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
@@ -738,14 +744,19 @@ const Hero = () => {
             {/* PRIMARY */}
             <a
               href={t('hero.ctaPrimary.href')}
+             
+              data-click-spark
               className="
                 group
+                btn-ripple
+                relative
                 inline-flex
                 h-12
                 w-full
                 items-center
                 justify-center
                 gap-2
+                overflow-hidden
                 rounded-full
                 bg-[var(--color-4)]
                 px-6
@@ -762,7 +773,7 @@ const Hero = () => {
                 sm:min-w-[175px]
               "
             >
-              <span>{t('hero.ctaPrimary.text')}</span>
+              <span className="relative z-10">{t('hero.ctaPrimary.text')}</span>
               <svg
                 className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1 rtl:rotate-180 rtl:group-hover:-translate-x-1"
                 fill="none"
@@ -781,12 +792,16 @@ const Hero = () => {
             {/* SECONDARY */}
             <a
               href={t('hero.ctaSecondary.href')}
+             
               className="
+                btn-ripple
+                relative
                 inline-flex
                 h-12
                 w-full
                 items-center
                 justify-center
+                overflow-hidden
                 rounded-full
                 border
                 border-[var(--color-3)]
@@ -808,26 +823,30 @@ const Hero = () => {
                 sm:min-w-[175px]
               "
             >
-              {t('hero.ctaSecondary.text')}
+              <span className="relative z-10">{t('hero.ctaSecondary.text')}</span>
             </a>
 
             {/* RESUME */}
             {resumeHref && (
               <a
                 href={resumeHref}
+               
                 onClick={(event) => {
                   event.preventDefault();
                   setResumeAvailable(null);
                   setResumeOpen(true);
                 }}
                 className="
+                  btn-ripple
                   group
+                  relative
                   inline-flex
                   h-12
                   w-full
                   items-center
                   justify-center
                   gap-2
+                  overflow-hidden
                   rounded-full
                   border
                   border-[var(--color-3)]

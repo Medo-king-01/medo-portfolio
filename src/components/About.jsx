@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { getMotionProfile, motionConfig } from '../motion/motionConfig.js';
 import { getRevealVariants, getStaggerVariants } from '../motion/motionVariants.js';
@@ -15,8 +15,25 @@ const MAX_Y = 160;
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
+/**
+ * Split a paragraph into an array of {text, key} tokens (words + trailing spaces).
+ * Works for both LTR and RTL — we just split on whitespace.
+ */
+const splitWords = (paragraph) => {
+  // Match sequences of non-whitespace and preserve whitespace between them.
+  const tokens = [];
+  const regex = /(\S+)(\s*)/g;
+  let m;
+  let i = 0;
+  while ((m = regex.exec(paragraph)) !== null) {
+    tokens.push({ word: m[1], space: m[2], key: `${i}-${m[1]}` });
+    i += 1;
+  }
+  return tokens;
+};
+
 const About = () => {
-  const { t, langConfig } = useLanguage();
+  const { t, langConfig, language } = useLanguage();
   const { isMobile, isTablet, isShortViewport, hasFinePointer } = useMotionEnvironment();
   const profile = getMotionProfile({ isMobile, isTablet, isShortViewport, hasFinePointer });
   const frameRef = useRef(null);
@@ -25,6 +42,20 @@ const About = () => {
   const physicsFrameRef = useRef(null);
   const inViewRef = useRef(false);
   const schedulePhysicsRef = useRef(() => {});
+
+  // Has the entrance "drop + swing" animation finished?
+  const [entranceDone, setEntranceDone] = useState(false);
+  // Has the section entered the viewport (triggers entrance)?
+  const [hasEntered, setHasEntered] = useState(false);
+
+  const paragraphs = useMemo(() => t('about.paragraphs') || [], [t]);
+  const motto = t('about.motto');
+
+  // Pre-split paragraphs into words once per language/paragraph change.
+  const tokenizedParagraphs = useMemo(
+    () => paragraphs.map((p) => splitWords(p)),
+    [paragraphs],
+  );
 
   const physicsRef = useRef({
     x: 0,
@@ -104,7 +135,7 @@ const About = () => {
 
     const tick = (time) => {
       physicsFrameRef.current = null;
-      if (!inViewRef.current) return;
+      if (!inViewRef.current || !entranceDone) return;
 
       const physics = physicsRef.current;
       const deltaTime = Math.min((time - previousTime) / 1000, 0.04);
@@ -167,7 +198,7 @@ const About = () => {
     };
 
     const schedule = () => {
-      if (!frameRef.current || physicsFrameRef.current || !inViewRef.current || !isMoving()) return;
+      if (!frameRef.current || physicsFrameRef.current || !inViewRef.current || !entranceDone || !isMoving()) return;
       frameRef.current.style.willChange = 'transform';
       previousTime = performance.now();
       physicsFrameRef.current = window.requestAnimationFrame(tick);
@@ -184,16 +215,19 @@ const About = () => {
       observer = new IntersectionObserver(([entry]) => {
         inViewRef.current = entry.isIntersecting;
         if (entry.isIntersecting) {
+          // Trigger the drop+swing entrance once.
+          if (!hasEntered) setHasEntered(true);
           schedulePhysicsRef.current();
         } else if (physicsFrameRef.current) {
           window.cancelAnimationFrame(physicsFrameRef.current);
           physicsFrameRef.current = null;
-          frameRef.current.style.willChange = 'auto';
+          if (frameRef.current) frameRef.current.style.willChange = 'auto';
         }
-      }, { rootMargin: '120px 0px' });
+      }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
       observer.observe(frameElement);
     } else {
       inViewRef.current = true;
+      setHasEntered(true);
     }
 
     return () => {
@@ -207,9 +241,21 @@ const About = () => {
       if (frameElement) frameElement.style.willChange = 'auto';
       schedulePhysicsRef.current = () => {};
     };
-  }, [updateVisual]);
+  }, [updateVisual, entranceDone, hasEntered]);
+
+  // When the entrance swing finishes, mark it done so drag physics resume.
+  const handleEntranceComplete = useCallback(() => {
+    // Reset physics to neutral (card is hanging straight) before handing over to drag.
+    physicsRef.current.x = 0;
+    physicsRef.current.y = 0;
+    physicsRef.current.velocityX = 0;
+    physicsRef.current.velocityY = 0;
+    physicsRef.current.rotation = 0;
+    setEntranceDone(true);
+  }, []);
 
   const handlePointerDown = (event) => {
+    if (!entranceDone) return; // block drag until entrance finishes
     const supportsPointerDrag = canDragRef.current || event.pointerType === 'touch' || event.pointerType === 'pen';
     if (!frameRef.current || !supportsPointerDrag) return;
 
@@ -245,7 +291,7 @@ const About = () => {
 
   const handlePointerMove = (event) => {
     const physics = physicsRef.current;
-    if (!physics.dragging || physics.pointerId !== event.pointerId) return;
+    if (!entranceDone || !physics.dragging || physics.pointerId !== event.pointerId) return;
 
     const deltaX = event.clientX - physics.startPointerX;
     const deltaY = event.clientY - physics.startPointerY;
@@ -314,6 +360,82 @@ const About = () => {
     schedulePhysicsRef.current();
   };
 
+  // Framer Motion variants for the entrance "drop + swing".
+  // The card starts held up at the anchor point (rope slack/coiled), then drops.
+  // At rest, rope end is at y=-8 relative to card; anchor at y=-ROPE_LENGTH (-300)
+  //   => start card at y = -(ROPE_LENGTH - 8) = -292 so rope end meets anchor.
+  const DROP_START_Y = -(ROPE_LENGTH - 8); // -292
+  const dropAndSwing = {
+    hidden: {
+      y: DROP_START_Y,
+      rotate: 0,
+      opacity: 0,
+      scale: 0.96,
+    },
+    visible: {
+      y: 0,
+      opacity: 1,
+      scale: 1,
+      transition: {
+        opacity: { duration: 0.1, delay: 0.05, ease: 'easeOut' },
+        scale: { duration: 0.3, ease: 'easeOut' },
+        default: {
+          duration: 2.4,
+          ease: [0.22, 0.9, 0.32, 1.15], // pendulum bounce
+          times: [0, 0.42, 0.65, 0.84, 1],
+          y: [DROP_START_Y, 28, -20, 9, 0],   // fall past anchor → stretch rope → bounce up → settle
+          rotate: [0, 2, -12, 8, 0],           // small swing after the bounce
+        },
+      },
+    },
+  };
+
+  /**
+   * Keep the rope path in sync with the card's position during the
+   * Framer-Motion entrance animation so the rope stretches with the card
+   * as it drops (realistic "rope unrolling" feel).
+   */
+  const handleEntranceUpdate = useCallback((latest) => {
+    const rope = ropePathRef.current;
+    const ropeHighlight = ropeHighlightRef.current;
+    if (!rope) return;
+    // latest.y is the current y offset of the card during animation.
+    // Rope runs from anchor (0, -ROPE_LENGTH) to card's current position
+    // (0, y - 8) where the rope clips into the card.
+    const y = typeof latest?.y === 'number' ? latest.y : 0;
+    const endX = 0;
+    const endY = y - 8;
+    const startX = 0;
+    const startY = -ROPE_LENGTH;
+    // No sideways sway during the straight fall (rotate starts at 0 until bounce)
+    const cp1X = startX + (endX - startX) * 0.22;
+    const cp1Y = startY + (endY - startY) * 0.45;
+    const cp2X = startX + (endX - startX) * 0.75;
+    const cp2Y = startY + (endY - startY) * 0.82;
+    const path = `M ${startX} ${startY} C ${cp1X} ${cp1Y}, ${cp2X} ${cp2Y}, ${endX} ${endY}`;
+    rope.setAttribute('d', path);
+    if (ropeHighlight) ropeHighlight.setAttribute('d', path);
+  }, []);
+
+  // Word-by-word reveal variants
+  const wordVariants = {
+    hidden: {
+      opacity: 0,
+      y: '0.6em',
+      filter: 'blur(4px)',
+    },
+    visible: (i) => ({
+      opacity: 1,
+      y: 0,
+      filter: 'blur(0px)',
+      transition: {
+        duration: 0.55,
+        ease: [0.22, 1, 0.36, 1],
+        delay: 0.035 * i,
+      },
+    }),
+  };
+
   return (
     <section
       id="about"
@@ -340,12 +462,13 @@ const About = () => {
         >
           <motion.div
             initial="hidden"
-            whileInView="visible"
-            viewport={motionConfig.viewport}
-            variants={getRevealVariants({ distance: profile.revealDistance })}
+            animate={hasEntered ? 'visible' : 'hidden'}
+            variants={dropAndSwing}
+            onUpdate={handleEntranceUpdate}
+            onAnimationComplete={handleEntranceComplete}
             className="relative flex w-full justify-center"
           >
-            {/* ANCHORED FLEXIBLE ROPE */}
+            {/* ANCHORED FLEXIBLE ROPE — visible from start of drop, grows with the card */}
             <svg
               aria-hidden="true"
               className="pointer-events-none absolute overflow-visible"
@@ -361,10 +484,11 @@ const About = () => {
               <circle cx="0" cy={-ROPE_LENGTH} r="6" fill="#1b1716" />
               <circle cx="0" cy={-ROPE_LENGTH} r="2.5" fill="#a19392" />
 
-              {/* Main rope */}
+              {/* Main rope — starts at length 0 (end point = anchor), then the
+                  onUpdate callback stretches it as the card drops. */}
               <path
                 ref={ropePathRef}
-                d={`M 0 ${-ROPE_LENGTH} C 0 ${-ROPE_LENGTH * 0.52}, 0 ${-ROPE_LENGTH * 0.2}, 0 -8`}
+                d={`M 0 ${-ROPE_LENGTH} C 0 ${-ROPE_LENGTH}, 0 ${-ROPE_LENGTH}, 0 ${-ROPE_LENGTH}`}
                 fill="none"
                 stroke="#1b1716"
                 strokeWidth="7"
@@ -374,7 +498,7 @@ const About = () => {
               {/* Rope texture / highlight stripe */}
               <path
                 ref={ropeHighlightRef}
-                d={`M 0 ${-ROPE_LENGTH} C 0 ${-ROPE_LENGTH * 0.52}, 0 ${-ROPE_LENGTH * 0.2}, 0 -8`}
+                d={`M 0 ${-ROPE_LENGTH} C 0 ${-ROPE_LENGTH}, 0 ${-ROPE_LENGTH}, 0 ${-ROPE_LENGTH}`}
                 fill="none"
                 stroke="#a19392"
                 strokeWidth="2.5"
@@ -405,7 +529,6 @@ const About = () => {
                 shadow-[0_24px_50px_rgba(27,23,22,0.36)]
               "
               style={{
-                transform: 'translate3d(0,0,0) rotateZ(0deg)',
                 transformOrigin: '50% 0%',
               }}
             >
@@ -493,7 +616,7 @@ const About = () => {
           </motion.div>
         </div>
 
-        {/* TEXT */}
+        {/* TEXT — word by word reveal */}
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -501,30 +624,60 @@ const About = () => {
           variants={getRevealVariants({ distance: profile.revealDistance, delay: 0.08 })}
           className="relative z-20 mt-8 flex-1 text-start text-[var(--color-4)] md:mt-0"
         >
-          <h2 className="mb-4 text-4xl font-black text-[var(--color-4)] md:text-5xl">
-            {t('about.heading')}
-          </h2>
-
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
+          <motion.h2
+            initial={{ opacity: 0, y: 30, filter: 'blur(8px)' }}
+            whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
             viewport={motionConfig.viewport}
-            variants={getStaggerVariants({ stagger: profile.stagger })}
-            className="max-w-3xl space-y-5 text-base font-medium leading-relaxed text-[var(--color-4)]/80 md:text-lg"
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+            className="mb-6 text-4xl font-black text-[var(--color-4)] md:text-5xl"
           >
-            {t('about.paragraphs').map((paragraph, index, paragraphs) => (
-              <motion.p
-                key={paragraph}
-                variants={getRevealVariants({ distance: profile.revealDistance })}
-                className="font-semibold text-[var(--color-4)]/85"
-              >
-                {paragraph}
-                {index === paragraphs.length - 1 && (
-                  <> <strong className="text-[var(--color-2)]">{t('about.motto')}</strong></>
-                )}
-              </motion.p>
-            ))}
-          </motion.div>
+            {t('about.heading')}
+          </motion.h2>
+
+          <div className="max-w-3xl space-y-5 text-base font-medium leading-relaxed text-[var(--color-4)]/80 md:text-lg">
+            {tokenizedParagraphs.map((tokens, pIndex) => {
+              const isLast = pIndex === tokenizedParagraphs.length - 1;
+              return (
+                <p
+                  key={pIndex}
+                  className="font-semibold text-[var(--color-4)]/85"
+                  aria-label={paragraphs[pIndex] + (isLast ? ' ' + motto : '')}
+                >
+                  {tokens.map((tok, i) => (
+                    <span key={tok.key} className="about-word-wrap" style={{ display: 'inline-block' }}>
+                      <motion.span
+                        custom={pIndex * 18 + i}   // stagger across paragraphs too
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, amount: 0.3 }}
+                        variants={wordVariants}
+                        style={{ display: 'inline-block' }}
+                      >
+                        {tok.word}
+                      </motion.span>
+                      {tok.space && (
+                        <span style={{ display: 'inline', whiteSpace: 'pre' }}>{tok.space}</span>
+                      )}
+                    </span>
+                  ))}
+                  {isLast && (
+                    <>
+                      <motion.strong
+                        custom={pIndex * 18 + tokens.length + 1}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, amount: 0.3 }}
+                        variants={wordVariants}
+                        style={{ display: 'inline-block', color: 'var(--color-2)', fontWeight: 900 }}
+                      >
+                        {motto}
+                      </motion.strong>
+                    </>
+                  )}
+                </p>
+              );
+            })}
+          </div>
         </motion.div>
       </div>
 

@@ -19,11 +19,30 @@ export function LanguageProvider({ children }) {
   });
 
   const toggleLanguage = useCallback(() => {
-    setLanguage((prev) => {
-      const currentIndex = languageConfig.supportedLanguages.findIndex((l) => l.code === prev);
-      const nextIndex = (currentIndex + 1) % languageConfig.supportedLanguages.length;
-      return languageConfig.supportedLanguages[nextIndex].code;
-    });
+    // Simple reliable cross-fade via a class (no View Transitions API).
+    try {
+      const root = document.documentElement;
+      root.classList.add('is-lang-switching');
+      window.setTimeout(() => {
+        setLanguage((prev) => {
+          const currentIndex = languageConfig.supportedLanguages.findIndex((l) => l.code === prev);
+          const nextIndex = (currentIndex + 1) % languageConfig.supportedLanguages.length;
+          return languageConfig.supportedLanguages[nextIndex].code;
+        });
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            root.classList.remove('is-lang-switching');
+          });
+        });
+      }, 220);
+    } catch (e) {
+      // Fallback: switch immediately without animation
+      setLanguage((prev) => {
+        const currentIndex = languageConfig.supportedLanguages.findIndex((l) => l.code === prev);
+        const nextIndex = (currentIndex + 1) % languageConfig.supportedLanguages.length;
+        return languageConfig.supportedLanguages[nextIndex].code;
+      });
+    }
   }, []);
 
   useEffect(() => {
@@ -67,7 +86,7 @@ export function LanguageProvider({ children }) {
       }
       return result;
     },
-    [language]
+    [language],
   );
 
   const value = useMemo(() => {

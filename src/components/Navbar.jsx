@@ -139,9 +139,11 @@ const Navbar = () => {
 
           <a
             href={hireMeMailto}
-            className="whitespace-nowrap rounded-full border border-[var(--color-4)] bg-[var(--color-4)] px-4 py-2 text-xs font-bold text-[var(--color-5)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--color-2)] hover:bg-[var(--color-2)] hover:shadow-md"
+           
+            data-click-spark
+            className="btn-ripple relative whitespace-nowrap overflow-hidden rounded-full border border-[var(--color-4)] bg-[var(--color-4)] px-4 py-2 text-xs font-bold text-[var(--color-5)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[var(--color-2)] hover:bg-[var(--color-2)] hover:shadow-md"
           >
-            {t('hero.ctaSecondary.text')}
+            <span className="relative z-10">{t('hero.ctaSecondary.text')}</span>
           </a>
         </div>
 

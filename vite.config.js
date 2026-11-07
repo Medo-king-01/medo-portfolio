@@ -10,6 +10,12 @@ export default defineConfig({
     port: 3000,
     strictPort: true,
     allowedHosts: true,
+    hmr: {
+      host: 'localhost',
+      port: 3000,
+      clientPort: 3000,
+      protocol: 'ws',
+    },
   },
   preview: {
     host: '0.0.0.0',
