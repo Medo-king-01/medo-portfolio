@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { siteConfig } from './config/site.config';
 import { translations } from './data/translations';
 import ScrollProgress from './components/ScrollProgress';
+import SmoothScrollController from './motion/SmoothScrollController.jsx';
 import Preloader from './components/Preloader';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -78,6 +79,37 @@ function App() {
     });
 
     const fontsReady = document.fonts?.ready?.catch(() => undefined) || Promise.resolve();
+    // Wait for eager images rendered by React, but leave offscreen lazy images to load on demand.
+    const eagerImagesReady = Promise.all(
+      Array.from(document.images)
+        .filter((image) => image.loading !== 'lazy')
+        .map((image) => new Promise((resolve) => {
+          let settled = false;
+          const cleanup = () => {
+            image.removeEventListener('load', handleSettled);
+            image.removeEventListener('error', handleSettled);
+          };
+          const handleSettled = () => {
+            if (settled) return;
+            settled = true;
+            cleanup();
+            const decoded = image.complete && image.naturalWidth > 0 && typeof image.decode === 'function'
+              ? image.decode().catch(() => undefined)
+              : Promise.resolve();
+            decoded.then(resolve);
+          };
+
+          if (image.complete) {
+            handleSettled();
+            return;
+          }
+
+          image.addEventListener('load', handleSettled, { once: true });
+          image.addEventListener('error', handleSettled, { once: true });
+          listeners.push(cleanup);
+          if (image.complete) handleSettled();
+        })),
+    );
     const heroVideo = document.querySelector('#home video');
     const shouldWaitForVideo = heroVideo && heroVideo.preload !== 'none';
     const mediaReady = !shouldWaitForVideo || heroVideo.readyState >= 1
@@ -92,7 +124,7 @@ function App() {
         });
       });
 
-    Promise.all([pageReady, fontsReady, mediaReady]).then(scheduleReady);
+    Promise.all([pageReady, fontsReady, eagerImagesReady, mediaReady]).then(scheduleReady);
 
     return () => {
       cancelled = true;
@@ -113,6 +145,7 @@ function App() {
 
   return (
     <>
+      <SmoothScrollController />
       <ScrollProgress />
       {activeSections.map(([key]) => {
         const Component = SECTION_COMPONENTS[key];

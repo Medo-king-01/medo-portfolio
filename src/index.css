@@ -1508,3 +1508,62 @@ html[dir="rtl"] .certificate-native-hint p:first-child {
 }
 
 .hero-orbit-graphic-with-3d { opacity: 0.16; }
+
+/* Short narrative chapters use the viewport as a balanced stage; content still expands naturally when it needs more room. */
+.chapter-centered {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-block: clamp(5.75rem, 8vh, 7rem) clamp(3.5rem, 6vh, 5rem);
+  padding-block: clamp(5.75rem, 8svh, 7rem) clamp(3.5rem, 6svh, 5rem);
+}
+
+.chapter-centered--wave {
+  padding-block-end: clamp(5rem, 8vh, 6.5rem);
+  padding-block-end: clamp(5rem, 8svh, 6.5rem);
+}
+
+.chapter-body {
+  width: 100%;
+  min-width: 0;
+}
+
+.chapter-centered:not(.chapter-centered--wave) .chapter-body h2 {
+  font-size: clamp(2.25rem, calc(4vw + 1rem), 4.5rem);
+}
+
+[data-experience-section]:not(#footer) h2,
+[data-experience-section]:not(#footer) h3,
+[data-experience-section]:not(#footer) h4 {
+  text-wrap: balance;
+}
+
+[data-experience-section]:not(#footer) p {
+  text-wrap: pretty;
+}
+
+/* Every content chapter gets a viewport-sized canvas without clipping longer sections; the footer stays natural. */
+[data-experience-section]:not(#footer) {
+  min-height: 100vh;
+  min-height: 100svh;
+}
+
+/* Touch devices and browsers without the Lenis controller use native, momentum-friendly snapping. */
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.lenis) {
+    scroll-snap-type: y proximity;
+    scroll-padding-top: 0;
+  }
+
+  html:not(.lenis) [data-experience-section]:not(#footer) {
+    scroll-snap-align: start;
+    scroll-snap-stop: normal;
+    scroll-margin-top: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}

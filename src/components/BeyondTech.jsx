@@ -60,13 +60,13 @@ const BeyondTech = () => {
       id="beyond-tech"
       data-experience-section
       aria-labelledby="beyond-tech-heading"
-      className="section-flow relative w-full overflow-hidden bg-[var(--color-5)] px-6 py-24 font-sans md:px-12 md:py-32 lg:py-36"
+      className="chapter-centered section-flow relative w-full overflow-hidden bg-[var(--color-5)] px-6 font-sans md:px-12"
       dir={langConfig.dir}
     >
       <div aria-hidden="true" className="pointer-events-none absolute right-[-10rem] top-20 h-96 w-96 rounded-full bg-[var(--color-8)]/15 blur-3xl" />
       <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 -left-20 h-48 w-48 rounded-full bg-[var(--color-1)]/20 blur-[80px]" />
 
-      <div className="relative z-10 mx-auto max-w-7xl">
+      <div className="chapter-body relative z-10 mx-auto w-full max-w-7xl">
         <motion.div
           initial="hidden"
           whileInView="visible"
