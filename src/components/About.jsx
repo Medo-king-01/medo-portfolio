@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { getMotionProfile, motionConfig } from '../motion/motionConfig.js';
-import { getRevealVariants, getStaggerVariants } from '../motion/motionVariants.js';
+import { getRevealVariants } from '../motion/motionVariants.js';
 import { useMotionEnvironment } from '../motion/useMotionEnvironment.js';
 import { useLanguage } from '../context/LanguageContext.jsx';
 import stackImageAsset from '../assets/about/medo.jpg';
@@ -33,7 +33,7 @@ const splitWords = (paragraph) => {
 };
 
 const About = () => {
-  const { t, langConfig, language } = useLanguage();
+  const { t, langConfig } = useLanguage();
   const { isMobile, isTablet, isShortViewport, hasFinePointer } = useMotionEnvironment();
   const profile = getMotionProfile({ isMobile, isTablet, isShortViewport, hasFinePointer });
   const frameRef = useRef(null);
@@ -285,7 +285,6 @@ const About = () => {
       // Ignore.
     }
 
-    if (event.pointerType !== 'touch') event.preventDefault();
     schedulePhysicsRef.current();
   };
 
@@ -296,6 +295,7 @@ const About = () => {
     const deltaX = event.clientX - physics.startPointerX;
     const deltaY = event.clientY - physics.startPointerY;
 
+    // For touch devices, if horizontal movement dominates, let the card swing
     const nextX = clamp(physics.startX + deltaX, -MAX_X, MAX_X);
     const nextY = clamp(physics.startY + deltaY, MIN_Y, MAX_Y);
 

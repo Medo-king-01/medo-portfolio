@@ -129,7 +129,15 @@ function App() {
         });
       });
 
-    Promise.all([pageReady, fontsReady, eagerImagesReady, mediaReady]).then(scheduleReady);
+    const settleTimeout = new Promise((resolve) => {
+      const timer = window.setTimeout(resolve, 3500);
+      listeners.push(() => window.clearTimeout(timer));
+    });
+
+    Promise.race([
+      Promise.all([pageReady, fontsReady, eagerImagesReady, mediaReady]),
+      settleTimeout,
+    ]).then(scheduleReady);
 
     return () => {
       cancelled = true;

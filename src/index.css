@@ -227,10 +227,12 @@ a, button {
 
 .project-gallery-title {
   min-height: 1.25em;
+  word-break: break-word;
 }
 
 .project-gallery-description {
   min-height: 4.875em;
+  word-break: break-word;
 }
 
 html[dir="rtl"] .project-gallery-description {
@@ -244,11 +246,15 @@ html[dir="rtl"] .project-gallery-description {
 
 @media (max-width: 639px) {
   .project-gallery-title {
-    min-height: 2.5em;
+    min-height: auto;
+  }
+
+  .project-gallery-description {
+    min-height: auto;
   }
 
   .project-gallery-tags {
-    min-height: 3rem;
+    min-height: auto;
   }
 }
 
@@ -1556,16 +1562,18 @@ html[dir="rtl"] .certificate-native-hint p:first-child {
   min-height: 100svh;
 }
 
-/* Native, momentum-friendly snapping for devices without the Lenis controller. */
-html:not(.lenis) {
-  scroll-snap-type: y proximity;
-  scroll-padding-top: 0;
-}
+/* Native, momentum-friendly snapping for desktop devices without Lenis */
+@media (min-width: 1024px) {
+  html:not(.lenis) {
+    scroll-snap-type: y proximity;
+    scroll-padding-top: 0;
+  }
 
-html:not(.lenis) [data-experience-section]:not(#footer) {
-  scroll-snap-align: start;
-  scroll-snap-stop: normal;
-  scroll-margin-top: 0;
+  html:not(.lenis) [data-experience-section]:not(#footer) {
+    scroll-snap-align: start;
+    scroll-snap-stop: normal;
+    scroll-margin-top: 0;
+  }
 }
 
 /* =====================================================

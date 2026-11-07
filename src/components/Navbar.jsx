@@ -152,16 +152,16 @@ const Navbar = () => {
           <button
             type="button"
             onClick={toggleTheme}
-            className="group inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[var(--color-3)] bg-white/85 text-[var(--color-4)] shadow-sm transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-[var(--color-2)]"
+            className="group inline-flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-[var(--color-3)] bg-white/90 text-[var(--color-4)] shadow-sm transition-transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-[var(--color-2)]"
             aria-label={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           >
             {theme === 'dark' ? (
-              <svg className="h-3.5 w-3.5 text-amber-400 transition-transform duration-300 group-hover:rotate-90 group-hover:scale-125" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <svg className="h-4 w-4 text-amber-400 transition-transform duration-300 group-hover:rotate-90" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <circle cx="12" cy="12" r="5" />
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
               </svg>
             ) : (
-              <svg className="h-3.5 w-3.5 text-indigo-600 transition-transform duration-300 group-hover:-rotate-45 group-hover:scale-125" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <svg className="h-4 w-4 text-indigo-600 transition-transform duration-300 group-hover:-rotate-45" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
               </svg>
             )}
@@ -170,10 +170,10 @@ const Navbar = () => {
           <button
             type="button"
             onClick={toggleLanguage}
-            className="group inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-[var(--color-3)] bg-white/85 px-3 py-1.5 text-xs font-bold text-[var(--color-4)] transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[var(--color-2)]"
+            className="group inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-[var(--color-3)] bg-white/90 px-3 text-xs font-bold text-[var(--color-4)] transition-transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-[var(--color-2)]"
             aria-label={t('language.switchTo').replace('{language}', language === 'en' ? 'Arabic' : 'English')}
           >
-            <span className="text-base leading-none transition-transform duration-300 group-hover:scale-125 group-hover:rotate-12">{langConfig.flag}</span>
+            <span className="text-base leading-none">{langConfig.flag}</span>
             <span>{language === 'en' ? 'AR' : 'EN'}</span>
           </button>
 
@@ -183,13 +183,13 @@ const Navbar = () => {
             aria-expanded={isOpen}
             aria-label={isOpen ? t('common.close') : t('common.menu')}
             aria-controls="mobile-menu"
-            className="group cursor-pointer rounded-full p-2 text-[var(--color-4)] focus:outline-none focus:ring-2 focus:ring-[var(--color-2)]"
+            className="group flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-[var(--color-3)] bg-white/90 text-[var(--color-4)] shadow-sm active:scale-95 focus:outline-none focus:ring-2 focus:ring-[var(--color-2)]"
           >
-            <svg className="h-6 w-6 transition-transform duration-300 group-hover:scale-115 active:scale-95" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="h-5 w-5 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {isOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
               ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 6h16M4 12h16M4 18h16" />
               )}
             </svg>
           </button>

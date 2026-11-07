@@ -701,11 +701,12 @@ const Hero = () => {
             variants={getRevealVariants({ distance: motionProfile.revealDistance, delay: 0.1 })}
             className="
               max-w-3xl
-              text-4xl
+              text-3xl
               font-black
-              leading-[1.08]
+              leading-[1.12]
               tracking-[-0.04em]
               text-[var(--color-4)]
+              xs:text-4xl
               sm:text-5xl
               md:text-6xl
               lg:text-[3.85rem]
@@ -714,7 +715,7 @@ const Hero = () => {
             {t('hero.greeting')}
             {language === 'ar' ? '، ' : ', '}
             <br />
-            <span className="relative mt-2 block min-h-[2.4em] w-full max-w-[24ch] text-[var(--color-2)] sm:min-h-[1.3em]">
+            <span className="relative mt-2 block min-h-[3.2em] w-full max-w-[24ch] text-[var(--color-2)] xs:min-h-[2.6em] sm:min-h-[1.4em]">
               <span className="hero-title-cycle block">
                 {displayTitle}
                 <span className="hero-typewriter-caret" aria-hidden="true" />

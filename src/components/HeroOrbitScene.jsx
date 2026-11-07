@@ -2,7 +2,13 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { getProject, types } from '@theatre/core';
 
-const project = getProject('medo-portfolio-motion');
+const projectState = {
+  sheetsById: {},
+  definitionVersion: '0.4.0',
+  revisionHistory: [],
+};
+
+const project = getProject('medo-portfolio-motion', { state: projectState });
 const sheet = project.sheet('Hero Orbital Accent');
 const controls = sheet.object('Orbital Accent', {
   rotationSpeed: types.number(0.13, { range: [0.02, 0.4] }),

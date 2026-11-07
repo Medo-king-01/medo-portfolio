@@ -30,8 +30,7 @@ const ClickEffects = () => {
       ripple.style.left = `${x}px`;
       ripple.style.top = `${y}px`;
       root.appendChild(ripple);
-      // eslint-disable-next-line no-unused-expressions
-      ripple.offsetWidth;
+      void ripple.offsetWidth;
       ripple.classList.add('is-animating');
       window.setTimeout(() => ripple.remove(), 650);
     };
@@ -54,8 +53,7 @@ const ClickEffects = () => {
         particle.style.setProperty('--ty', `${ty}px`);
         particle.style.background = SPARK_COLORS[i % SPARK_COLORS.length];
         root.appendChild(particle);
-        // eslint-disable-next-line no-unused-expressions
-        particle.offsetWidth;
+        void particle.offsetWidth;
         particle.classList.add('is-animating');
         window.setTimeout(() => particle.remove(), 750);
       }

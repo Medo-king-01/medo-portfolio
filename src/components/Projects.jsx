@@ -558,8 +558,11 @@ const Projects = () => {
 
   useEffect(() => {
     if (!selectedProject) return undefined;
-    const previousOverflow = document.body.style.overflow;
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
     document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    window.dispatchEvent(new CustomEvent('modal:opened'));
 
     const modal = modalRef.current;
     modal?.querySelector('button')?.focus();
@@ -585,8 +588,10 @@ const Projects = () => {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.body.style.overflow = previousOverflow;
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
       document.removeEventListener('keydown', handleKeyDown);
+      window.dispatchEvent(new CustomEvent('modal:closed'));
     };
   }, [selectedProject, previewItem]);
 
@@ -669,14 +674,16 @@ const Projects = () => {
                 else setSelectedProject(null);
               }
             }}
-            className="fixed inset-0 z-[10000] flex items-center justify-center bg-[var(--color-4)]/85 p-3 backdrop-blur-md sm:p-8"
+            data-lenis-prevent="true"
+            className="fixed inset-0 z-[10000] flex items-center justify-center bg-[var(--color-4)]/85 p-3 backdrop-blur-md overscroll-contain sm:p-8"
           >
             <motion.div
               initial="hidden"
               animate="visible"
               exit="exit"
               variants={modalPanelVariants}
-              className="relative flex max-h-[90dvh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-[var(--color-3)] bg-[var(--color-5)] shadow-2xl"
+              data-lenis-prevent="true"
+              className="relative flex max-h-[90dvh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-[var(--color-3)] bg-[var(--color-5)] shadow-2xl overscroll-contain"
             >
               <div className="flex shrink-0 items-center justify-between gap-4 border-b border-[var(--color-3)] bg-[var(--color-5)] px-5 py-3">
                 <h3 className="text-base font-black text-[var(--color-4)]">
@@ -686,12 +693,16 @@ const Projects = () => {
                   type="button"
                   onClick={() => previewItem ? setPreviewItem(null) : setSelectedProject(null)}
                   aria-label={previewItem ? t('projects.closePreview') : t('projects.closeCaseStudy')}
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--color-3)] text-[var(--color-4)] hover:bg-[var(--color-2)] hover:text-[var(--color-5)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-7)]"
+                  className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full border border-[var(--color-3)] text-[var(--color-4)] transition-colors hover:bg-[var(--color-2)] hover:text-[var(--color-5)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-7)]"
                 >
                   ✕
                 </button>
               </div>
-              <div className="min-h-0 overflow-y-auto">
+              <div
+                data-lenis-prevent="true"
+                className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+                style={{ WebkitOverflowScrolling: 'touch' }}
+              >
                 {previewItem ? (
                   <div className="bg-[var(--color-4)] p-2 sm:p-4">
                     <img src={previewItem.image} alt={`${previewItem.title} screenshot`} className="mx-auto max-h-[75vh] w-auto object-contain" />

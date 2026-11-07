@@ -35,7 +35,7 @@ export function LanguageProvider({ children }) {
           });
         });
       }, 220);
-    } catch (e) {
+    } catch {
       // Fallback: switch immediately without animation
       setLanguage((prev) => {
         const currentIndex = languageConfig.supportedLanguages.findIndex((l) => l.code === prev);

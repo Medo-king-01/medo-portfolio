@@ -21,6 +21,9 @@ export default function SmoothScrollController() {
 
       window.cancelAnimationFrame(runtime.frameId);
       window.removeEventListener('curtain:opened', runtime.resumeAfterCurtain);
+      if (runtime.handleModalOpen) window.removeEventListener('modal:opened', runtime.handleModalOpen);
+      if (runtime.handleModalClose) window.removeEventListener('modal:closed', runtime.handleModalClose);
+      if (window.__lenis__ === runtime.lenis) window.__lenis__ = undefined;
       try { runtime.snap.destroy(); } catch { /* noop */ }
       try { runtime.lenis.off('scroll', runtime.updateScrollTrigger); } catch { /* noop */ }
       try { runtime.lenis.destroy(); } catch { /* noop */ }
@@ -85,11 +88,24 @@ export default function SmoothScrollController() {
       };
       frameId = window.requestAnimationFrame(raf);
 
+      window.__lenis__ = lenis;
+
+      const handleModalOpen = () => {
+        try { lenis.stop(); } catch { /* noop */ }
+      };
+      const handleModalClose = () => {
+        try { lenis.start(); } catch { /* noop */ }
+      };
+      window.addEventListener('modal:opened', handleModalOpen);
+      window.addEventListener('modal:closed', handleModalClose);
+
       runtime = {
         lenis,
         snap,
         updateScrollTrigger,
         resumeAfterCurtain,
+        handleModalOpen,
+        handleModalClose,
         get frameId() { return frameId; },
       };
     };

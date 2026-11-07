@@ -340,10 +340,13 @@ function CertificateDetails({
   }, [onClose, onNext, onPrev, language]);
 
   useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
     const previousFocus = document.activeElement;
     const dialog = dialogRef.current;
     document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    window.dispatchEvent(new CustomEvent('modal:opened'));
     dialog?.querySelector('button')?.focus();
 
     const handleKeyDown = (event) => {
@@ -373,8 +376,10 @@ function CertificateDetails({
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.body.style.overflow = previousOverflow;
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
       document.removeEventListener('keydown', handleKeyDown);
+      window.dispatchEvent(new CustomEvent('modal:closed'));
       previousFocus?.focus({ preventScroll: true });
     };
   }, []);
@@ -389,17 +394,19 @@ function CertificateDetails({
       animate="visible"
       exit="exit"
       variants={modalBackdropVariants}
+      data-lenis-prevent="true"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-[10000] flex items-center justify-center bg-[var(--color-4)]/80 p-4 backdrop-blur-md sm:p-8"
+      className="fixed inset-0 z-[10000] flex items-center justify-center bg-[var(--color-4)]/80 p-4 backdrop-blur-md overscroll-contain sm:p-8"
     >
       <motion.div
         initial="hidden"
         animate="visible"
         exit="exit"
         variants={modalPanelVariants}
-        className="relative flex max-h-[92dvh] w-full max-w-2xl flex-col overflow-hidden rounded-[1.75rem] border border-[var(--color-3)] bg-[var(--color-5)] shadow-2xl dark:border-white/10 dark:bg-[var(--color-6)]"
+        data-lenis-prevent="true"
+        className="relative flex max-h-[92dvh] w-full max-w-2xl flex-col overflow-hidden rounded-[1.75rem] border border-[var(--color-3)] bg-[var(--color-5)] shadow-2xl overscroll-contain dark:border-white/10 dark:bg-[var(--color-6)]"
       >
         {/* Modal Top Bar */}
         <div className="flex items-center justify-between gap-4 border-b border-[var(--color-3)] px-5 py-3.5 sm:px-7 dark:border-white/10">

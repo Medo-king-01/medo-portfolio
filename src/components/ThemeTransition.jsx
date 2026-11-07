@@ -48,8 +48,7 @@ const ThemeTransition = () => {
       overlay.classList.add('is-revealing');
 
       // Force reflow
-      // eslint-disable-next-line no-unused-expressions
-      overlay.offsetWidth;
+      void overlay.offsetWidth;
 
       // Animate the circle expanding
       overlay.style.width = `${endRadius * 2}px`;
