@@ -30,37 +30,61 @@ html.dark {
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 5.5rem;
-  scrollbar-color: var(--color-2) var(--color-5);
-  scrollbar-width: thin;
 }
 
-/* Custom Branded Scrollbar */
-::-webkit-scrollbar {
-  width: 9px;
-  height: 9px;
+/* Custom Branded Scrollbar on Desktop */
+@media (min-width: 1024px) and (pointer: fine) {
+  html {
+    scrollbar-color: var(--color-2) var(--color-5);
+    scrollbar-width: thin;
+  }
+
+  ::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-5);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--color-2) 65%, var(--color-1));
+    border-radius: 9999px;
+    border: 2px solid var(--color-5);
+    transition: background-color 200ms ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-7);
+  }
+
+  ::-webkit-scrollbar-thumb:active {
+    background: var(--color-2);
+  }
+
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
 }
 
-::-webkit-scrollbar-track {
-  background: var(--color-5);
-}
+/* Completely hide all scrollbars on mobile and touch devices */
+@media (max-width: 1023px), (pointer: coarse) {
+  html,
+  body,
+  #root,
+  * {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
 
-::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--color-2) 65%, var(--color-1));
-  border-radius: 9999px;
-  border: 2px solid var(--color-5);
-  transition: background-color 200ms ease;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-7);
-}
-
-::-webkit-scrollbar-thumb:active {
-  background: var(--color-2);
-}
-
-::-webkit-scrollbar-corner {
-  background: transparent;
+  ::-webkit-scrollbar,
+  *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    background: transparent !important;
+  }
 }
 
 body {
@@ -314,10 +338,10 @@ html[dir="rtl"] .project-gallery-description {
 .projects-section .track {
   display: flex;
   flex-wrap: nowrap;
-  gap: clamp(1.5rem, 3vw, 2.5rem);
+  gap: clamp(1.25rem, 2.5vw, 2rem);
   width: 100%;
   min-width: 0;
-  padding-inline: max(0px, calc((100% - min(84vw, 30rem)) / 2));
+  padding-inline: max(0px, calc((100% - min(88vw, 25.5rem)) / 2));
   overflow-x: auto;
   overflow-y: hidden;
   overscroll-behavior-x: contain;
@@ -338,10 +362,10 @@ html[dir="rtl"] .project-gallery-description {
 
 .project-track-card,
 .projects-section .card {
-  flex: 0 0 min(84vw, 24rem);
-  width: min(84vw, 24rem);
+  flex: 0 0 min(88vw, 25.5rem);
+  width: min(88vw, 25.5rem);
   min-width: 0;
-  max-height: min(72svh, 30rem);
+  max-height: min(80svh, 34rem);
   scroll-snap-align: center;
   scroll-snap-stop: always;
 }
@@ -402,27 +426,40 @@ html[dir="rtl"] .project-gallery-description {
 
   #projects.is-horizontal .projects-track {
     overflow: visible;
-    padding-inline: max(0px, calc((100vw - min(84vw, 22rem)) / 2));
+    padding-inline: max(0px, calc((100vw - min(86vw, 23rem)) / 2));
     margin-inline: 0;
     scroll-snap-type: none;
   }
 
   #projects.is-horizontal .project-track-card {
-    flex: 0 0 min(84vw, 22rem);
-    width: min(84vw, 22rem);
-    max-height: min(72svh, 27rem);
+    flex: 0 0 min(86vw, 23rem);
+    width: min(86vw, 23rem);
+    height: auto;
+    max-height: min(72svh, 25rem);
   }
 
   #projects.is-horizontal .project-gallery-card {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border-radius: 1.25rem;
+    box-shadow: 0 12px 32px rgba(27, 23, 22, 0.08);
   }
 
   #projects.is-horizontal .project-gallery-media {
+    flex: 0 0 auto;
     height: auto;
     min-height: 0;
-    aspect-ratio: 16 / 9;
-    max-height: clamp(140px, 24vh, 185px);
+    aspect-ratio: 16 / 9.5;
+    max-height: clamp(160px, 24vh, 205px);
+  }
+
+  #projects.is-horizontal .project-gallery-card > div:last-child {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 0.75rem 0.875rem 0.875rem;
   }
 }
 
@@ -434,20 +471,20 @@ html[dir="rtl"] .project-gallery-description {
 
 @media (max-width: 1023px) and (max-height: 680px) {
   #projects.is-horizontal .project-track-card {
-    height: min(74svh, 24rem);
-    max-height: min(74svh, 24rem);
+    height: auto;
+    max-height: min(74svh, 23rem);
   }
 
   #projects.is-horizontal .project-gallery-media {
-    height: 44%;
-    flex: 0 0 44%;
-    max-height: none;
-    aspect-ratio: auto;
+    flex: 0 0 auto;
+    min-height: 0;
+    max-height: clamp(135px, 22vh, 175px);
+    aspect-ratio: 16 / 9;
   }
 
   #projects.is-horizontal .project-gallery-card > div:last-child {
-    gap: 0.5rem;
-    padding: 0.875rem;
+    gap: 0.375rem;
+    padding: 0.75rem;
   }
 }
 

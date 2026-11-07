@@ -343,7 +343,7 @@ const ProjectGalleryCard = ({ project, language, t, onSelect, hasFinePointer, in
         aria-label={`${t('projects.openCaseStudy')}: ${title}`}
         className={`project-gallery-card group relative flex h-full w-full flex-col overflow-hidden rounded-[1.25rem] border border-[var(--color-3)] bg-white/95 text-start shadow-[0_10px_32px_rgba(27,23,22,0.07)] transition-[border-color,box-shadow,transform] duration-300 hover:border-[var(--color-2)]/45 hover:shadow-[0_18px_44px_rgba(27,23,22,0.14)] focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-2)] dark:border-white/10 dark:bg-[var(--color-6)]/90 ${isActive ? 'is-active' : ''}`}
       >
-        <div className="project-gallery-media relative aspect-[16/9] w-full overflow-hidden border-b border-[var(--color-3)] bg-[var(--color-6)]">
+        <div className="project-gallery-media relative aspect-[16/10] sm:aspect-[16/9] w-full overflow-hidden border-b border-[var(--color-3)] bg-[var(--color-6)]">
           {project.image ? (
             <img
               src={project.image}
@@ -356,7 +356,7 @@ const ProjectGalleryCard = ({ project, language, t, onSelect, hasFinePointer, in
             <div className="flex h-full items-center justify-center text-[var(--color-2)]" aria-hidden="true"><StackIcon /></div>
           )}
           <span aria-hidden="true" className="project-gallery-glow pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-          <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--color-4)]/75 via-[var(--color-4)]/10 to-transparent" />
+          <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--color-4)]/70 via-transparent to-transparent" />
 
           <div className="absolute start-3 top-3 z-10 flex flex-wrap items-center gap-1.5 sm:start-4 sm:top-4 sm:gap-2">
             <span className="rounded-full border border-[var(--color-3)] bg-white/95 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-[0.08em] text-[var(--color-2)] shadow-sm backdrop-blur-sm sm:px-3 sm:py-1 sm:text-[11px] dark:bg-[var(--color-5)]/90">
@@ -367,10 +367,10 @@ const ProjectGalleryCard = ({ project, language, t, onSelect, hasFinePointer, in
               <span>{status.label}</span>
             </span>
           </div>
-          <span aria-hidden="true" className="absolute bottom-2.5 end-4 z-10 text-2xl font-black italic tracking-tight text-white drop-shadow-[0_2px_8px_rgba(27,23,22,0.75)] sm:text-3xl">
+          <span aria-hidden="true" className="absolute bottom-2.5 end-3.5 z-10 text-2xl font-black italic tracking-tight text-white drop-shadow-[0_2px_8px_rgba(27,23,22,0.85)] sm:text-3xl">
             {project.number}
           </span>
-          <span className="absolute bottom-3 start-3.5 z-10 inline-flex items-center gap-1.5 rounded-full bg-[var(--color-4)]/90 px-3 py-1.5 text-[11px] font-bold text-[var(--color-5)] shadow-md backdrop-blur-md transition-transform duration-300 group-hover:-translate-y-0.5 sm:gap-2 sm:px-3.5 sm:py-2 sm:text-xs">
+          <span className="absolute bottom-2.5 start-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-[var(--color-4)]/90 px-3 py-1.5 text-[11px] font-bold text-[var(--color-5)] shadow-md backdrop-blur-md transition-transform duration-300 group-hover:-translate-y-0.5 sm:bottom-3 sm:start-3.5 sm:gap-2 sm:px-3.5 sm:py-2 sm:text-xs">
             <ZoomIcon />
             <span>{t('projects.openCaseStudy')}</span>
           </span>

@@ -358,7 +358,7 @@ export const projects = [
     },
     description: {
       en: 'A proposed redesign of the Higher Institute of Management and Computer Science website in Ras El Bar, built as a practical project with an institutional identity and a modern user experience. It is not the officially approved website.',
-      ar: 'تصور مقترح لإعادة تصميم موقع المعهد العالي للإدارة والحاسب الآلي برأس البر، بُني كمشروع تطبيقي بهوية مؤسسية وتجربة مستخدم عصرية، وليس الموقع الرسمي المعتمد.',
+      ar: 'تصور مقترح لإعادة تصميم موقع المعهد العالي للإدارة والحاسب الآلي برأس البر، وليس الموقع الرسمي المعتمد.',
     },
     galleryNote: { en: 'Proposed concept — not the official website.', ar: 'تصور مقترح — ليس الموقع الرسمي.' },
     caseStudy: {
