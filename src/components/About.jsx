@@ -320,19 +320,19 @@ const About = () => {
       dir={langConfig.dir}
       data-experience-section
       className="
+        chapter-centered
+        chapter-centered--wave
         section-flow
         relative
         w-full
         overflow-hidden
         bg-[var(--color-6)]
         px-6
-        pb-40
-        pt-20
         font-sans
         md:px-12
       "
     >
-      <div className="mx-auto flex max-w-6xl flex-col items-start gap-16 md:flex-row">
+      <div className="chapter-body mx-auto flex w-full max-w-6xl flex-col items-stretch gap-16 md:flex-row md:items-center">
         {/* PHOTO */}
         <div
           dir="ltr"

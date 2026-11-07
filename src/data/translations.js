@@ -41,7 +41,8 @@ export const translations = {
     // Preloader
     preloader: {
       brandHandle: 'MEDO_DEV',
-      loading: 'Loading portfolio...',
+      tagline: 'I build useful digital experiences',
+      loading: 'Preparing portfolio...',
     },
 
     // Hero
@@ -321,7 +322,8 @@ The goal is not to escape the world; I have the freedom to choose my place in it
     // Preloader
     preloader: {
       brandHandle: 'MEDO_DEV',
-      loading: 'جاري تحميل المعرض...',
+      tagline: 'أبني تجارب رقمية مفيدة',
+      loading: 'جارٍ تجهيز معرض الأعمال...',
     },
 
     // Hero
