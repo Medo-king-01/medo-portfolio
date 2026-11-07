@@ -18,33 +18,32 @@ const allCertificates = certifications.flatMap((category) =>
 
 const formatNumber = (number) => String(number).padStart(2, '0');
 
-function CertificateWheel({ certificates, language, t, onSelect, profile }) {
+function CertificateWheel({ certificates, language, t, onSelect }) {
   const stageRef = useRef(null);
-  const trackRef = useRef(null);
-  const wheelRef = useRef(null);
+  const cardRef = useRef(null);
+  const touchStartRef = useRef({ x: 0, time: 0 });
   const [active, setActive] = useState(0);
+  const [rotationY, setRotationY] = useState(0);
   const count = certificates.length || 1;
-  const nativeMode = !profile.pinnedScenes;
-  const stageLength = 100 + (count - 1) * profile.certificateStep;
+  const stageLength = 120 + (count - 1) * 38;
 
   useLayoutEffect(() => {
     const stage = stageRef.current;
-    const wheel = wheelRef.current;
-    if (nativeMode || !stage || !wheel) return undefined;
+    if (!stage) return undefined;
 
-    const context = createGsapContext(wheel, () => {
-      gsap.to(wheel, {
-        rotateY: () => -(360 * (count - 1)) / count,
-        ease: 'none',
+    const context = createGsapContext(stage, () => {
+      gsap.to(stage, {
         scrollTrigger: {
           trigger: stage,
           start: 'top top',
           end: 'bottom bottom',
-          scrub: 0.45,
+          scrub: 0.9,
           invalidateOnRefresh: true,
           onUpdate: (self) => {
-            const next = Math.max(0, Math.min(count - 1, Math.round(self.progress * (count - 1))));
-            setActive((current) => current === next ? current : next);
+            const rawProgress = self.progress * (count - 1);
+            const next = Math.max(0, Math.min(count - 1, Math.round(rawProgress)));
+            setActive((current) => (current === next ? current : next));
+            setRotationY(rawProgress * 180);
           },
         },
       });
@@ -55,56 +54,18 @@ function CertificateWheel({ certificates, language, t, onSelect, profile }) {
       stopRefresh();
       context.revert();
     };
-  }, [count, language, nativeMode]);
-
-  useEffect(() => {
-    const track = trackRef.current;
-    if (!nativeMode || !track) return undefined;
-
-    let frame = 0;
-    const updateActive = () => {
-      window.cancelAnimationFrame(frame);
-      frame = window.requestAnimationFrame(() => {
-        const cards = Array.from(track.children);
-        if (!cards.length) return;
-        const bounds = track.getBoundingClientRect();
-        const center = (bounds.left + bounds.right) / 2;
-        const next = cards.reduce((closest, card, index) => {
-          const cardBounds = card.getBoundingClientRect();
-          const distance = Math.abs((cardBounds.left + cardBounds.right) / 2 - center);
-          return distance < closest.distance ? { index, distance } : closest;
-        }, { index: 0, distance: Number.POSITIVE_INFINITY }).index;
-        setActive((current) => (current === next ? current : next));
-      });
-    };
-
-    track.addEventListener('scroll', updateActive, { passive: true });
-    updateActive();
-    return () => {
-      track.removeEventListener('scroll', updateActive);
-      window.cancelAnimationFrame(frame);
-    };
-  }, [nativeMode]);
+  }, [count]);
 
   const scrollToCertificate = useCallback((index) => {
     const targetIndex = Math.max(0, Math.min(count - 1, index));
-    if (nativeMode) {
-      const card = trackRef.current?.children[targetIndex];
-      card?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
-      return;
-    }
-
     const stage = stageRef.current;
     if (!stage) return;
     const scrollable = Math.max(0, stage.offsetHeight - window.innerHeight);
     const top = window.scrollY + stage.getBoundingClientRect().top + (scrollable * targetIndex) / (count - 1 || 1);
     window.scrollTo({ top, behavior: 'smooth' });
-  }, [count, nativeMode]);
-
-  const handleCardClick = (certificate, index) => {
-    if (index === active) onSelect(certificate);
-    else scrollToCertificate(index);
-  };
+    setActive(targetIndex);
+    setRotationY(targetIndex * 180);
+  }, [count]);
 
   const handlePrev = (event) => {
     event.stopPropagation();
@@ -116,102 +77,53 @@ function CertificateWheel({ certificates, language, t, onSelect, profile }) {
     scrollToCertificate(active + 1 >= count ? 0 : active + 1);
   };
 
+  const handleTouchStart = (e) => {
+    touchStartRef.current = { x: e.touches[0].clientX, time: Date.now() };
+  };
+
+  const handleTouchEnd = (e) => {
+    const deltaX = e.changedTouches[0].clientX - touchStartRef.current.x;
+    const deltaTime = Date.now() - touchStartRef.current.time;
+    if (Math.abs(deltaX) > 40 && deltaTime < 400) {
+      if (deltaX < 0) handleNext(e);
+      else handlePrev(e);
+    }
+  };
+
   const activeCert = certificates[active] || certificates[0];
-  const certificateLabel = language === 'ar' ? 'معرض الشهادات' : 'Certificate gallery';
   const previousLabel = t('certifications.prev') || 'Previous Certificate';
   const nextLabel = t('certifications.next') || 'Next Certificate';
 
-  if (nativeMode) {
-    return (
-      <div className="certificate-native-view" dir={language === 'ar' ? 'rtl' : 'ltr'}>
-        <div className="certificate-native-hint">
-          <p>{t('certifications.wheelScrollHint')}</p>
-          <p>{t('certifications.wheelClickHint')}</p>
-        </div>
-        <div className="certificate-native-controls">
-          <button type="button" onClick={handlePrev} aria-label={previousLabel} className="certificate-native-arrow">
-            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-5 w-5 rtl:rotate-180">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <p className="certificate-native-count" dir="ltr" aria-live="polite">
-            <strong>{formatNumber(active + 1)}</strong><span>/</span>{formatNumber(count)}
-          </p>
-          <button type="button" onClick={handleNext} aria-label={nextLabel} className="certificate-native-arrow">
-            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="h-5 w-5 rtl:rotate-180">
-              <path strokeLinecap="round" strokeLinejoin="round" d="m9 5 7 7-7 7" />
-            </svg>
-          </button>
-        </div>
+  // Compute 3D front & back face indices
+  const currentRotationStep = Math.floor(rotationY / 180);
+  const frontIndex = (currentRotationStep % 2 === 0 ? currentRotationStep : currentRotationStep + 1) % count;
+  const backIndex = (currentRotationStep % 2 === 1 ? currentRotationStep : currentRotationStep + 1) % count;
 
-        <div ref={trackRef} className="certificate-native-track" role="group" tabIndex={0} aria-label={certificateLabel}>
-          {certificates.map((certificate, index) => (
-            <button
-              key={certificate.file}
-              type="button"
-              onClick={() => handleCardClick(certificate, index)}
-              onFocus={() => setActive(index)}
-              aria-pressed={index === active}
-              aria-label={`${t('certifications.openDetails')}: ${certificate.title}`}
-              className={`certificate-wheel-card certificate-native-card ${index === active ? 'is-active' : ''}`}
-            >
-              <span className="certificate-wheel-image">
-                <img
-                  src={`${import.meta.env.BASE_URL}certificates/previews/${certificate.file.replace(/\.pdf$/i, '.jpg')}`}
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                />
-              </span>
-              <span className="certificate-wheel-copy">
-                <span>{certificate.category[language]}</span>
-                <strong dir="auto">{certificate.title}</strong>
-                <small dir="auto">{certificate.issuer}</small>
-              </span>
-            </button>
-          ))}
-        </div>
-
-        <div className="certificate-native-details" aria-live="polite">
-          <p className="text-sm font-extrabold text-[var(--color-4)]">{activeCert?.title}</p>
-          <p className="mt-1 text-xs font-semibold text-[var(--color-2)]">
-            {activeCert?.category ? activeCert.category[language] : ''} · {activeCert?.issuer}
-          </p>
-        </div>
-        <nav className="certificate-native-dots" dir="ltr" aria-label={certificateLabel}>
-          {certificates.map((certificate, index) => (
-            <button
-              key={certificate.file}
-              type="button"
-              onClick={() => scrollToCertificate(index)}
-              aria-pressed={index === active}
-              aria-label={`Go to certificate ${index + 1}: ${certificate.title}`}
-              className={`certificate-native-dot ${index === active ? 'is-active' : ''}`}
-            />
-          ))}
-        </nav>
-      </div>
-    );
-  }
+  const frontCert = certificates[frontIndex] || certificates[0];
+  const backCert = certificates[backIndex] || certificates[0];
 
   return (
     <div ref={stageRef} style={{ height: `${stageLength}svh` }} className="certificate-scroll-stage relative">
       <div className="certificate-scroll-sticky sticky top-0 flex h-[100svh] flex-col items-center justify-center overflow-hidden">
-        <div className="certificate-wheel-hint absolute top-20 z-10 px-4 text-center sm:top-24">
+        {/* Top Hint */}
+        <div className="certificate-wheel-hint absolute top-16 z-10 px-4 text-center sm:top-24">
           <p className="text-xs font-black tracking-widest text-[var(--color-2)] uppercase">
-            {t('certifications.wheelScrollHint')}
+            {language === 'ar' ? 'مرّر أو انقر لتقليب بطاقات الشهادات 3D ↺' : 'Scroll or click to flip 3D certificates ↺'}
           </p>
-          <p className="mt-1.5 text-xs font-medium text-[var(--color-4)]/70">
+          <p className="mt-1 text-xs font-medium text-[var(--color-4)]/70">
             {t('certifications.wheelClickHint')}
           </p>
         </div>
 
-        <div className="relative w-full">
+        {/* Center 3D Flipping Stage */}
+        <div className="relative flex w-full items-center justify-center py-6">
+          {/* Radial Glow */}
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute left-1/2 top-1/2 h-[350px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--color-7)]/10 blur-[90px] dark:bg-[var(--color-7)]/15"
+            className="pointer-events-none absolute left-1/2 top-1/2 h-[360px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--color-7)]/12 blur-[100px] dark:bg-[var(--color-7)]/18"
           />
 
+          {/* Navigation Arrows */}
           <div className="pointer-events-none absolute inset-y-0 left-0 right-0 z-20 mx-auto flex max-w-5xl items-center justify-between px-3 sm:px-6">
             <button
               type="button"
@@ -236,63 +148,111 @@ function CertificateWheel({ certificates, language, t, onSelect, profile }) {
             </button>
           </div>
 
+          {/* 3D Double-Sided Flipping Card Container */}
           <div
-            className="certificate-wheel-scene w-full"
-            dir={language === 'ar' ? 'rtl' : 'ltr'}
-            style={{ perspective: `${profile.perspective}px` }}
+            className="certificate-flip-stage relative z-10 w-[min(88vw,21rem)] sm:w-[min(84vw,26rem)] aspect-[4/4.8] sm:aspect-[4/4.5]"
+            style={{ perspective: '1100px' }}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
           >
-            <div aria-hidden="true" className="certificate-wheel-orbit" />
+            {/* Deck Stack Layer 2 (Bottom layer behind card) */}
             <div
-              ref={wheelRef}
-              className="certificate-wheel"
-              onClick={(event) => {
-                if (event.target === event.currentTarget && activeCert) {
-                  event.currentTarget.querySelector('.certificate-wheel-card[aria-pressed="true"]')?.focus({ preventScroll: true });
-                  onSelect(activeCert);
-                }
+              className="certificate-deck-layer-2 pointer-events-none absolute inset-0 rounded-[1.5rem] border border-[var(--color-3)] bg-white/60 shadow-md dark:border-white/10 dark:bg-[var(--color-6)]/60"
+              style={{ transform: 'translateZ(-50px) translateY(14px) scale(0.91)', opacity: 0.45 }}
+            />
+
+            {/* Deck Stack Layer 1 (Middle layer behind card) */}
+            <div
+              className="certificate-deck-layer-1 pointer-events-none absolute inset-0 rounded-[1.5rem] border border-[var(--color-3)] bg-white/80 shadow-lg dark:border-white/10 dark:bg-[var(--color-6)]/80"
+              style={{ transform: 'translateZ(-25px) translateY(7px) scale(0.955)', opacity: 0.75 }}
+            />
+
+            {/* Main Double-Sided Flipping 3D Card */}
+            <div
+              ref={cardRef}
+              onClick={() => onSelect(activeCert)}
+              className="certificate-flip-card group relative h-full w-full cursor-pointer rounded-[1.5rem]"
+              style={{
+                transformStyle: 'preserve-3d',
+                transform: `rotateY(${rotationY}deg)`,
+                transition: 'transform 850ms cubic-bezier(0.25, 1, 0.35, 1)',
               }}
             >
-              {certificates.map((certificate, index) => {
-                const isActive = index === active;
-                return (
-                  <button
-                    key={certificate.file}
-                    type="button"
-                    onClick={() => handleCardClick(certificate, index)}
-                    aria-pressed={isActive}
-                    aria-hidden={!isActive}
-                    tabIndex={isActive ? 0 : -1}
-                    aria-label={`${t('certifications.openDetails')}: ${certificate.title}`}
-                    className={`certificate-wheel-card ${isActive ? 'is-active' : 'opacity-85 hover:opacity-100'}`}
-                    style={{ transform: `rotateY(${(index * 360) / count}deg) translateZ(var(--certificate-wheel-radius))` }}
-                  >
-                    <span className="certificate-wheel-image">
-                      <img
-                        src={`${import.meta.env.BASE_URL}certificates/previews/${certificate.file.replace(/\.pdf$/i, '.jpg')}`}
-                        alt=""
-                        loading="lazy"
-                        decoding="async"
-                      />
-                      {isActive && (
-                        <span className="absolute bottom-2 start-2 z-10 inline-flex items-center gap-1 rounded-full bg-black/75 px-2.5 py-0.5 text-[10px] font-bold text-white shadow-md backdrop-blur-sm">
-                          <span>{t('certifications.openDetails')}</span>
-                          <span>↗</span>
-                        </span>
-                      )}
+              {/* FRONT FACE */}
+              <div
+                className="certificate-card-face certificate-card-front absolute inset-0 flex flex-col overflow-hidden rounded-[1.5rem] border-2 border-[var(--color-7)] bg-white/95 text-start shadow-xl backdrop-blur-sm dark:border-[var(--color-7)] dark:bg-[var(--color-6)]"
+                style={{ backfaceVisibility: 'hidden', transform: 'rotateY(0deg)' }}
+              >
+                <div className="relative aspect-[16/10] w-full overflow-hidden border-b border-[var(--color-3)] bg-[var(--color-6)]">
+                  <img
+                    src={`${import.meta.env.BASE_URL}certificates/previews/${frontCert.file.replace(/\.pdf$/i, '.jpg')}`}
+                    alt={`${frontCert.title} preview`}
+                    className="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <span className="absolute bottom-3 start-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-[var(--color-4)]/90 px-3 py-1 text-xs font-bold text-white shadow-lg backdrop-blur-md">
+                    <span>{t('certifications.openDetails')}</span>
+                    <span aria-hidden="true">↗</span>
+                  </span>
+                  <span className="absolute top-3 end-3 z-10 rounded-full border border-[var(--color-3)] bg-white/95 px-3 py-0.5 text-[10px] font-black uppercase tracking-wider text-[var(--color-2)] shadow-sm dark:bg-[var(--color-5)]">
+                    {frontCert.category[language]}
+                  </span>
+                </div>
+                <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
+                  <div>
+                    <span className="text-xs font-extrabold text-[var(--color-2)]">{frontCert.category[language]}</span>
+                    <h3 className="mt-1 line-clamp-2 text-base font-black leading-snug text-[var(--color-4)] sm:text-lg">{frontCert.title}</h3>
+                    <p className="mt-1.5 line-clamp-1 text-xs font-bold text-[var(--color-1)]">{frontCert.issuer}</p>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between border-t border-[var(--color-3)]/60 pt-3 dark:border-white/10">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-extrabold tracking-wider text-[var(--color-2)] uppercase">
+                      <span>3D Card Flip</span>
+                      <span>↺</span>
                     </span>
-                    <span className="certificate-wheel-copy">
-                      <span>{certificate.category[language]}</span>
-                      <strong dir="auto">{certificate.title}</strong>
-                      <small dir="auto">{certificate.issuer}</small>
+                    <span className="text-xs font-black tabular-nums text-[var(--color-4)]/70">{formatNumber(frontIndex + 1)} / {formatNumber(count)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* BACK FACE */}
+              <div
+                className="certificate-card-face certificate-card-back absolute inset-0 flex flex-col overflow-hidden rounded-[1.5rem] border-2 border-[var(--color-7)] bg-white/95 text-start shadow-xl backdrop-blur-sm dark:border-[var(--color-7)] dark:bg-[var(--color-6)]"
+                style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+              >
+                <div className="relative aspect-[16/10] w-full overflow-hidden border-b border-[var(--color-3)] bg-[var(--color-6)]">
+                  <img
+                    src={`${import.meta.env.BASE_URL}certificates/previews/${backCert.file.replace(/\.pdf$/i, '.jpg')}`}
+                    alt={`${backCert.title} preview`}
+                    className="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                  />
+                  <span className="absolute bottom-3 start-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-[var(--color-4)]/90 px-3 py-1 text-xs font-bold text-white shadow-lg backdrop-blur-md">
+                    <span>{t('certifications.openDetails')}</span>
+                    <span aria-hidden="true">↗</span>
+                  </span>
+                  <span className="absolute top-3 end-3 z-10 rounded-full border border-[var(--color-3)] bg-white/95 px-3 py-0.5 text-[10px] font-black uppercase tracking-wider text-[var(--color-2)] shadow-sm dark:bg-[var(--color-5)]">
+                    {backCert.category[language]}
+                  </span>
+                </div>
+                <div className="flex flex-1 flex-col justify-between p-4 sm:p-5">
+                  <div>
+                    <span className="text-xs font-extrabold text-[var(--color-2)]">{backCert.category[language]}</span>
+                    <h3 className="mt-1 line-clamp-2 text-base font-black leading-snug text-[var(--color-4)] sm:text-lg">{backCert.title}</h3>
+                    <p className="mt-1.5 line-clamp-1 text-xs font-bold text-[var(--color-1)]">{backCert.issuer}</p>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between border-t border-[var(--color-3)]/60 pt-3 dark:border-white/10">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-extrabold tracking-wider text-[var(--color-2)] uppercase">
+                      <span>3D Card Flip</span>
+                      <span>↺</span>
                     </span>
-                  </button>
-                );
-              })}
+                    <span className="text-xs font-black tabular-nums text-[var(--color-4)]/70">{formatNumber(backIndex + 1)} / {formatNumber(count)}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="certificate-wheel-footer absolute bottom-6 z-10 flex flex-col items-center gap-3 px-4 text-center sm:bottom-8">
+        {/* Bottom Pagination & Progress Controls */}
+        <div className="certificate-wheel-footer absolute bottom-5 z-10 flex flex-col items-center gap-3 px-4 text-center sm:bottom-8">
           <div className="max-w-md">
             <p className="text-sm font-extrabold text-[var(--color-4)]">{activeCert?.title}</p>
             <p className="mt-0.5 text-xs font-semibold text-[var(--color-2)]">
@@ -624,7 +584,6 @@ export default function CertificationsSection() {
             language={language}
             t={t}
             onSelect={setSelectedCertificate}
-            profile={profile}
           />
         </div>
       </div>
