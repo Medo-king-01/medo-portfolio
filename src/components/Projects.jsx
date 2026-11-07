@@ -149,6 +149,7 @@ const ProjectCard = ({ project, language, t, onOpenPreview }) => {
               src={project.image}
               alt={`${title} project preview`}
               loading="lazy"
+              decoding="async"
               className="h-full w-full object-cover object-top transition duration-700 ease-out group-hover:scale-[1.04]"
             />
             <span className="pointer-events-none absolute inset-0 bg-[var(--color-4)]/0 transition-colors duration-300 group-hover:bg-[var(--color-4)]/20" />
@@ -705,7 +706,13 @@ const Projects = () => {
               >
                 {previewItem ? (
                   <div className="bg-[var(--color-4)] p-2 sm:p-4">
-                    <img src={previewItem.image} alt={`${previewItem.title} screenshot`} className="mx-auto max-h-[75vh] w-auto object-contain" />
+                    <img
+                      src={previewItem.image}
+                      alt={`${previewItem.title} screenshot`}
+                      loading="lazy"
+                      decoding="async"
+                      className="mx-auto max-h-[75vh] w-auto object-contain"
+                    />
                   </div>
                 ) : (
                   <ProjectCard project={selectedProject} language={language} t={t} onOpenPreview={setPreviewItem} />

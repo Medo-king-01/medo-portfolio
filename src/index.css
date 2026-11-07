@@ -347,6 +347,7 @@ html[dir="rtl"] .project-gallery-description {
   overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 
 .projects-track::-webkit-scrollbar,

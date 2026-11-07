@@ -187,6 +187,8 @@ function CertificateWheel({ certificates, language, t, onSelect }) {
                   <img
                     src={`${import.meta.env.BASE_URL}certificates/previews/${frontCert.file.replace(/\.pdf$/i, '.jpg')}`}
                     alt={`${frontCert.title} preview`}
+                    loading="lazy"
+                    decoding="async"
                     className="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                   />
                   <span className="absolute bottom-3 start-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-[var(--color-4)]/90 px-3 py-1 text-xs font-bold text-white shadow-lg backdrop-blur-md">
@@ -222,6 +224,8 @@ function CertificateWheel({ certificates, language, t, onSelect }) {
                   <img
                     src={`${import.meta.env.BASE_URL}certificates/previews/${backCert.file.replace(/\.pdf$/i, '.jpg')}`}
                     alt={`${backCert.title} preview`}
+                    loading="lazy"
+                    decoding="async"
                     className="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                   />
                   <span className="absolute bottom-3 start-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-[var(--color-4)]/90 px-3 py-1 text-xs font-bold text-white shadow-lg backdrop-blur-md">
@@ -414,6 +418,8 @@ function CertificateDetails({
             <img
               src={`${import.meta.env.BASE_URL}certificates/previews/${certificate.file.replace(/\.pdf$/i, '.jpg')}`}
               alt={`${certificate.title} preview`}
+              loading="lazy"
+              decoding="async"
               className="mx-auto max-h-[42vh] w-full object-contain"
             />
           </div>

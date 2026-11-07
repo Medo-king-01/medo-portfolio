@@ -357,7 +357,7 @@ export const projects = [
       ar: 'موقع المعهد العالي (HIMC)',
     },
     description: {
-      en: 'A proposed redesign of the Higher Institute of Management and Computer Science website in Ras El Bar, built as a practical project with an institutional identity and a modern user experience. It is not the officially approved website.',
+      en: 'A proposed redesign concept for the Higher Institute of Management and Computer Science website in Ras El Bar, and not the official approved website.',
       ar: 'تصور مقترح لإعادة تصميم موقع المعهد العالي للإدارة والحاسب الآلي برأس البر، وليس الموقع الرسمي المعتمد.',
     },
     galleryNote: { en: 'Proposed concept — not the official website.', ar: 'تصور مقترح — ليس الموقع الرسمي.' },

@@ -31,8 +31,6 @@ const Hero = () => {
   const [videoMuted, setVideoMuted] = useState(true);
   const [resumeOpen, setResumeOpen] = useState(false);
   const [resumeAvailable, setResumeAvailable] = useState(null);
-  const [HeroOrbitScene, setHeroOrbitScene] = useState(null);
-  const [heroOrbitSceneReady, setHeroOrbitSceneReady] = useState(false);
   const heroRevealVariants = getRevealVariants({
     distance: motionProfile.revealDistance,
   });
@@ -93,40 +91,7 @@ const Hero = () => {
     return () => pulse.revert();
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-    let idleHandle;
-    let timeoutHandle;
 
-    const loadScene = () => {
-      const importScene = () => {
-        import('./HeroOrbitScene.jsx')
-          .then(({ default: Scene }) => {
-            if (!cancelled) setHeroOrbitScene(() => Scene);
-          })
-          .catch(() => {});
-      };
-
-      if (typeof window.requestIdleCallback === 'function') {
-        idleHandle = window.requestIdleCallback(importScene, { timeout: 1500 });
-      } else {
-        timeoutHandle = window.setTimeout(importScene, 180);
-      }
-    };
-
-    if (window.__CURTAIN_OPENED__ || siteConfig.sections.preloader?.enabled === false) {
-      loadScene();
-    } else {
-      window.addEventListener('curtain:opened', loadScene, { once: true });
-    }
-
-    return () => {
-      cancelled = true;
-      window.removeEventListener('curtain:opened', loadScene);
-      if (idleHandle && typeof window.cancelIdleCallback === 'function') window.cancelIdleCallback(idleHandle);
-      if (timeoutHandle) window.clearTimeout(timeoutHandle);
-    };
-  }, []);
 
   const handleVideoEnded = () => {
     const video = videoRef.current;
@@ -369,7 +334,7 @@ const Hero = () => {
       </div>
 
       <div
-        className={`hero-orbit-graphic${heroOrbitSceneReady ? ' hero-orbit-graphic-with-3d' : ''}`}
+        className="hero-orbit-graphic"
         aria-hidden="true"
         data-parallax-layer
         data-parallax-depth="0.25"
@@ -378,8 +343,6 @@ const Hero = () => {
         <span className="hero-orbit-ring hero-orbit-ring-two"><i /></span>
         <span className="hero-orbit-core" />
       </div>
-
-      {HeroOrbitScene && <HeroOrbitScene onReady={setHeroOrbitSceneReady} />}
 
       {/* =====================================================
           LAPTOP VIDEO DISPLAY
