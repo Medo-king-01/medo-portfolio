@@ -341,9 +341,9 @@ const ProjectGalleryCard = ({ project, language, t, onSelect, hasFinePointer, in
         onPointerMove={handlePointerMove}
         onPointerLeave={clearPointerPosition}
         aria-label={`${t('projects.openCaseStudy')}: ${title}`}
-        className={`project-gallery-card group relative flex h-full w-full flex-col overflow-hidden rounded-[1.75rem] border border-[var(--color-3)] bg-white/95 text-start shadow-[0_14px_40px_rgba(27,23,22,0.08)] transition-[border-color,box-shadow,transform] duration-300 hover:border-[var(--color-2)]/45 hover:shadow-[0_24px_58px_rgba(27,23,22,0.16)] focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-2)] dark:border-white/10 dark:bg-[var(--color-6)]/90 ${isActive ? 'is-active' : ''}`}
+        className={`project-gallery-card group relative flex h-full w-full flex-col overflow-hidden rounded-[1.25rem] border border-[var(--color-3)] bg-white/95 text-start shadow-[0_10px_32px_rgba(27,23,22,0.07)] transition-[border-color,box-shadow,transform] duration-300 hover:border-[var(--color-2)]/45 hover:shadow-[0_18px_44px_rgba(27,23,22,0.14)] focus-visible:outline-4 focus-visible:outline-offset-4 focus-visible:outline-[var(--color-2)] dark:border-white/10 dark:bg-[var(--color-6)]/90 ${isActive ? 'is-active' : ''}`}
       >
-        <div className="project-gallery-media relative aspect-[16/10] w-full overflow-hidden border-b border-[var(--color-3)] bg-[var(--color-6)]">
+        <div className="project-gallery-media relative aspect-[16/9] w-full overflow-hidden border-b border-[var(--color-3)] bg-[var(--color-6)]">
           {project.image ? (
             <img
               src={project.image}
@@ -358,43 +358,43 @@ const ProjectGalleryCard = ({ project, language, t, onSelect, hasFinePointer, in
           <span aria-hidden="true" className="project-gallery-glow pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
           <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--color-4)]/75 via-[var(--color-4)]/10 to-transparent" />
 
-          <div className="absolute start-4 top-4 z-10 flex flex-wrap items-center gap-2">
-            <span className="rounded-full border border-[var(--color-3)] bg-white/95 px-3.5 py-1 text-[11px] font-black uppercase tracking-[0.1em] text-[var(--color-2)] shadow-sm backdrop-blur-sm dark:bg-[var(--color-5)]/90">
+          <div className="absolute start-3 top-3 z-10 flex flex-wrap items-center gap-1.5 sm:start-4 sm:top-4 sm:gap-2">
+            <span className="rounded-full border border-[var(--color-3)] bg-white/95 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-[0.08em] text-[var(--color-2)] shadow-sm backdrop-blur-sm sm:px-3 sm:py-1 sm:text-[11px] dark:bg-[var(--color-5)]/90">
               {resolveLocalized(project.badge, language)}
             </span>
-            <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-bold shadow-sm backdrop-blur-sm ${status.badgeClass}`}>
-              <span className={`h-2 w-2 rounded-full ${status.dotClass}`} />
+            <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-bold shadow-sm backdrop-blur-sm sm:gap-1.5 sm:px-3 sm:py-1 sm:text-[11px] ${status.badgeClass}`}>
+              <span className={`h-1.5 w-1.5 rounded-full sm:h-2 sm:w-2 ${status.dotClass}`} />
               <span>{status.label}</span>
             </span>
           </div>
-          <span aria-hidden="true" className="absolute bottom-3 end-5 z-10 text-3xl font-black italic tracking-tight text-white drop-shadow-[0_2px_8px_rgba(27,23,22,0.75)]">
+          <span aria-hidden="true" className="absolute bottom-2.5 end-4 z-10 text-2xl font-black italic tracking-tight text-white drop-shadow-[0_2px_8px_rgba(27,23,22,0.75)] sm:text-3xl">
             {project.number}
           </span>
-          <span className="absolute bottom-4 start-5 z-10 inline-flex items-center gap-2 rounded-full bg-[var(--color-4)]/90 px-3.5 py-2 text-xs font-bold text-[var(--color-5)] shadow-lg backdrop-blur-md transition-transform duration-300 group-hover:-translate-y-1">
+          <span className="absolute bottom-3 start-3.5 z-10 inline-flex items-center gap-1.5 rounded-full bg-[var(--color-4)]/90 px-3 py-1.5 text-[11px] font-bold text-[var(--color-5)] shadow-md backdrop-blur-md transition-transform duration-300 group-hover:-translate-y-0.5 sm:gap-2 sm:px-3.5 sm:py-2 sm:text-xs">
             <ZoomIcon />
             <span>{t('projects.openCaseStudy')}</span>
           </span>
         </div>
 
-        <div className="flex flex-1 items-start gap-4 p-5 sm:p-6">
-          <span aria-hidden="true" className="pt-0.5 text-sm font-black tabular-nums text-[var(--color-2)]">{project.number}</span>
+        <div className="flex flex-1 items-start gap-3 p-3.5 sm:gap-4 sm:p-4.5">
+          <span aria-hidden="true" className="pt-0.5 text-xs font-black tabular-nums text-[var(--color-2)] sm:text-sm">{project.number}</span>
           <div className="min-w-0 flex-1">
-            <span className="project-gallery-title line-clamp-2 block text-lg font-black leading-tight text-[var(--color-4)] sm:text-xl">{title}</span>
-            <span className="project-gallery-description mt-2 line-clamp-3 block text-xs font-medium leading-relaxed text-[var(--color-4)]/72 sm:text-sm">{description}</span>
+            <span className="project-gallery-title line-clamp-1 block text-base font-black leading-snug text-[var(--color-4)] sm:line-clamp-2 sm:text-lg">{title}</span>
+            <span className="project-gallery-description mt-1 line-clamp-2 block text-xs font-medium leading-relaxed text-[var(--color-4)]/72 sm:text-sm">{description}</span>
             {project.techTags?.length > 0 && (
-              <div className="project-gallery-tags mt-4 flex flex-wrap gap-1.5">
+              <div className="project-gallery-tags mt-2.5 flex flex-wrap gap-1.5">
                 {project.techTags.slice(0, 3).map((tag) => (
-                  <span key={tag} dir="ltr" className={`rounded-full border px-2.5 py-1 text-[10px] font-bold ${getTechStyle(tag)}`}>
+                  <span key={tag} dir="ltr" className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${getTechStyle(tag)}`}>
                     {tag}
                   </span>
                 ))}
                 {project.techTags.length > 3 && (
-                  <span className="rounded-full border border-[var(--color-3)] px-2.5 py-1 text-[10px] font-medium text-[var(--color-4)]/60">+{project.techTags.length - 3}</span>
+                  <span className="rounded-full border border-[var(--color-3)] px-2 py-0.5 text-[10px] font-medium text-[var(--color-4)]/60">+{project.techTags.length - 3}</span>
                 )}
               </div>
             )}
           </div>
-          <span aria-hidden="true" className="pt-0.5 text-lg text-[var(--color-2)] transition-transform duration-300 group-hover:translate-x-1 rtl:group-hover:-translate-x-1">↗</span>
+          <span aria-hidden="true" className="pt-0.5 text-base text-[var(--color-2)] transition-transform duration-300 group-hover:translate-x-1 rtl:group-hover:-translate-x-1">↗</span>
         </div>
       </button>
     </article>
