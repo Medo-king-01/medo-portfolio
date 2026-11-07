@@ -17,6 +17,11 @@ import Perspective from './components/Perspective';
 import Content from './components/Content';
 import Leadership from './components/Leadership';
 import Footer from './components/Footer';
+import ClickEffects from './components/ClickEffects';
+import MouseParallax from './components/MouseParallax';
+import TextEffects from './components/TextEffects';
+import PointerTracker from './components/PointerTracker';
+import ThemeTransition from './components/ThemeTransition';
 import { projects, leadershipList } from './data/portfolioData';
 
 const SECTION_COMPONENTS = {
@@ -145,8 +150,13 @@ function App() {
 
   return (
     <>
+      <PointerTracker />
+      <ThemeTransition />
       <SmoothScrollController />
       <ScrollProgress />
+      <ClickEffects />
+      <MouseParallax />
+      <TextEffects />
       {activeSections.map(([key]) => {
         const Component = SECTION_COMPONENTS[key];
         return Component ? <Component key={key} /> : null;

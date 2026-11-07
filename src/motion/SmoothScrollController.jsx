@@ -6,7 +6,7 @@ import { siteConfig } from '../config/site.config';
 import 'lenis/dist/lenis.css';
 
 const PRESENTATION_SCROLL_QUERY =
-  '(min-width: 1024px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)';
+  '(min-width: 1024px) and (hover: hover) and (pointer: fine)';
 const PRESENTATION_SECTIONS = '[data-experience-section]:not(#footer)';
 
 const easeOutCubic = (progress) => 1 - ((1 - progress) ** 3);
@@ -21,9 +21,9 @@ export default function SmoothScrollController() {
 
       window.cancelAnimationFrame(runtime.frameId);
       window.removeEventListener('curtain:opened', runtime.resumeAfterCurtain);
-      runtime.snap.destroy();
-      runtime.lenis.off('scroll', runtime.updateScrollTrigger);
-      runtime.lenis.destroy();
+      try { runtime.snap.destroy(); } catch { /* noop */ }
+      try { runtime.lenis.off('scroll', runtime.updateScrollTrigger); } catch { /* noop */ }
+      try { runtime.lenis.destroy(); } catch { /* noop */ }
       runtime = undefined;
     };
 
@@ -34,6 +34,8 @@ export default function SmoothScrollController() {
         || runtime
         || typeof ResizeObserver === 'undefined'
         || typeof Array.prototype.findLastIndex !== 'function'
+        || !window.history
+        || typeof window.history.scrollRestoration === 'undefined'
       ) return;
 
       let lenis;
@@ -57,13 +59,15 @@ export default function SmoothScrollController() {
         const sections = Array.from(document.querySelectorAll(PRESENTATION_SECTIONS));
         snap.addElements(sections, { align: 'start' });
       } catch (error) {
-        snap?.destroy();
-        lenis?.destroy();
+        try { snap?.destroy(); } catch { /* noop */ }
+        try { lenis?.destroy(); } catch { /* noop */ }
         console.warn('Presentation scrolling is unavailable; keeping native scroll.', error);
         return;
       }
 
-      const updateScrollTrigger = () => ScrollTrigger.update();
+      const updateScrollTrigger = () => {
+        try { ScrollTrigger.update(); } catch { /* noop */ }
+      };
       lenis.on('scroll', updateScrollTrigger);
 
       const shouldWaitForCurtain = siteConfig.sections.preloader?.enabled !== false
@@ -76,7 +80,7 @@ export default function SmoothScrollController() {
 
       let frameId = 0;
       const raf = (time) => {
-        lenis.raf(time);
+        try { lenis.raf(time); } catch { /* noop */ }
         frameId = window.requestAnimationFrame(raf);
       };
       frameId = window.requestAnimationFrame(raf);

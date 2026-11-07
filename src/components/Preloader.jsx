@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { motionConfig } from '../motion/motionConfig.js';
 import { personalInfo } from '../data/portfolioData';
 import { siteConfig } from '../config/site.config';
 import { useLanguage } from '../context/LanguageContext.jsx';
 
 const INTRO_SEQUENCE_MS = 5_000;
-const REDUCED_MOTION_SEQUENCE_MS = 350;
 const COMPLETION_PAUSE_MS = 180;
 const DOT_JOURNEY_SECONDS = 4.1;
 
@@ -22,7 +21,6 @@ const Preloader = () => {
   );
   const [isSequenceComplete, setIsSequenceComplete] = useState(false);
   const [isProgressComplete, setIsProgressComplete] = useState(false);
-  const prefersReducedMotion = useReducedMotion() === true;
   const { t, langConfig } = useLanguage();
 
   useEffect(() => {
@@ -55,14 +53,14 @@ const Preloader = () => {
 
     const introTimer = window.setTimeout(
       () => setIsSequenceComplete(true),
-      prefersReducedMotion ? REDUCED_MOTION_SEQUENCE_MS : INTRO_SEQUENCE_MS,
+      INTRO_SEQUENCE_MS,
     );
 
     return () => {
       window.removeEventListener('app:ready', handleAppReady);
       window.clearTimeout(introTimer);
     };
-  }, [prefersReducedMotion]);
+  }, []);
 
   useEffect(() => {
     if (!isAppReady || !isSequenceComplete) return undefined;
@@ -70,14 +68,14 @@ const Preloader = () => {
     const progressTimer = window.setTimeout(() => setIsProgressComplete(true), 0);
     const completionTimer = window.setTimeout(
       () => setIsLoading(false),
-      prefersReducedMotion ? 80 : COMPLETION_PAUSE_MS,
+      COMPLETION_PAUSE_MS,
     );
 
     return () => {
       window.clearTimeout(progressTimer);
       window.clearTimeout(completionTimer);
     };
-  }, [isAppReady, isSequenceComplete, prefersReducedMotion]);
+  }, [isAppReady, isSequenceComplete]);
 
   const brandName = personalInfo?.brandName || siteConfig.brand.brandName;
   const brandLetters = Array.from(brandName);
@@ -108,9 +106,12 @@ const Preloader = () => {
   pulseOpacity.push(0);
 
   const firstDotPosition = `${(0.5 / letterCount) * 100}%`;
-  const wordmarkTransition = prefersReducedMotion
-    ? { duration: 0.18, ease: 'easeOut' }
-    : { duration: DOT_JOURNEY_SECONDS, times: dotTimes, ease: 'easeInOut', delay: 0.08 };
+  const wordmarkTransition = {
+    duration: DOT_JOURNEY_SECONDS,
+    times: dotTimes,
+    ease: 'easeInOut',
+    delay: 0.08,
+  };
 
   return (
     <AnimatePresence mode="wait" onExitComplete={announceCurtainOpened}>
@@ -118,15 +119,13 @@ const Preloader = () => {
         <motion.div
           key="preloader"
           initial={{ y: 0 }}
-          exit={prefersReducedMotion
-            ? { opacity: 0, transition: { duration: 0.12 } }
-            : {
-                y: '-100%',
-                transition: {
-                  duration: motionConfig.duration.curtain,
-                  ease: motionConfig.ease.exit,
-                },
-              }}
+          exit={{
+            y: '-100%',
+            transition: {
+              duration: motionConfig.duration.curtain,
+              ease: motionConfig.ease.exit,
+            },
+          }}
           className="
             fixed
             inset-0
@@ -155,13 +154,9 @@ const Preloader = () => {
               }}
             />
             <motion.div
-              initial={prefersReducedMotion ? { opacity: 0.14 } : { opacity: 0.08, scale: 0.82 }}
-              animate={prefersReducedMotion ? { opacity: 0.14 } : { opacity: 0.2, scale: 1.08 }}
-              transition={
-                prefersReducedMotion
-                  ? { duration: 0.2 }
-                  : { duration: 3.2, ease: 'easeInOut', repeat: Infinity, repeatType: 'reverse' }
-              }
+              initial={{ opacity: 0.08, scale: 0.82 }}
+              animate={{ opacity: 0.2, scale: 1.08 }}
+              transition={{ duration: 3.2, ease: 'easeInOut', repeat: Infinity, repeatType: 'reverse' }}
               className="absolute left-1/2 top-1/2 h-96 w-96 max-w-[85vw] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[var(--color-8)] blur-[100px]"
             />
             <span className="absolute inset-x-7 top-7 h-px bg-[var(--color-3)]/75 md:inset-x-12 md:top-10" />
@@ -169,7 +164,6 @@ const Preloader = () => {
           </div>
 
           <div className="relative z-10 flex w-full flex-col items-center px-5 text-center">
-            {/* MEDO is assembled one letter at a time as the red dot bounces across it. */}
             <div
               className="relative grid grid-cols-4 items-center justify-items-center font-black leading-none tracking-[-0.075em]"
               style={{
@@ -183,25 +177,13 @@ const Preloader = () => {
               {brandLetters.map((letter, index) => (
                 <motion.span
                   key={`${letter}-${index}`}
-                  initial={
-                    prefersReducedMotion
-                      ? { opacity: 0 }
-                      : { opacity: 0, y: 24, scale: 0.78, filter: 'blur(9px)' }
-                  }
-                  animate={
-                    prefersReducedMotion
-                      ? { opacity: 1 }
-                      : { opacity: 1, y: [24, -5, 0], scale: [0.78, 1.08, 1], filter: 'blur(0px)' }
-                  }
-                  transition={
-                    prefersReducedMotion
-                      ? { duration: 0.16, delay: index * 0.04 }
-                      : {
-                          duration: 0.56,
-                          delay: 0.38 + index * (DOT_JOURNEY_SECONDS / letterCount),
-                          ease: [0.16, 1, 0.3, 1],
-                        }
-                  }
+                  initial={{ opacity: 0, y: 24, scale: 0.78, filter: 'blur(9px)' }}
+                  animate={{ opacity: 1, y: [24, -5, 0], scale: [0.78, 1.08, 1], filter: 'blur(0px)' }}
+                  transition={{
+                    duration: 0.56,
+                    delay: 0.38 + index * (DOT_JOURNEY_SECONDS / letterCount),
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
                   className="relative z-10 block text-[var(--color-4)]"
                   aria-hidden="true"
                 >
@@ -219,16 +201,12 @@ const Preloader = () => {
                   boxShadow: '0 0 20px color-mix(in srgb, var(--color-7) 45%, transparent)',
                 }}
                 initial={{ top: '-1.1em', opacity: 0, scale: 0.25 }}
-                animate={
-                  prefersReducedMotion
-                    ? { top: '0.68em', left: '100%', opacity: 0, scale: 0.25 }
-                    : {
-                        top: dotTopPositions,
-                        left: dotPositions,
-                        opacity: pulseOpacity,
-                        scale: pulseScale,
-                      }
-                }
+                animate={{
+                  top: dotTopPositions,
+                  left: dotPositions,
+                  opacity: pulseOpacity,
+                  scale: pulseScale,
+                }}
                 transition={wordmarkTransition}
                 aria-hidden="true"
               />
@@ -243,27 +221,23 @@ const Preloader = () => {
                   boxShadow: '0 0 18px color-mix(in srgb, var(--color-7) 70%, transparent)',
                 }}
                 initial={{ top: '-1.1em', opacity: 0, scale: 0.4 }}
-                animate={
-                  prefersReducedMotion
-                    ? { top: '0.68em', left: '100%', opacity: 1, scale: 0.96 }
-                    : {
-                        top: dotTopPositions,
-                        left: dotPositions,
-                        opacity: dotOpacity,
-                        scale: dotScale,
-                      }
-                }
+                animate={{
+                  top: dotTopPositions,
+                  left: dotPositions,
+                  opacity: dotOpacity,
+                  scale: dotScale,
+                }}
                 transition={wordmarkTransition}
                 aria-hidden="true"
               />
             </div>
 
             <motion.div
-              initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 14, filter: 'blur(5px)' }}
-              animate={prefersReducedMotion ? { opacity: 1 } : { opacity: 1, y: 0, filter: 'blur(0px)' }}
+              initial={{ opacity: 0, y: 14, filter: 'blur(5px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
               transition={{
-                duration: prefersReducedMotion ? 0.2 : 0.62,
-                delay: prefersReducedMotion ? 0.04 : 4.2,
+                duration: 0.62,
+                delay: 4.2,
                 ease: [0.22, 1, 0.36, 1],
               }}
               className="mt-8 flex w-fit max-w-[90vw] flex-col items-center"
@@ -277,8 +251,8 @@ const Preloader = () => {
                 initial={{ scaleX: 0, opacity: 0 }}
                 animate={{ scaleX: 1, opacity: 0.72 }}
                 transition={{
-                  duration: prefersReducedMotion ? 0.16 : 0.55,
-                  delay: prefersReducedMotion ? 0 : 4.45,
+                  duration: 0.55,
+                  delay: 4.45,
                   ease: [0.22, 1, 0.36, 1],
                 }}
                 aria-hidden="true"
@@ -286,11 +260,11 @@ const Preloader = () => {
             </motion.div>
 
             <motion.div
-              initial={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
+              initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{
-                duration: prefersReducedMotion ? 0.18 : 0.42,
-                delay: prefersReducedMotion ? 0.12 : 4.35,
+                duration: 0.42,
+                delay: 4.35,
                 ease: 'easeOut',
               }}
               className="mt-12 w-[min(70vw,18rem)] sm:mt-14"
@@ -312,8 +286,8 @@ const Preloader = () => {
                   initial={{ scaleX: 0 }}
                   animate={{ scaleX: isProgressComplete ? 1 : 0.9 }}
                   transition={{
-                    duration: prefersReducedMotion ? 0.18 : isProgressComplete ? 0.18 : 0.55,
-                    delay: prefersReducedMotion || isProgressComplete ? 0 : 4.45,
+                    duration: isProgressComplete ? 0.18 : 0.55,
+                    delay: isProgressComplete ? 0 : 4.45,
                     ease: 'linear',
                   }}
                 />
